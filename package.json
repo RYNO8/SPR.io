@@ -1,0 +1,37 @@
+{
+  "name": "typescript-express-phaser-socketio-starter",
+  "version": "1.0.0",
+  "description": "A starter pack to quickly develop multiplayer games using Typescript, Express, SocketIO and Phaser",
+  "main": "index.html",
+  "scripts": {
+    "clean": "rimraf dist/*",
+    "tsc": "tsc",
+    "assets": "copy /y src\\client\\index.html dist\\client && xcopy /e /i /y src\\client\\css dist\\client\\css && xcopy /e /i /y src\\client\\img dist\\client\\img",
+    "parcel": "parcel build src/client/game.ts -d dist/client",
+    "build": "npm-run-all clean tsc assets parcel",
+    "start": "node dist/server/server.js",
+    "dev": "nodemon --watch src -e ts --exec npm-run-all build start"
+  },
+  "author": "Sebastian Klier",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.3",
+    "phaser": "^3.16.2",
+    "socket.io": "^3.1.2",
+    "socket.io-client": "^4.4.1",
+    "socket.io-server": "^1.0.0-b",
+    "throttle-debounce": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/parcel-bundler": "^1.12.4",
+    "@types/socket.io": "^2.1.13",
+    "@types/throttle-debounce": "^2.1.0",
+    "nodemon": "^1.19.4",
+    "npm-run-all": "^4.1.5",
+    "parcel-bundler": "^1.12.5",
+    "phaser3-docs": "github:photonstorm/phaser3-docs",
+    "rimraf": "^2.7.1",
+    "typescript": "^3.9.10"
+  }
+}
