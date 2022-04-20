@@ -1,4 +1,4 @@
-export let PORT : number = 8000
+export let PORT : number = 80
 
 // networking
 // in frames per second
@@ -6,7 +6,7 @@ export let SERVER_TICK_RATE : number = 30
 // in milliseconds
 export let SERVER_TIME_STEP = 1000 / SERVER_TICK_RATE
 // in milliseconds
-export let RENDER_DELAY : number = 0
+export let RENDER_DELAY : number = 100
 
 // socketio "endpoints"
 export let ENDPOINT_CLIENT_CONNECT : string = "connect"
@@ -22,7 +22,7 @@ export let ENDPOINT_GAME_INIT : string = "game_init"
 export let NUM_TEAMS : number = 3
 export let PLAYER_RADIUS : number = 20
 export let PLAYER_SPEED : number = 0.35
-export let MAP_SIZE : number = 3000
+export let MAP_SIZE : number = 1000
 export let VISIBLE_REGION : number = 0.2 // players can see a square region of 0.4*MAP_SIZE
 
 // display

@@ -15,6 +15,7 @@ socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate : string) {
     timeDiff = gamestate.time - Date.now()
     initTimeDiff = false
   }
+  //console.log("lag", gamestate.time - Date.now());
   gamestates.push(gamestate)
 
   while (gamestates.length > 1 && gamestates[1].time <= Date.now() + timeDiff - CONSTANTS.RENDER_DELAY) {
@@ -87,7 +88,7 @@ function render() {
     })
 
     // Draw myself
-    console.log(direction)
+    //console.log(direction)
     me.direction = direction
     renderPlayer(me, CONSTANTS.TEAMMATE_COLOUR)
   }
