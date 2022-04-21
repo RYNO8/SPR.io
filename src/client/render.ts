@@ -2,8 +2,9 @@ import { debounce } from "throttle-debounce"
 import { socket } from "./networking"
 import { GameState, importState, interpolate } from "../shared/model/gamestate"
 import * as CONSTANTS from "../shared/constants"
-import { Player, getColour } from "../shared/model/player"
+import { Player } from "../shared/model/player"
 import { direction } from "./send"
+import { Powerup } from "../shared/model/powerup"
 //import { getAsset } from "./assets"
 
 let gamestates : GameState[] = []
@@ -59,7 +60,17 @@ function render() {
     gamestate = gamestates[0]
   }
   else {
-    gamestate = interpolate(gamestates[0], gamestates[1], Date.now() + timeDiff - CONSTANTS.RENDER_DELAY)
+    if (gamestates[1].time < gamestates[0].time) {
+        console.error("Received packets out of order, this is bad!")
+    }
+
+    let time : number = Date.now() + timeDiff - CONSTANTS.RENDER_DELAY
+    gamestate = interpolate(
+      gamestates[0],
+      gamestates[1],
+      (gamestates[1].time - time) / (gamestates[1].time - gamestates[0].time),
+      (time - gamestates[0].time) / (gamestates[1].time - gamestates[0].time)
+    )
   }
 
   updateLeaderboard(gamestates[gamestates.length - 1])
@@ -67,6 +78,7 @@ function render() {
   context.restore()
   context.save()
   renderBackground()
+  renderPowerups(gamestate)
 
   let me : Player = gamestate.getPlayer(socket.id)
   if (me) {
@@ -83,7 +95,7 @@ function render() {
     // Draw all players
     gamestate.getPlayers().forEach(function(other : Player) {
       if (other.id != me.id) {
-        renderPlayer(other, getColour(other, me))
+        renderPlayer(other, other.getColour(me))
       }
     })
 
@@ -122,6 +134,12 @@ function renderBackground() {
   // unreachable
   context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
   context.fillRect(0, 0, canvas.width, canvas.height)
+}
+
+function renderPowerups(gamestate : GameState) {
+  gamestate.getPowerups().forEach(function(powerup : Powerup) {
+    console.log(powerup)
+  })
 }
 
 function renderMap() {
@@ -174,7 +192,8 @@ function renderPlayer(player : Player, colour : string) {
 
   // Draw ship
   context.beginPath()
-  context.rect(-CONSTANTS.PLAYER_RADIUS, -CONSTANTS.PLAYER_RADIUS, 2 * CONSTANTS.PLAYER_RADIUS, 2 * CONSTANTS.PLAYER_RADIUS)
+  let inner_radius : number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
+  context.rect(-inner_radius, -inner_radius, 2 * inner_radius, 2 * inner_radius)
   context.fill()
   context.stroke()
 
@@ -190,15 +209,7 @@ function renderPlayer(player : Player, colour : string) {
 
 function updateLeaderboard(gamestate : GameState) {
   let sortedPlayers : Player[] = Object.values(gamestate.players).sort(function(p1 : Player, p2 : Player) {
-    if (p1.score > p2.score) {
-      return 1
-    }
-    else if (p1.score < p2.score) {
-      return -1
-    }
-    else {
-      return 0
-    }
+    return p2.score - p1.score
   })
 
   let table = document.querySelector("#leaderboard > table > tbody")

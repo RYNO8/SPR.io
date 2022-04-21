@@ -1,6 +1,7 @@
 import * as CONSTANTS from "./../constants"
+import { GameObject } from "./game_object"
 
-export class Player {
+export class Player extends GameObject {
   public id: string
   public name!: string
   public team: number
@@ -11,15 +12,13 @@ export class Player {
   public direction : number
 
   constructor(id : string, name: string) {
+    super()
+
     this.id = id
     this.name = name
-    // TODO: something better than random
+    // TODO: something better than random, try balancing teams
     this.team = Math.floor(Math.random() * CONSTANTS.NUM_TEAMS)
     this.score = 0
-
-    // TODO: something better than random, avoid other people
-    this.x = Math.random() * CONSTANTS.MAP_SIZE
-    this.y = Math.random() * CONSTANTS.MAP_SIZE
     this.direction = 0
   }
 
@@ -28,13 +27,12 @@ export class Player {
     this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
   }
 
-  canAttack(p : Player): boolean {
-    return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
+  canCapture(p : Player) : boolean {
+    return (p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS);
   }
 
-  canCapture(p : Player) : boolean {
-    let quadrance = (this.x - p.x) * (this.x - p.x) + (this.y - p.y) * (this.y - p.y)
-    return this.canAttack(p) && quadrance <= 2 * CONSTANTS.PLAYER_RADIUS * CONSTANTS.PLAYER_RADIUS
+  hasCapture(p : Player): boolean {
+    return this.canCapture(p) && this.canAttack(p)
   }
 
   progress(time_step : number) {
@@ -48,6 +46,18 @@ export class Player {
     this.x = Math.max(CONSTANTS.PLAYER_RADIUS, Math.min(this.x, CONSTANTS.MAP_SIZE - CONSTANTS.PLAYER_RADIUS))
     this.y = Math.max(CONSTANTS.PLAYER_RADIUS, Math.min(this.y, CONSTANTS.MAP_SIZE - CONSTANTS.PLAYER_RADIUS))
   }
+
+  getColour(me : Player) {
+    if (me.canCapture(this)) {
+      return CONSTANTS.PREY_COLOUR
+    }
+    else if (this.canCapture(me)) {
+      return CONSTANTS.ENEMY_COLOUR
+    }
+    else {
+      return CONSTANTS.TEAMMATE_COLOUR
+    }
+  }
 }
 
 // why is js/ts so stupid
@@ -59,18 +69,6 @@ export function copyPlayer(player : Player) {
   output.y = player.y
   output.direction = player.direction
   return output
-}
-
-export function getColour(player : Player, me : Player) {
-  if (me.canAttack(player)) {
-    return CONSTANTS.PREY_COLOUR
-  }
-  else if (player.canAttack(me)) {
-    return CONSTANTS.ENEMY_COLOUR
-  }
-  else {
-    return CONSTANTS.TEAMMATE_COLOUR
-  }
 }
 
 export function interpolatePlayer(player1 : Player, player2 : Player, percentage1 : number, percentage2 : number) {

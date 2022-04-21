@@ -1,15 +1,24 @@
 import { Player, interpolatePlayer, copyPlayer } from "./player"
+import { Powerup } from "./powerup"
 import * as CONSTANTS from "./../constants"
 // maintain global data about other peoples positions & speeds & directions
 
 export class GameState {
-    public players: { [id : string]: Player } = {}
     public time: number = 0
+    public players: { [id : string]: Player } = {}
+    public powerups : Powerup[] = []
 
     constructor() {
 
     }
 
+    //////////////////////////// POWERUP ////////////////////////////
+
+    getPowerups() {
+        return Object.values(this.powerups)
+    }
+
+    //////////////////////////// PLAYER ////////////////////////////
     updatePlayer(id : string, newDirection : number) {
         if (id in this.players) {
             this.players[id].direction = newDirection
@@ -38,10 +47,13 @@ export class GameState {
             delete this.players[id]
         }
     }
+
+    //////////////////////////// GAME UTILITIES ////////////////////////////
     exportState() {
         return {
+            time: this.time,
             players: this.getPlayers(),
-            time: this.time
+            powerups: this.getPowerups()
         }
     }
 
@@ -60,11 +72,11 @@ export class GameState {
         // Use a quadtree or similar structure for your broadphase detection, it will help right off the bat.
         for (let id1 in this.players) {
             for (let id2 in this.players) {
-                if (id1 < id2 && this.players[id1].canCapture(this.players[id2])) {
+                if (id1 < id2 && this.players[id1].hasCapture(this.players[id2])) {
                     toIncr.push(id1)
                     toRemove.push(id2)
                 }
-                else if (id1 < id2 && this.players[id2].canCapture(this.players[id1])) {
+                else if (id1 < id2 && this.players[id2].hasCapture(this.players[id1])) {
                     toIncr.push(id2)
                     toRemove.push(id1)
                 }
@@ -79,6 +91,10 @@ export class GameState {
                 this.players[toIncr[i]].increment()
             }
         }
+
+        if (Math.random() < CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIME_STEP) {
+            this.powerups.push(new Powerup())
+        }
     }
 }
 
@@ -91,17 +107,10 @@ export function importState(jsonstate : any) {
     return gamestate
 }
 
-export function interpolate(state1 : GameState, state2 : GameState, time : number) {
-    if (state1.time > state2.time) {
-        console.error("Received packets out of order, this is bad!")
-    }
-    
-    //console.log(state1.time, time, state2.time)
-    let totalTime : number = state2.time - state1.time
-    let percentage1 : number = (state2.time - time) / totalTime
-    let percentage2 : number = (time - state1.time) / totalTime
-    //console.log(percentage1, percentage2)
+export function interpolate(state1 : GameState, state2 : GameState, percentage1 : number, percentage2 : number) {
     let output : GameState = new GameState()
+    output.powerups = state1.powerups
+
     state1.getPlayers().forEach(function(player : Player) {
         if (player.id in state2.players) {
             let newPlayer : Player = interpolatePlayer(player, state2.players[player.id], percentage1, percentage2)
