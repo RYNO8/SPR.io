@@ -13,7 +13,7 @@ export class GameState {
     }
 
     //////////////////////////// POWERUP ////////////////////////////
-
+    
     getPowerups() {
         return Object.values(this.powerups)
     }
@@ -49,14 +49,6 @@ export class GameState {
     }
 
     //////////////////////////// GAME UTILITIES ////////////////////////////
-    exportState() {
-        return {
-            time: this.time,
-            players: this.getPlayers(),
-            powerups: this.getPowerups()
-        }
-    }
-
     progress(time_step : number) {
         this.time = Date.now()
         for (let id in this.players) {
@@ -92,18 +84,27 @@ export class GameState {
             }
         }
 
-        if (Math.random() < CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIME_STEP) {
+        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() < CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIME_STEP) {
             this.powerups.push(new Powerup())
+        }
+    }
+
+    exportState() {
+        return {
+            time: this.time,
+            players: this.getPlayers(),
+            powerups: this.getPowerups()
         }
     }
 }
 
-export function importState(jsonstate : any) {
+export function importState(jsonstate : any) : GameState {
     let gamestate : GameState = new GameState()
     gamestate.time = jsonstate.time
     jsonstate.players.forEach(function(jsonplayer : Player) {
         gamestate.setPlayer(copyPlayer(jsonplayer))
     })
+    gamestate.powerups = jsonstate.powerups
     return gamestate
 }
 

@@ -28,8 +28,6 @@ socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate : string) {
 const canvas = <HTMLCanvasElement> document.getElementById('game-canvas')
 const context : CanvasRenderingContext2D = canvas.getContext('2d')
 context.font = CONSTANTS.CANVAS_FONT
-context.save()
-setCanvasDimensions()
 
 let animationFrameRequestId : number
 
@@ -39,15 +37,25 @@ export function startRendering() {
   animationFrameRequestId = requestAnimationFrame(render)
 }
 
-function setCanvasDimensions() {
-  // On small screens (e.g. phones), we want to "zoom out" so players can still see at least
-  // 800 in-game units of width.
-  const scaleRatio = Math.max(1, 800 / window.innerWidth)
-  canvas.width = scaleRatio * window.innerWidth
-  canvas.height = scaleRatio * window.innerHeight
-}
-window.addEventListener('resize', debounce(40, setCanvasDimensions))
+// thank you Luke
+function onResize() {
+  // get the ratio of physical pixels to CSS pixels
+  const dpr = window.devicePixelRatio || 1
 
+  // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
+  canvas.style.width = `${window.innerWidth}px`
+  canvas.style.height = `${window.innerHeight}px`
+
+  // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
+  // (doesn't affect the actual size on screen I think)
+  // because this is larger than the size on screen (when dpr > 1), it'll get scaled back down to normal
+  // (while retaining the sharpness of all the physical pixels within each CSS pixel)
+  canvas.width = window.innerWidth * dpr
+  canvas.height = window.innerHeight * dpr
+}
+
+window.addEventListener("resize", onResize)
+onResize()
 
 function render() {
   let gamestate : GameState
@@ -78,19 +86,23 @@ function render() {
   context.restore()
   context.save()
   renderBackground()
-  renderPowerups(gamestate)
 
   let me : Player = gamestate.getPlayer(socket.id)
   if (me) {
     document.getElementById("menu").style.visibility = "hidden"
 
-    let scaleFactor : number = Math.min(canvas.width, canvas.height) / (CONSTANTS.MAP_SIZE * CONSTANTS.VISIBLE_REGION)
+    let scaleFactor : number = window.devicePixelRatio * Math.min(canvas.width, canvas.height) / (CONSTANTS.MAP_SIZE * CONSTANTS.VISIBLE_REGION)
     context.translate(canvas.width / 2, canvas.height / 2)
     context.scale(scaleFactor, scaleFactor)
     context.translate(-me.x, -me.y)
 
     // Draw background
     renderMap()
+
+    // Draw powerups
+    gamestate.getPowerups().forEach(function(powerup : Powerup) {
+      renderPowerup(powerup)
+    })
 
     // Draw all players
     gamestate.getPlayers().forEach(function(other : Player) {
@@ -115,7 +127,11 @@ function render() {
     // Draw background
     renderMap()
 
-    
+    // Draw powerups
+    gamestate.getPowerups().forEach(function(powerup : Powerup) {
+      renderPowerup(powerup)
+    })
+
     // game has ended, render everything
     // Draw all players
     gamestate.getPlayers().forEach(function(other : Player) {
@@ -136,10 +152,11 @@ function renderBackground() {
   context.fillRect(0, 0, canvas.width, canvas.height)
 }
 
-function renderPowerups(gamestate : GameState) {
-  gamestate.getPowerups().forEach(function(powerup : Powerup) {
-    console.log(powerup)
-  })
+function renderPowerup(powerup : Powerup) {
+  context.fillStyle = CONSTANTS.POWERUP_COLOUR
+  context.beginPath()
+  context.arc(powerup.x, powerup.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
+  context.fill()
 }
 
 function renderMap() {
@@ -202,7 +219,7 @@ function renderPlayer(player : Player, colour : string) {
   context.fillStyle = CONSTANTS.PLAYER_COLOUR
   context.font = CONSTANTS.CANVAS_FONT
   context.textAlign = "center"
-  context.fillText(player.name, 0, CONSTANTS.NAME_OFFSET)
+  context.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
 
   context.restore()
 }
