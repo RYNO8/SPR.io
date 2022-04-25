@@ -16,12 +16,12 @@ TODO
 */
 
 import { startCapturingInput } from "./send"
-import { startRendering } from "./render"
+import { render } from "./render"
 import { socket, initStatusMsg } from "./networking"
 import * as CONSTANTS from "./../shared/constants"
 
 initStatusMsg()
-startRendering()
+requestAnimationFrame(render)
 
 let playButton = document.getElementById("play-button")
 let menu = document.getElementById("menu")

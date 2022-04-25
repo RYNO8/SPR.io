@@ -10,242 +10,240 @@ import { Powerup } from "../shared/model/powerup"
 let gamestates : GameState[] = []
 let initTimeDiff : boolean = true
 let timeDiff : number
-socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate : string) {
-  let gamestate : GameState = importState(jsonstate)
-  if (initTimeDiff) {
-    timeDiff = gamestate.time - Date.now()
-    initTimeDiff = false
-  }
-  //console.log("lag", gamestate.time - Date.now());
-  gamestates.push(gamestate)
-
-  while (gamestates.length > 1 && gamestates[1].time <= Date.now() + timeDiff - CONSTANTS.RENDER_DELAY) {
-    // pop the 0th item
-    gamestates.shift()
-  }
-})
 
 const canvas = <HTMLCanvasElement> document.getElementById('game-canvas')
 const context : CanvasRenderingContext2D = canvas.getContext('2d')
 context.font = CONSTANTS.CANVAS_FONT
 
-let animationFrameRequestId : number
-
-// Replaces main menu rendering with game rendering.
-export function startRendering() {
-  cancelAnimationFrame(animationFrameRequestId)
-  animationFrameRequestId = requestAnimationFrame(render)
+function serverTime() {
+    return Date.now() + timeDiff - CONSTANTS.RENDER_DELAY
 }
+
+socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate : string) {
+    let gamestate : GameState = importState(jsonstate)
+    if (initTimeDiff) {
+        timeDiff = gamestate.time - Date.now()
+        initTimeDiff = false
+    }
+    //console.log("lag", gamestate.time - Date.now());
+    gamestates.push(gamestate)
+
+    while (gamestates.length > 1 && gamestates[1].time <= serverTime()) {
+        // pop the 0th item
+        gamestates.shift()
+    }
+})
 
 // thank you Luke
 function onResize() {
-  // get the ratio of physical pixels to CSS pixels
-  const dpr = window.devicePixelRatio || 1
+    // get the ratio of physical pixels to CSS pixels
+    const dpr = window.devicePixelRatio || 1
 
-  // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
-  canvas.style.width = `${window.innerWidth}px`
-  canvas.style.height = `${window.innerHeight}px`
+    // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
+    canvas.style.width = `${window.innerWidth}px`
+    canvas.style.height = `${window.innerHeight}px`
 
-  // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
-  // (doesn't affect the actual size on screen I think)
-  // because this is larger than the size on screen (when dpr > 1), it'll get scaled back down to normal
-  // (while retaining the sharpness of all the physical pixels within each CSS pixel)
-  canvas.width = window.innerWidth * dpr
-  canvas.height = window.innerHeight * dpr
+    // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
+    // (doesn't affect the actual size on screen I think)
+    // because this is larger than the size on screen (when dpr > 1), it'll get scaled back down to normal
+    // (while retaining the sharpness of all the physical pixels within each CSS pixel)
+    canvas.width = window.innerWidth * dpr
+    canvas.height = window.innerHeight * dpr
 }
-
 window.addEventListener("resize", onResize)
 onResize()
 
-function render() {
-  let gamestate : GameState
-  if (gamestates.length == 0) {
-    // Rerun this render function on the next frame
-    animationFrameRequestId = requestAnimationFrame(render)
-    return
-  }
-  else if (gamestates.length == 1) {
-    gamestate = gamestates[0]
-  }
-  else {
-    if (gamestates[1].time < gamestates[0].time) {
-        console.error("Received packets out of order, this is bad!")
+export function render() {
+    let gamestate : GameState
+    if (gamestates.length == 0) {
+        // Rerun this render function on the next frame
+        requestAnimationFrame(render)
+        return
+    } else if (gamestates.length == 1) {
+        gamestate = gamestates[0]
+    } else {
+        if (gamestates[1].time < gamestates[0].time) {
+            console.error("Received packets out of order, this is bad!")
+        }
+
+        let time : number = serverTime()
+        gamestate = interpolate(
+            gamestates[0],
+            gamestates[1],
+            (gamestates[1].time - time) / (gamestates[1].time - gamestates[0].time),
+            (time - gamestates[0].time) / (gamestates[1].time - gamestates[0].time)
+        )
     }
 
-    let time : number = Date.now() + timeDiff - CONSTANTS.RENDER_DELAY
-    gamestate = interpolate(
-      gamestates[0],
-      gamestates[1],
-      (gamestates[1].time - time) / (gamestates[1].time - gamestates[0].time),
-      (time - gamestates[0].time) / (gamestates[1].time - gamestates[0].time)
-    )
-  }
+    updateLeaderboard(gamestates[gamestates.length - 1])
 
-  updateLeaderboard(gamestates[gamestates.length - 1])
+    context.restore()
+    context.save()
+    renderBackground()
 
-  context.restore()
-  context.save()
-  renderBackground()
+    let me : Player = gamestate.getPlayer(socket.id)
+    if (me) {
+        document.getElementById("menu").style.visibility = "hidden"
 
-  let me : Player = gamestate.getPlayer(socket.id)
-  if (me) {
-    document.getElementById("menu").style.visibility = "hidden"
+        let size : number = Math.min(canvas.width, canvas.height) / CONSTANTS.VISIBLE_REGION
+        context.translate(canvas.width / 2, canvas.height / 2)
+        context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
+        context.translate(-me.x, -me.y)
 
-    let scaleFactor : number = window.devicePixelRatio * Math.min(canvas.width, canvas.height) / (CONSTANTS.MAP_SIZE * CONSTANTS.VISIBLE_REGION)
-    context.translate(canvas.width / 2, canvas.height / 2)
-    context.scale(scaleFactor, scaleFactor)
-    context.translate(-me.x, -me.y)
+        // Draw background
+        renderMap()
 
-    // Draw background
-    renderMap()
+        // Draw powerups
+        gamestate.getPowerups().forEach(function(powerup : Powerup) {
+            renderPowerup(powerup)
+        })
 
-    // Draw powerups
-    gamestate.getPowerups().forEach(function(powerup : Powerup) {
-      renderPowerup(powerup)
-    })
+        // Draw all players
+        gamestate.getPlayers().forEach(function(other : Player) {
+            if (other.id != me.id) {
+                renderPlayer(other, other.getColour(me))
+            }
+        })
 
-    // Draw all players
-    gamestate.getPlayers().forEach(function(other : Player) {
-      if (other.id != me.id) {
-        renderPlayer(other, other.getColour(me))
-      }
-    })
+        // Draw myself
+        //console.log(direction)
+        me.direction = direction
+        renderPlayer(me, CONSTANTS.PLAYER_TEAMMATE_COLOUR)
+    }
+    // spectate all mode
+    /*else {
+        document.getElementById("menu").style.visibility = "visible"
+        
+        //console.log(me, socket.id, gamestate.players)
+        let size : number = Math.min(canvas.width, canvas.height)
+        context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)
+        context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
+        // Draw background
+        renderMap()
 
-    // Draw myself
-    //console.log(direction)
-    me.direction = direction
-    renderPlayer(me, CONSTANTS.TEAMMATE_COLOUR)
-  }
-  
-  else {
-    document.getElementById("menu").style.visibility = "visible"
-    
-    //console.log(me, socket.id, gamestate.players)
-    let size : number = Math.min(canvas.width, canvas.height)
-    context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)
-    context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
-    // Draw background
-    renderMap()
+        // Draw powerups
+        gamestate.getPowerups().forEach(function(powerup : Powerup) {
+            renderPowerup(powerup)
+        })
 
-    // Draw powerups
-    gamestate.getPowerups().forEach(function(powerup : Powerup) {
-      renderPowerup(powerup)
-    })
+        // game has ended, render everything
+        // Draw all players
+        gamestate.getPlayers().forEach(function(other : Player) {
+            renderPlayer(other, CONSTANTS.PLAYER_TEAMMATE_COLOUR)
+        })
+    }*/
 
-    // game has ended, render everything
-    // Draw all players
-    gamestate.getPlayers().forEach(function(other : Player) {
-      renderPlayer(other, CONSTANTS.TEAMMATE_COLOUR)
-    })
-  }
-
-  // Rerun this render function on the next frame
-  animationFrameRequestId = requestAnimationFrame(render)
+    // Rerun this render function on the next frame
+    requestAnimationFrame(render)
 }
 
 function renderBackground() {
-  // clear all from previous render
-  context.clearRect(0, 0, canvas.width, canvas.height)
+    // clear all from previous render
+    context.clearRect(0, 0, canvas.width, canvas.height)
 
-  // unreachable
-  context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-  context.fillRect(0, 0, canvas.width, canvas.height)
+    // unreachable
+    context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
+    context.fillRect(0, 0, canvas.width, canvas.height)
 }
 
 function renderPowerup(powerup : Powerup) {
-  context.fillStyle = CONSTANTS.POWERUP_COLOUR
-  context.beginPath()
-  context.arc(powerup.x, powerup.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
-  context.fill()
+    context.fillStyle = CONSTANTS.POWERUP_COLOUR
+    context.beginPath()
+    context.arc(powerup.x, powerup.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
+    context.fill()
 }
 
 function renderMap() {
-  // boundaries
-  context.fillStyle = CONSTANTS.MAP_BACKGROUND_COLOUR
-  context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-  context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
-  context.beginPath()
-  context.rect(0, 0, CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE)
-  context.fill()
-  context.stroke()
+    // boundaries
+    context.fillStyle = CONSTANTS.MAP_BACKGROUND_COLOUR
+    context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
+    context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
+    context.beginPath()
+    context.rect(0, 0, CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE)
+    context.fill()
+    context.stroke()
 
-  // grid
-  for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
-    context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-    context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
-    context.beginPath()
-    context.moveTo(x, 0)
-    context.lineTo(x, CONSTANTS.MAP_SIZE)
-    context.stroke()
-  }
-  for (let y = 0; y <= CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
-    context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-    context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
-    context.beginPath()
-    context.moveTo(0, y)
-    context.lineTo(CONSTANTS.MAP_SIZE, y)
-    context.stroke()
-  }
-  
-  // dots
-  /*for (let x = CONSTANTS.MAP_GRID; x < CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
-    for (let y = CONSTANTS.MAP_GRID; y < CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
-      context.fillStyle = CONSTANTS.MAP_COLOUR
-      context.fillRect(x - 2, y - 2, 4, 4)
+    // grid
+    for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
+        context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
+        context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
+        context.beginPath()
+        context.moveTo(x, 0)
+        context.lineTo(x, CONSTANTS.MAP_SIZE)
+        context.stroke()
     }
-  }*/
+    for (let y = 0; y <= CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
+        context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
+        context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
+        context.beginPath()
+        context.moveTo(0, y)
+        context.lineTo(CONSTANTS.MAP_SIZE, y)
+        context.stroke()
+    }
+    
+    // dots
+    /*for (let x = CONSTANTS.MAP_GRID; x < CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
+        for (let y = CONSTANTS.MAP_GRID; y < CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
+            context.fillStyle = CONSTANTS.MAP_COLOUR
+            context.fillRect(x - 2, y - 2, 4, 4)
+        }
+    }*/
 }
 
 
 // Renders a ship at the given coordinates
 function renderPlayer(player : Player, colour : string) {
-  context.save()
+    context.save()
 
-  context.translate(player.x, player.y)
-  context.rotate(player.direction)
-  context.fillStyle = CONSTANTS.PLAYER_COLOUR
-  context.strokeStyle = colour
-  context.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
+    context.translate(player.x, player.y)
+    context.rotate(player.direction)
+    if (player.hasPowerup >= serverTime()) {
+            context.fillStyle = CONSTANTS.PLAYER_POWERUP_COLOUR
+    } else {
+            context.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
+    }
+    context.strokeStyle = colour
+    context.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
 
-  // Draw ship
-  context.beginPath()
-  let inner_radius : number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
-  context.rect(-inner_radius, -inner_radius, 2 * inner_radius, 2 * inner_radius)
-  context.fill()
-  context.stroke()
+    // Draw ship
+    context.beginPath()
+    let inner_radius : number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
+    context.rect(-inner_radius, -inner_radius, 2 * inner_radius, 2 * inner_radius)
+    context.fill()
+    context.stroke()
 
-  // Draw text
-  context.rotate(-player.direction)
-  context.fillStyle = CONSTANTS.PLAYER_COLOUR
-  context.font = CONSTANTS.CANVAS_FONT
-  context.textAlign = "center"
-  context.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
+    // Draw text
+    context.rotate(-player.direction)
+    context.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
+    context.font = CONSTANTS.CANVAS_FONT
+    context.textAlign = "center"
+    context.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
 
-  context.restore()
+    context.restore()
 }
 
 function updateLeaderboard(gamestate : GameState) {
-  let sortedPlayers : Player[] = Object.values(gamestate.players).sort(function(p1 : Player, p2 : Player) {
-    return p2.score - p1.score
-  })
+    let sortedPlayers : Player[] = Object.values(gamestate.players).sort(function(p1 : Player, p2 : Player) {
+        return p2.score - p1.score
+    })
 
-  let table = document.querySelector("#leaderboard > table > tbody")
-  table.innerHTML = ""
-  sortedPlayers.map(function(p : Player, i : number) {
-    let rank = document.createElement("td")
-    rank.innerHTML = "#" + (i + 1).toString()
+    let table = document.querySelector("#leaderboard > table > tbody")
+    table.innerHTML = ""
+    sortedPlayers.map(function(p : Player, i : number) {
+        let rank = document.createElement("td")
+        rank.innerHTML = "#" + (i + 1).toString()
 
-    let name = document.createElement("td")
-    name.innerHTML = p.name
+        let name = document.createElement("td")
+        name.innerHTML = p.name
 
-    let score = document.createElement("td")
-    score.innerHTML = p.score.toString()
+        let score = document.createElement("td")
+        score.innerHTML = p.score.toString()
 
-    let row = document.createElement("tr")
-    row.appendChild(rank)
-    row.appendChild(name)
-    row.appendChild(score)
-    
-    table.appendChild(row)
-  })
+        let row = document.createElement("tr")
+        row.appendChild(rank)
+        row.appendChild(name)
+        row.appendChild(score)
+        
+        table.appendChild(row)
+    })
 }

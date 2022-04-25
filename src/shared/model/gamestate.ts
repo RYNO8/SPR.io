@@ -84,6 +84,21 @@ export class GameState {
             }
         }
 
+        let remainingPowerups : Powerup[] = []
+        for (let i in this.powerups) {
+            let captured = false
+            for (let id in this.players) {
+                if (this.players[id].canAttack(this.powerups[i])) {
+                    captured = true
+                    this.players[id].hasPowerup = Date.now() + CONSTANTS.POWERUP_DURATION
+                }
+            }
+            if (!captured) {
+                remainingPowerups.push(this.powerups[i])
+            }
+        }
+        this.powerups = remainingPowerups
+
         if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() < CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIME_STEP) {
             this.powerups.push(new Powerup())
         }
@@ -110,6 +125,7 @@ export function importState(jsonstate : any) : GameState {
 
 export function interpolate(state1 : GameState, state2 : GameState, percentage1 : number, percentage2 : number) {
     let output : GameState = new GameState()
+    //output.time = state1.time * percentage1 + state2.time * percentage2
     output.powerups = state1.powerups
 
     state1.getPlayers().forEach(function(player : Player) {

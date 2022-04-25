@@ -28,14 +28,16 @@ export let PLAYER_RADIUS : number = 35
 export let PLAYER_SPEED : number = 0.25
 export let PLAYER_LINE_WIDTH : number = 6
 export let PLAYER_NAME_OFFSET : number = 40
-export let PLAYER_COLOUR : string = "black"
-export let PREY_COLOUR : string = "#1D7755" // green
-export let ENEMY_COLOUR : string = "#DB423D" // red
-export let TEAMMATE_COLOUR : string = "#60ACBC" // blue // NOTE: this is also your colour, since you are your own teammate
+export let PLAYER_DEFAULT_COLOUR : string = "black"
+export let PLAYER_POWERUP_COLOUR : string = "purple"
+export let PLAYER_PREY_COLOUR : string = "#1D7755" // green
+export let PLAYER_ENEMY_COLOUR : string = "#DB423D" // red
+export let PLAYER_TEAMMATE_COLOUR : string = "#60ACBC" // blue // NOTE: this is also your colour, since you are your own teammate
 
 // powerup
 export let POWERUP_RATE : number = 0.1 / 1000 // rate of powerups per millisecond, must be between 0 and 1 inclusive
 export let POWERUP_MAX : number = 10
+export let POWERUP_DURATION : number = 2000 // powerups last for this many milliseconds
 export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
