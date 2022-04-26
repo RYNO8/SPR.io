@@ -26,7 +26,7 @@ export let INTERPOLATE_SPEED: number = 6
 
 // player
 export let PLAYER_RADIUS: number = 35
-export let PLAYER_SPEED: number = 0.15
+export let PLAYER_SPEED: number = 0.36
 export let PLAYER_LINE_WIDTH: number = 7
 export let PLAYER_NAME_OFFSET: number = 55
 export let PLAYER_DEFAULT_COLOUR: string = "black"
