@@ -51,7 +51,7 @@ function updateGamestate() {
     for (let i in targetState.players) {
         let prev = gamestate.players.find(function(value: Player) { return value.id == targetState.players[i].id })
         if (prev) {
-            targetState.players[i].updatePlayer(prev, 1 - framerate)
+            targetState.players[i].updatePlayer(prev, 1 - 2 * framerate)
         }
     }
     gamestate = targetState

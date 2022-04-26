@@ -53,4 +53,4 @@ export let MAP_STYLE: string = "grid" // or "dots" or "none"
 export let CELL_SIZE: number = 150 // there is a grid line every this many pixels
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export let MAZE_DENSITY: number = 0.2
-export let MAZE_CHANGE_RATE: number = 0.1 / 1000
+export let MAZE_CHANGE_RATE: number = 3 / 1000
