@@ -1,3 +1,4 @@
+import { GameObject } from "./../model/game_object"
 import { Player, copyPlayer } from "./player"
 import { Powerup, copyPowerup } from "./powerup"
 import * as CONSTANTS from "../constants"
@@ -7,8 +8,9 @@ export class ClientGameState {
     public time: number = 0
     public players: Player[] = []
     public powerups: Powerup[] = []
-
-    constructor(time_: number, players_: Player[], powerups_: Powerup[]) {
+    public maze: [number, number][] = []
+    
+    constructor(time_: number, players_: Player[], powerups_: Powerup[], maze_ : [number, number][]) {
         this.time = time_
         for (let i in players_) {
             this.players.push(copyPlayer(players_[i]))
@@ -17,6 +19,7 @@ export class ClientGameState {
             this.powerups.push(copyPowerup(powerups_[i]))
         }
         this.powerups = powerups_
+        this.maze = maze_
     }
 }
 
@@ -24,15 +27,17 @@ export class ServerGameState {
     public time: number = 0
     public players: { [id: string]: Player } = {}
     public powerups: Powerup[] = []
+    public maze: boolean[][] = []
 
     constructor() {
-
-    }
-
-    //////////////////////////// POWERUP ////////////////////////////
-    
-    getPowerups() {
-        return Object.values(this.powerups)
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.maze[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                //this.maze[row][col] = false
+                this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
+            }
+        }
+        // TODO: maze construction
     }
 
     //////////////////////////// PLAYER ////////////////////////////
@@ -76,11 +81,31 @@ export class ServerGameState {
         return highest
     }
 
+    //////////////////////////// POWERUP ////////////////////////////
+    
+    getPowerups() {
+        return Object.values(this.powerups)
+    }
+
+    //////////////////////////// MAZE ////////////////////////////
+    
+    getMaze() {
+        let output = [];
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                if (this.maze[row][col]) {
+                    output.push([row * CONSTANTS.CELL_SIZE, col * CONSTANTS.CELL_SIZE]);
+                }
+            }
+        }
+        return output
+    }
+
     //////////////////////////// GAME UTILITIES ////////////////////////////
     progress(timeStep: number) {
         this.time = Date.now()
         for (let id in this.players) {
-            this.players[id].progress(timeStep)
+            this.players[id].progress(timeStep, this.maze)
         }
 
         let toRemove: string[] = []
@@ -127,16 +152,24 @@ export class ServerGameState {
         }
         this.powerups = remainingPowerups
 
-        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() < CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIMESTEP) {
+        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIMESTEP) {
             this.powerups.push(new Powerup())
+        }
+
+        if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_TIMESTEP) {
+            let x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
+            let y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
+            this.maze[x][y] = !this.maze[x][y]
         }
     }
 
     exportState() {
+        // TODO: make custom packet for each player
         return {
             time: this.time,
             players: this.getPlayers(), // TODO: order players by increasing priority
-            powerups: this.getPowerups()
+            powerups: this.getPowerups(),
+            maze: this.getMaze()
         }
     }
 }

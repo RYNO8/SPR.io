@@ -30,23 +30,33 @@ export class Player extends GameObject {
     }
 
     canCapture(p: Player): boolean {
-        return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS || this.hasPowerup >= Date.now()
+        return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS || (this.hasPowerup >= Date.now() && this.id != p.id)
     }
 
     hasCapture(p: Player): boolean {
         return this.canCapture(p) && this.canAttack(p)
     }
 
-    progress(timeStep: number) {
+    progress(timeStep: number, maze: boolean[][]) {
         let distance = CONSTANTS.PLAYER_SPEED * timeStep
         this.x += Math.sin(this.direction) * distance
         this.y -= Math.cos(this.direction) * distance
-        this.clamp()
-    }
 
-    clamp() {
-        this.x = Math.max(CONSTANTS.PLAYER_RADIUS, Math.min(this.x, CONSTANTS.MAP_SIZE - CONSTANTS.PLAYER_RADIUS))
-        this.y = Math.max(CONSTANTS.PLAYER_RADIUS, Math.min(this.y, CONSTANTS.MAP_SIZE - CONSTANTS.PLAYER_RADIUS))
+        let mazeX = Math.floor(this.x / CONSTANTS.CELL_SIZE)
+        let mazeY = Math.floor(this.y / CONSTANTS.CELL_SIZE)
+        
+        if (mazeX == 0 || maze[mazeX - 1][mazeY]) {
+            this.x = Math.max(this.x, mazeX * CONSTANTS.CELL_SIZE + CONSTANTS.PLAYER_RADIUS)
+        }
+        if (mazeX == CONSTANTS.NUM_CELLS - 1 || maze[mazeX + 1][mazeY]) {
+            this.x = Math.min(this.x, (mazeX + 1) * CONSTANTS.CELL_SIZE - CONSTANTS.PLAYER_RADIUS)
+        }
+        if (mazeY == 0 || maze[mazeX][mazeY - 1]) {
+            this.y = Math.max(this.y, mazeY * CONSTANTS.CELL_SIZE + CONSTANTS.PLAYER_RADIUS)
+        }
+        if (mazeY == CONSTANTS.NUM_CELLS - 1 || maze[mazeX][mazeY + 1]) {
+            this.y = Math.min(this.y, (mazeY + 1) * CONSTANTS.CELL_SIZE - CONSTANTS.PLAYER_RADIUS)
+        }
     }
 
     getColour(me: Player) {
@@ -61,7 +71,7 @@ export class Player extends GameObject {
         }
     }
 
-    updatePlayer(newPlayer: Player, delta : number) {
+    updatePlayer(newPlayer: Player, delta: number) {
         this.x = this.x * (1 - delta) + newPlayer.x * delta
         this.y = this.y * (1 - delta) + newPlayer.y * delta
         this.direction %= 2 * Math.PI

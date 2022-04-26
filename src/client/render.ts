@@ -8,7 +8,7 @@ import { PriorityQueue } from "@datastructures-js/priority-queue";
 
 
 let targetStates = new PriorityQueue<ClientGameState>(function(a: ClientGameState, b: ClientGameState) { return b.time - a.time })
-let gamestate = new ClientGameState(0, [], [])
+let gamestate = new ClientGameState(0, [], [], [])
 let initTimeDiff: boolean = true
 let timeDiff: number = 0
 let framerateSamples: number[] = []
@@ -22,7 +22,7 @@ function serverTime() {
 }
 
 socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
-    let gamestate: ClientGameState = new ClientGameState(jsonstate.time, jsonstate.players, jsonstate.powerups)
+    let gamestate: ClientGameState = new ClientGameState(jsonstate.time, jsonstate.players, jsonstate.powerups, jsonstate.maze)
     if (initTimeDiff) {
         timeDiff = gamestate.time - Date.now()
         initTimeDiff = false
@@ -83,6 +83,7 @@ export function render() {
     }
 
     renderMap()
+    renderMaze(gamestate.maze)
     for (let i in gamestate.powerups) {
         renderPowerup(gamestate.powerups[i])
     }
@@ -106,13 +107,6 @@ function renderBackground() {
     context.fillRect(0, 0, canvas.width, canvas.height)
 }
 
-function renderPowerup(powerup: Powerup) {
-    context.fillStyle = CONSTANTS.POWERUP_COLOUR
-    context.beginPath()
-    context.arc(powerup.x, powerup.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
-    context.fill()
-}
-
 function renderMap() {
     // boundaries
     context.fillStyle = CONSTANTS.MAP_BACKGROUND_COLOUR
@@ -124,7 +118,7 @@ function renderMap() {
     context.stroke()
 
     if (CONSTANTS.MAP_STYLE == "grid") {
-        for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
+        for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.CELL_SIZE) {
             context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
             context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
             context.beginPath()
@@ -132,7 +126,7 @@ function renderMap() {
             context.lineTo(x, CONSTANTS.MAP_SIZE)
             context.stroke()
         }
-        for (let y = 0; y <= CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
+        for (let y = 0; y <= CONSTANTS.MAP_SIZE; y += CONSTANTS.CELL_SIZE) {
             context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
             context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
             context.beginPath()
@@ -141,8 +135,8 @@ function renderMap() {
             context.stroke()
         }
     } else if (CONSTANTS.MAP_STYLE == "dots") {
-        for (let x = CONSTANTS.MAP_GRID; x < CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
-            for (let y = CONSTANTS.MAP_GRID; y < CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
+        for (let x = CONSTANTS.CELL_SIZE; x < CONSTANTS.MAP_SIZE; x += CONSTANTS.CELL_SIZE) {
+            for (let y = CONSTANTS.CELL_SIZE; y < CONSTANTS.MAP_SIZE; y += CONSTANTS.CELL_SIZE) {
                 context.fillStyle = CONSTANTS.MAP_LINE_COLOUR
                 context.fillRect(x - 2, y - 2, 4, 4)
             }
@@ -150,8 +144,20 @@ function renderMap() {
     }
 }
 
+function renderMaze(maze : [number, number][]) {
+    for (let i in maze) {
+        context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
+        context.fillRect(maze[i][0], maze[i][1], CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
+    }
+}
 
-// Renders a ship at the given coordinates
+function renderPowerup(powerup: Powerup) {
+    context.fillStyle = CONSTANTS.POWERUP_COLOUR
+    context.beginPath()
+    context.arc(powerup.x, powerup.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
+    context.fill()
+}
+
 function renderPlayer(player: Player, colour: string) {
     context.save()
 
@@ -165,14 +171,12 @@ function renderPlayer(player: Player, colour: string) {
     context.strokeStyle = colour
     context.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
 
-    // Draw ship
     context.beginPath()
     let innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
     context.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
     context.fill()
     context.stroke()
 
-    // Draw text
     context.rotate(-player.direction)
     context.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
     context.font = CONSTANTS.CANVAS_FONT

@@ -3,7 +3,7 @@
 export let PORT: number = 80
 
 // networking
-export let SERVER_TICK_RATE: number = 40 / 1000
+export let SERVER_TICK_RATE: number = 50 / 1000
 export let SERVER_TIMESTEP = 1 / SERVER_TICK_RATE
 export let RENDER_DELAY: number = 50
 export let CLIENT_FRAME_RATE_SAMPLE_SIZE: number = 20
@@ -41,12 +41,16 @@ export let POWERUP_DURATION: number = 2000
 export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
-
 // map
-export let MAP_GRID: number = 375 // there is a grid line every this many pixels
 export let MAP_SIZE: number = 3000
 export let MAP_LINE_COLOUR: string = "lightgrey"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "lightgrey"
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "grid" // or "dots" or "none"
+
+// maze
+export let CELL_SIZE: number = 150 // there is a grid line every this many pixels
+export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
+export let MAZE_DENSITY: number = 0.2
+export let MAZE_CHANGE_RATE: number = 0.1 / 1000
