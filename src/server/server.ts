@@ -45,15 +45,16 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
     /*socket.on(CONSTANTS.ENDPOINT_UPDATE_SPEED, function(speed: number) {
         
     })*/
+
+    setInterval(
+        function() {
+            gamestate.progress(CONSTANTS.SERVER_TIMESTEP)
+            socket.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState(socket.id))
+        },
+        CONSTANTS.SERVER_TIMESTEP
+    )
 })
 
-setInterval(
-    function() {
-        gamestate.progress(CONSTANTS.SERVER_TIMESTEP)
-        io.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState())
-    },
-    CONSTANTS.SERVER_TIMESTEP
-)
 
 httpServer.listen(CONSTANTS.PORT, function() {
     console.log("listening")

@@ -5,7 +5,7 @@ export let PORT: number = 80
 // networking
 export let SERVER_TICK_RATE: number = 50 / 1000
 export let SERVER_TIMESTEP = 1 / SERVER_TICK_RATE
-export let RENDER_DELAY: number = 50
+export let RENDER_DELAY: number = 0
 export let CLIENT_FRAME_RATE_SAMPLE_SIZE: number = 20
 
 // socketio "endpoints"
@@ -25,7 +25,7 @@ export let CANVAS_FONT: string = "20px serif"
 
 // player
 export let PLAYER_RADIUS: number = 35
-export let PLAYER_SPEED: number = 0.6
+export let PLAYER_SPEED: number = 0.2
 export let PLAYER_LINE_WIDTH: number = 6
 export let PLAYER_NAME_OFFSET: number = 50
 export let PLAYER_DEFAULT_COLOUR: string = "black"

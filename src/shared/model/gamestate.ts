@@ -50,14 +50,32 @@ export class ServerGameState {
     getPlayer(id: string) {
         if (id in this.players) {
             return this.players[id]
-        }
-        else {
+        } else {
             return null
         }
     }
 
     getPlayers(): Player[] {
         return Object.values(this.players)
+    }
+
+    getPlayersPriority(targetID: string) {
+        let others: Player[] = []
+        let me: Player = null
+        for (let id in this.players) {
+            if (id == targetID) {
+                me = this.players[id]
+            } else {
+                others.push(this.players[id])
+            }
+        }
+        others.sort(function(p1: Player, p2: Player) {
+            return p2.score - p1.score
+        })
+        if (me) {
+            others.push(me)
+        }
+        return others
     }
 
     setPlayer(p: Player) {
@@ -68,17 +86,6 @@ export class ServerGameState {
         if (id in this.players) {
             delete this.players[id]
         }
-    }
-
-    getHighestPlayer() {
-        // TODO: how to tiebreak scores?
-        let highest = this.players[0]
-        for (let id in this.players) {
-            if (this.players[id].score > highest.score) {
-                highest = this.players[id]
-            }
-        }
-        return highest
     }
 
     //////////////////////////// POWERUP ////////////////////////////
@@ -157,17 +164,18 @@ export class ServerGameState {
         }
 
         if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_TIMESTEP) {
+            // this method makes maze density tend towards 50-50
             let x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
             let y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
             this.maze[x][y] = !this.maze[x][y]
         }
     }
 
-    exportState() {
+    exportState(id : string) {
         // TODO: make custom packet for each player
         return {
             time: this.time,
-            players: this.getPlayers(), // TODO: order players by increasing priority
+            players: this.getPlayersPriority(id),
             powerups: this.getPowerups(),
             maze: this.getMaze()
         }
