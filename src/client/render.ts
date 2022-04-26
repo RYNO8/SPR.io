@@ -51,8 +51,7 @@ function updateGamestate() {
     for (let i in targetState.players) {
         let prev = gamestate.players.find(function(value: Player) { return value.id == targetState.players[i].id })
         if (prev) {
-            prev.updatePlayer(targetState.players[i], framerate)
-            targetState.players[i] = prev
+            targetState.players[i].updatePlayer(prev, 1 - framerate)
         }
     }
     gamestate = targetState
@@ -73,8 +72,6 @@ export function render() {
         document.getElementById("menu").style.visibility = "visible"
     }
     if (gamestate.players.length == 0) {
-        
-
         let size: number = Math.min(canvas.width, canvas.height)
         context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)
         context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
