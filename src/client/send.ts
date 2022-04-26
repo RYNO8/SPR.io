@@ -1,9 +1,9 @@
 import { socket } from "./networking"
 import * as CONSTANTS from "../shared/constants"
 
-export let direction : number
+export let direction: number
 
-function handleInput(x : number, y : number) {
+function handleInput(x: number, y: number) {
   x -= window.innerWidth / 2
   y -= window.innerHeight / 2
 
@@ -15,11 +15,11 @@ function handleInput(x : number, y : number) {
 }
 
 
-function onMouseInput(e : any) {
+function onMouseInput(e: any) {
   handleInput(e.clientX, e.clientY)
 }
 
-function onTouchInput(e : any) {
+function onTouchInput(e: any) {
   const touch = e.touches[0];
   handleInput(touch.clientX, touch.clientY)
 }

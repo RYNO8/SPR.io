@@ -1,137 +1,100 @@
-import { debounce } from "throttle-debounce"
 import { socket } from "./networking"
-import { GameState, importState, interpolate } from "../shared/model/gamestate"
+import { ClientGameState } from "../shared/model/gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 import { direction } from "./send"
 import { Powerup } from "../shared/model/powerup"
-//import { getAsset } from "./assets"
+import { PriorityQueue } from "@datastructures-js/priority-queue";
 
-let gamestates : GameState[] = []
-let initTimeDiff : boolean = true
-let timeDiff : number
+
+let targetStates = new PriorityQueue<ClientGameState>(function(a: ClientGameState, b: ClientGameState) { return b.time - a.time })
+let gamestate = new ClientGameState(0, [], [])
+let initTimeDiff: boolean = true
+let timeDiff: number = 0
+let framerateSamples: number[] = []
 
 const canvas = <HTMLCanvasElement> document.getElementById('game-canvas')
-const context : CanvasRenderingContext2D = canvas.getContext('2d')
+const context: CanvasRenderingContext2D = canvas.getContext('2d')
 context.font = CONSTANTS.CANVAS_FONT
 
 function serverTime() {
-    return Date.now() + timeDiff - CONSTANTS.RENDER_DELAY
+    return Date.now() + timeDiff /*- CONSTANTS.RENDER_DELAY*/
 }
 
-socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate : string) {
-    let gamestate : GameState = importState(jsonstate)
+socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
+    let gamestate: ClientGameState = new ClientGameState(jsonstate.time, jsonstate.players, jsonstate.powerups)
     if (initTimeDiff) {
         timeDiff = gamestate.time - Date.now()
         initTimeDiff = false
     }
-    //console.log("lag", gamestate.time - Date.now());
-    gamestates.push(gamestate)
-
-    while (gamestates.length > 1 && gamestates[1].time <= serverTime()) {
-        // pop the 0th item
-        gamestates.shift()
-    }
+    targetStates.enqueue(gamestate)
 })
 
-// thank you Luke
-function onResize() {
-    // get the ratio of physical pixels to CSS pixels
-    const dpr = window.devicePixelRatio || 1
-
-    // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
-    canvas.style.width = `${window.innerWidth}px`
-    canvas.style.height = `${window.innerHeight}px`
-
-    // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
-    // (doesn't affect the actual size on screen I think)
-    // because this is larger than the size on screen (when dpr > 1), it'll get scaled back down to normal
-    // (while retaining the sharpness of all the physical pixels within each CSS pixel)
-    canvas.width = window.innerWidth * dpr
-    canvas.height = window.innerHeight * dpr
+function updateFramerate() {
+    framerateSamples.push(Date.now())
+    while (framerateSamples.length > CONSTANTS.CLIENT_FRAME_RATE_SAMPLE_SIZE) {
+        framerateSamples.shift() // pop
+    }
 }
-window.addEventListener("resize", onResize)
-onResize()
 
-export function render() {
-    let gamestate : GameState
-    if (gamestates.length == 0) {
-        // Rerun this render function on the next frame
-        requestAnimationFrame(render)
+// modify gamestate towards targetState
+function updateGamestate() {
+    while (targetStates.size() > 0 && targetStates.front().time < serverTime()) {
+        targetStates.dequeue()
+    }
+    if (targetStates.size() == 0) {
         return
-    } else if (gamestates.length == 1) {
-        gamestate = gamestates[0]
-    } else {
-        if (gamestates[1].time < gamestates[0].time) {
-            console.error("Received packets out of order, this is bad!")
-        }
-
-        let time : number = serverTime()
-        gamestate = interpolate(
-            gamestates[0],
-            gamestates[1],
-            (gamestates[1].time - time) / (gamestates[1].time - gamestates[0].time),
-            (time - gamestates[0].time) / (gamestates[1].time - gamestates[0].time)
-        )
     }
 
-    updateLeaderboard(gamestates[gamestates.length - 1])
+    let targetState: ClientGameState = targetStates.front()
+    let framerate = (framerateSamples.length - 1) / (framerateSamples[framerateSamples.length - 1] - framerateSamples[0])
+    for (let i in targetState.players) {
+        let prev = gamestate.players.find(function(value: Player) { return value.id == targetState.players[i].id })
+        if (prev) {
+            prev.updatePlayer(targetState.players[i], framerate)
+            targetState.players[i] = prev
+        }
+    }
+    gamestate = targetState
+}
 
+export function render() {
+    updateFramerate()
+    updateGamestate()
     context.restore()
     context.save()
     renderBackground()
+    updateLeaderboard(gamestate)
 
-    let me : Player = gamestate.getPlayer(socket.id)
-    if (me) {
+    let me: Player = gamestate.players[gamestate.players.length - 1]
+    if (me && me.id == socket.id) {
         document.getElementById("menu").style.visibility = "hidden"
+    } else {
+        document.getElementById("menu").style.visibility = "visible"
+    }
+    if (gamestate.players.length == 0) {
+        
 
-        let size : number = Math.min(canvas.width, canvas.height) / CONSTANTS.VISIBLE_REGION
+        let size: number = Math.min(canvas.width, canvas.height)
+        context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)
+        context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
+    } else {
+        let size: number = Math.min(canvas.width, canvas.height) / CONSTANTS.VISIBLE_REGION
         context.translate(canvas.width / 2, canvas.height / 2)
         context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
         context.translate(-me.x, -me.y)
-
-        // Draw background
-        renderMap()
-
-        // Draw powerups
-        gamestate.getPowerups().forEach(function(powerup : Powerup) {
-            renderPowerup(powerup)
-        })
-
-        // Draw all players
-        gamestate.getPlayers().forEach(function(other : Player) {
-            if (other.id != me.id) {
-                renderPlayer(other, other.getColour(me))
-            }
-        })
-
-        // Draw myself
-        //console.log(direction)
-        me.direction = direction
-        renderPlayer(me, CONSTANTS.PLAYER_TEAMMATE_COLOUR)
     }
-    // spectate all mode
-    /*else {
-        document.getElementById("menu").style.visibility = "visible"
-        
-        //console.log(me, socket.id, gamestate.players)
-        let size : number = Math.min(canvas.width, canvas.height)
-        context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)
-        context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
-        // Draw background
-        renderMap()
 
-        // Draw powerups
-        gamestate.getPowerups().forEach(function(powerup : Powerup) {
-            renderPowerup(powerup)
-        })
-
-        // game has ended, render everything
-        // Draw all players
-        gamestate.getPlayers().forEach(function(other : Player) {
-            renderPlayer(other, CONSTANTS.PLAYER_TEAMMATE_COLOUR)
-        })
-    }*/
+    renderMap()
+    for (let i in gamestate.powerups) {
+        renderPowerup(gamestate.powerups[i])
+    }
+    for (let i in gamestate.players) {
+        if (gamestate.players[i].id == socket.id) {
+            gamestate.players[i].direction = direction
+        }
+        renderPlayer(gamestate.players[i], gamestate.players[i].getColour(me))
+    }
 
     // Rerun this render function on the next frame
     requestAnimationFrame(render)
@@ -146,7 +109,7 @@ function renderBackground() {
     context.fillRect(0, 0, canvas.width, canvas.height)
 }
 
-function renderPowerup(powerup : Powerup) {
+function renderPowerup(powerup: Powerup) {
     context.fillStyle = CONSTANTS.POWERUP_COLOUR
     context.beginPath()
     context.arc(powerup.x, powerup.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
@@ -163,36 +126,36 @@ function renderMap() {
     context.fill()
     context.stroke()
 
-    // grid
-    for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
-        context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-        context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
-        context.beginPath()
-        context.moveTo(x, 0)
-        context.lineTo(x, CONSTANTS.MAP_SIZE)
-        context.stroke()
-    }
-    for (let y = 0; y <= CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
-        context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-        context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
-        context.beginPath()
-        context.moveTo(0, y)
-        context.lineTo(CONSTANTS.MAP_SIZE, y)
-        context.stroke()
-    }
-    
-    // dots
-    /*for (let x = CONSTANTS.MAP_GRID; x < CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
-        for (let y = CONSTANTS.MAP_GRID; y < CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
-            context.fillStyle = CONSTANTS.MAP_COLOUR
-            context.fillRect(x - 2, y - 2, 4, 4)
+    if (CONSTANTS.MAP_STYLE == "grid") {
+        for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
+            context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
+            context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
+            context.beginPath()
+            context.moveTo(x, 0)
+            context.lineTo(x, CONSTANTS.MAP_SIZE)
+            context.stroke()
         }
-    }*/
+        for (let y = 0; y <= CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
+            context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
+            context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
+            context.beginPath()
+            context.moveTo(0, y)
+            context.lineTo(CONSTANTS.MAP_SIZE, y)
+            context.stroke()
+        }
+    } else if (CONSTANTS.MAP_STYLE == "dots") {
+        for (let x = CONSTANTS.MAP_GRID; x < CONSTANTS.MAP_SIZE; x += CONSTANTS.MAP_GRID) {
+            for (let y = CONSTANTS.MAP_GRID; y < CONSTANTS.MAP_SIZE; y += CONSTANTS.MAP_GRID) {
+                context.fillStyle = CONSTANTS.MAP_LINE_COLOUR
+                context.fillRect(x - 2, y - 2, 4, 4)
+            }
+        }
+    }
 }
 
 
 // Renders a ship at the given coordinates
-function renderPlayer(player : Player, colour : string) {
+function renderPlayer(player: Player, colour: string) {
     context.save()
 
     context.translate(player.x, player.y)
@@ -207,8 +170,8 @@ function renderPlayer(player : Player, colour : string) {
 
     // Draw ship
     context.beginPath()
-    let inner_radius : number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
-    context.rect(-inner_radius, -inner_radius, 2 * inner_radius, 2 * inner_radius)
+    let innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
+    context.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
     context.fill()
     context.stroke()
 
@@ -222,14 +185,14 @@ function renderPlayer(player : Player, colour : string) {
     context.restore()
 }
 
-function updateLeaderboard(gamestate : GameState) {
-    let sortedPlayers : Player[] = Object.values(gamestate.players).sort(function(p1 : Player, p2 : Player) {
+function updateLeaderboard(gamestate: ClientGameState) {
+    let sortedPlayers: Player[] = Object.values(gamestate.players).sort(function(p1: Player, p2: Player) {
         return p2.score - p1.score
     })
 
     let table = document.querySelector("#leaderboard > table > tbody")
     table.innerHTML = ""
-    sortedPlayers.map(function(p : Player, i : number) {
+    sortedPlayers.map(function(p: Player, i: number) {
         let rank = document.createElement("td")
         rank.innerHTML = "#" + (i + 1).toString()
 

@@ -3,14 +3,14 @@
   'bullet.svg',
 ];
 
-const assets : { [key: string]: any }  = {};
+const assets: { [key: string]: any }  = {};
 
 
 export const downloadAssets(): any {
   return Promise.all(ASSET_NAMES.map(downloadAsset));
 }
 
-function downloadAsset(assetName : string) {
+function downloadAsset(assetName: string) {
   return new Promise(resolve => {
     const asset = new Image();
     asset.onload = () => {

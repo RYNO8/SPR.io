@@ -1,12 +1,29 @@
-import { Player, interpolatePlayer, copyPlayer } from "./player"
-import { Powerup } from "./powerup"
-import * as CONSTANTS from "./../constants"
+import { Player, copyPlayer } from "./player"
+import { Powerup, copyPowerup } from "./powerup"
+import * as CONSTANTS from "../constants"
 // maintain global data about other peoples positions & speeds & directions
 
-export class GameState {
+export class ClientGameState {
     public time: number = 0
-    public players: { [id : string]: Player } = {}
-    public powerups : Powerup[] = []
+    public players: Player[] = []
+    public powerups: Powerup[] = []
+
+    constructor(time_: number, players_: Player[], powerups_: Powerup[]) {
+        this.time = time_
+        for (let i in players_) {
+            this.players.push(copyPlayer(players_[i]))
+        }
+        for (let i in powerups_) {
+            this.powerups.push(copyPowerup(powerups_[i]))
+        }
+        this.powerups = powerups_
+    }
+}
+
+export class ServerGameState {
+    public time: number = 0
+    public players: { [id: string]: Player } = {}
+    public powerups: Powerup[] = []
 
     constructor() {
 
@@ -19,13 +36,13 @@ export class GameState {
     }
 
     //////////////////////////// PLAYER ////////////////////////////
-    updatePlayer(id : string, newDirection : number) {
+    updatePlayer(id: string, newDirection: number) {
         if (id in this.players) {
             this.players[id].direction = newDirection
         }
     }
 
-    getPlayer(id : string) {
+    getPlayer(id: string) {
         if (id in this.players) {
             return this.players[id]
         }
@@ -34,29 +51,40 @@ export class GameState {
         }
     }
 
-    getPlayers() {
+    getPlayers(): Player[] {
         return Object.values(this.players)
     }
 
-    setPlayer(p : Player) {
+    setPlayer(p: Player) {
         this.players[p.id] = p
     }
 
-    remPlayer(id : string) {
+    remPlayer(id: string) {
         if (id in this.players) {
             delete this.players[id]
         }
     }
 
+    getHighestPlayer() {
+        // TODO: how to tiebreak scores?
+        let highest = this.players[0]
+        for (let id in this.players) {
+            if (this.players[id].score > highest.score) {
+                highest = this.players[id]
+            }
+        }
+        return highest
+    }
+
     //////////////////////////// GAME UTILITIES ////////////////////////////
-    progress(time_step : number) {
+    progress(timeStep: number) {
         this.time = Date.now()
         for (let id in this.players) {
-            this.players[id].progress(time_step)
+            this.players[id].progress(timeStep)
         }
 
-        let toRemove : string[] = []
-        let toIncr : string[] = []
+        let toRemove: string[] = []
+        let toIncr: string[] = []
         // TODO: O(n^2) yikes
         // https://news.ycombinator.com/item?id=13266692
         // At first I tried checking every creature for collisions against everything else, but unsurprisingly that was too slow (N^2). To reduce the checks I put each creature in a grid cell based on their position, then check for collisions only against creatures in the same or adjacent cells.
@@ -84,7 +112,7 @@ export class GameState {
             }
         }
 
-        let remainingPowerups : Powerup[] = []
+        let remainingPowerups: Powerup[] = []
         for (let i in this.powerups) {
             let captured = false
             for (let id in this.players) {
@@ -99,7 +127,7 @@ export class GameState {
         }
         this.powerups = remainingPowerups
 
-        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() < CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIME_STEP) {
+        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() < CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIMESTEP) {
             this.powerups.push(new Powerup())
         }
     }
@@ -107,41 +135,8 @@ export class GameState {
     exportState() {
         return {
             time: this.time,
-            players: this.getPlayers(),
+            players: this.getPlayers(), // TODO: order players by increasing priority
             powerups: this.getPowerups()
         }
     }
-}
-
-export function importState(jsonstate : any) : GameState {
-    let gamestate : GameState = new GameState()
-    gamestate.time = jsonstate.time
-    jsonstate.players.forEach(function(jsonplayer : Player) {
-        gamestate.setPlayer(copyPlayer(jsonplayer))
-    })
-    gamestate.powerups = jsonstate.powerups
-    return gamestate
-}
-
-export function interpolate(state1 : GameState, state2 : GameState, percentage1 : number, percentage2 : number) {
-    let output : GameState = new GameState()
-    //output.time = state1.time * percentage1 + state2.time * percentage2
-    output.powerups = state1.powerups
-
-    state1.getPlayers().forEach(function(player : Player) {
-        if (player.id in state2.players) {
-            let newPlayer : Player = interpolatePlayer(player, state2.players[player.id], percentage1, percentage2)
-            output.setPlayer(newPlayer)
-        }
-        else {
-            output.setPlayer(player)
-        }
-    })
-    state2.getPlayers().forEach(function(player : Player) {
-        if (!(player.id in state1.players)) {
-            output.setPlayer(player)
-        }
-    })
-
-    return output
 }

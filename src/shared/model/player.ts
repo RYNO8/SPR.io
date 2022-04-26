@@ -7,12 +7,12 @@ export class Player extends GameObject {
     public team: number
     public score: number
 
-    public x : number
-    public y : number
-    public direction : number
-    public hasPowerup : number
+    public x: number
+    public y: number
+    public direction: number
+    public hasPowerup: number
 
-    constructor(id : string, name: string) {
+    constructor(id: string, name: string) {
         super()
 
         this.id = id
@@ -29,16 +29,16 @@ export class Player extends GameObject {
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
 
-    canCapture(p : Player) : boolean {
+    canCapture(p: Player): boolean {
         return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS || this.hasPowerup >= Date.now()
     }
 
-    hasCapture(p : Player): boolean {
+    hasCapture(p: Player): boolean {
         return this.canCapture(p) && this.canAttack(p)
     }
 
-    progress(time_step : number) {
-        let distance = CONSTANTS.PLAYER_SPEED * time_step
+    progress(timeStep: number) {
+        let distance = CONSTANTS.PLAYER_SPEED * timeStep
         this.x += Math.sin(this.direction) * distance
         this.y -= Math.cos(this.direction) * distance
         this.clamp()
@@ -49,7 +49,7 @@ export class Player extends GameObject {
         this.y = Math.max(CONSTANTS.PLAYER_RADIUS, Math.min(this.y, CONSTANTS.MAP_SIZE - CONSTANTS.PLAYER_RADIUS))
     }
 
-    getColour(me : Player) {
+    getColour(me: Player) {
         if (me.canCapture(this)) {
             return CONSTANTS.PLAYER_PREY_COLOUR
         }
@@ -58,6 +58,20 @@ export class Player extends GameObject {
         }
         else {
             return CONSTANTS.PLAYER_TEAMMATE_COLOUR
+        }
+    }
+
+    updatePlayer(newPlayer: Player, delta : number) {
+        this.x = this.x * (1 - delta) + newPlayer.x * delta
+        this.y = this.y * (1 - delta) + newPlayer.y * delta
+        this.direction %= 2 * Math.PI
+        newPlayer.direction %= 2 * Math.PI
+        if (this.direction - newPlayer.direction >= Math.PI) {
+            this.direction += (newPlayer.direction - this.direction + 2 * Math.PI) * delta
+        } else if (newPlayer.direction - this.direction >= Math.PI) {
+            this.direction += (newPlayer.direction - this.direction - 2 * Math.PI) * delta
+        } else {
+            this.direction += (newPlayer.direction - this.direction) * delta
         }
     }
 }
@@ -72,25 +86,4 @@ export function copyPlayer(player : Player) {
     output.direction = player.direction
     output.hasPowerup = player.hasPowerup
     return output
-}
-
-export function interpolatePlayer(player1 : Player, player2 : Player, percentage1 : number, percentage2 : number) {
-    let newPlayer : Player = copyPlayer(player1)
-    newPlayer.x = player1.x * percentage1 + player2.x * percentage2
-    newPlayer.y = player1.y * percentage1 + player2.y * percentage2
-    newPlayer.direction = interpolateAngle(player1.direction, player2.direction, percentage1, percentage2)
-    newPlayer.clamp()
-    return newPlayer
-}
-
-function interpolateAngle(direction1 : number, direction2 : number, percentage1 : number, percentage2 : number) {
-    if (direction1 - direction2 >= Math.PI) {
-        return direction1 * percentage1 + (direction2 + 2 * Math.PI) * percentage2
-    }
-    else if (direction2 - direction1 >= Math.PI) {
-        return direction1 * percentage1 + (direction2 - 2 * Math.PI) * percentage2
-    }
-    else {
-        return direction1 * percentage1 + direction2 * percentage2
-    }
 }
