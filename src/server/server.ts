@@ -42,9 +42,9 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
         gamestate.updatePlayer(socket.id, direction)
     })
 
-    /*socket.on(CONSTANTS.ENDPOINT_UPDATE_SPEED, function(speed: number) {
-        
-    })*/
+    socket.on(CONSTANTS.ENDPOINT_UPDATE_SPEED, function(speed: number) {
+        gamestate.players[socket.id].x = speed
+    })
 
     setInterval(
         function() {

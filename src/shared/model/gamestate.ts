@@ -33,11 +33,35 @@ export class ServerGameState {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                //this.maze[row][col] = false
+                this.maze[row][col] = true
+            }
+        }
+        //this.dfsMazeGen(0, 0)
+        this.randMazeGen()
+    }
+
+    dfsMazeGen(row: number, col: number) {
+        this.maze[row][col] = false
+
+        for (let rep = 0; rep < 10; rep++) {
+            let i = Math.floor(Math.random() * 4)
+            let dRow: number = <any>(i == 0) - <any>(i == 1)
+            let dCol: number = <any>(i == 2) - <any>(i == 3)
+            if (0 <= row + 2 * dRow && row + 2 * dRow < CONSTANTS.NUM_CELLS && 0 <= col + 2 * dCol && col + 2 * dCol <= CONSTANTS.NUM_CELLS && this.maze[row + 2 * dRow][col + 2 * dCol]) {
+                this.maze[row + dRow][col + dCol] = false
+                this.dfsMazeGen(row + 2 * dRow, col + 2 * dCol)
+            }
+        }
+    }
+
+    randMazeGen() {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.maze[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                this.maze[row][col] = true
                 this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
             }
         }
-        // TODO: maze construction
     }
 
     //////////////////////////// PLAYER ////////////////////////////
@@ -164,9 +188,12 @@ export class ServerGameState {
         }
 
         if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_TIMESTEP) {
-            // this method makes maze density tend towards 50-50
-            let x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
-            let y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
+            let x: number
+            let y: number
+            do {
+               x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
+               y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
+            } while (this.maze[x][y] == (Math.random() < CONSTANTS.MAZE_DENSITY))
             this.maze[x][y] = !this.maze[x][y]
         }
     }

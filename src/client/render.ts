@@ -76,9 +76,9 @@ export function render() {
         context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)
         context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
     } else {
-        let size: number = Math.min(canvas.width, canvas.height) / CONSTANTS.VISIBLE_REGION
+        let size: number = Math.min(canvas.width, canvas.height)
         context.translate(canvas.width / 2, canvas.height / 2)
-        context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
+        context.scale(size / CONSTANTS.VISIBLE_SIZE, size / CONSTANTS.VISIBLE_SIZE)
         context.translate(-me.x, -me.y)
     }
 

@@ -14,13 +14,13 @@ export let ENDPOINT_CLIENT_DISCONNECT: string = "disconnect"
 export let ENDPOINT_SERVER_CONNECT: string = "connection"
 export let ENDPOINT_SERVER_DISCONNECT: string = "disconnect"
 export let ENDPOINT_UPDATE_DIRECTION: string = "update_direction"
-//export let ENDPOINT_UPDATE_SPEED: string = "update_speed"
+export let ENDPOINT_UPDATE_SPEED: string = "update_speed"
 export let ENDPOINT_UPDATE_GAME_STATE: string = "update_game"
 export let ENDPOINT_GAME_INIT: string = "game_init"
 
 // misc
 export let NUM_TEAMS: number = 3
-export let VISIBLE_REGION: number = 0.4 // players can see a square region of 0.4*MAP_SIZE
+export let VISIBLE_SIZE: number = 1000
 export let CANVAS_FONT: string = "20px serif"
 
 // player
@@ -42,7 +42,7 @@ export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 3000
+export let MAP_SIZE: number = 6000
 export let MAP_LINE_COLOUR: string = "lightgrey"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "lightgrey"
@@ -50,7 +50,7 @@ export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "grid" // or "dots" or "none"
 
 // maze
-export let CELL_SIZE: number = 150 // there is a grid line every this many pixels
+export let CELL_SIZE: number = 100 // there is a grid line every this many pixels
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
-export let MAZE_DENSITY: number = 0.2
-export let MAZE_CHANGE_RATE: number = 3 / 1000
+export let MAZE_DENSITY: number = 0.1
+export let MAZE_CHANGE_RATE: number = 1000 / 1000
