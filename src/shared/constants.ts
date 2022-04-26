@@ -3,10 +3,10 @@
 export let PORT: number = 80
 
 // networking
-export let SERVER_TICK_RATE: number = 50 / 1000
+export let SERVER_TICK_RATE: number = 30 / 1000
 export let SERVER_TIMESTEP = 1 / SERVER_TICK_RATE
-export let RENDER_DELAY: number = 0
-export let CLIENT_FRAME_RATE_SAMPLE_SIZE: number = 20
+export let RENDER_DELAY: number = 50
+export let CLIENT_FRAME_RATE_SAMPLE_SIZE: number = 30
 
 // socketio "endpoints"
 export let ENDPOINT_CLIENT_CONNECT: string = "connect"
@@ -22,12 +22,13 @@ export let ENDPOINT_GAME_INIT: string = "game_init"
 export let NUM_TEAMS: number = 3
 export let VISIBLE_SIZE: number = 1000
 export let CANVAS_FONT: string = "20px serif"
+export let INTERPOLATE_SPEED: number = 6
 
 // player
 export let PLAYER_RADIUS: number = 35
-export let PLAYER_SPEED: number = 0.2
-export let PLAYER_LINE_WIDTH: number = 6
-export let PLAYER_NAME_OFFSET: number = 50
+export let PLAYER_SPEED: number = 0.15
+export let PLAYER_LINE_WIDTH: number = 7
+export let PLAYER_NAME_OFFSET: number = 55
 export let PLAYER_DEFAULT_COLOUR: string = "black"
 export let PLAYER_POWERUP_COLOUR: string = "purple"
 export let PLAYER_PREY_COLOUR: string = "#1D7755" // green
@@ -37,12 +38,12 @@ export let PLAYER_TEAMMATE_COLOUR: string = "#60ACBC" // blue // NOTE: this is a
 // powerup
 export let POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclusive
 export let POWERUP_MAX: number = 10
-export let POWERUP_DURATION: number = 2000
+export let POWERUP_DURATION: number = 5 * 1000
 export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 6000
+export let MAP_SIZE: number = 3000
 export let MAP_LINE_COLOUR: string = "lightgrey"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "lightgrey"
@@ -50,7 +51,7 @@ export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "grid" // or "dots" or "none"
 
 // maze
-export let CELL_SIZE: number = 100 // there is a grid line every this many pixels
+export let CELL_SIZE: number = 200 // there is a grid line every this many pixels
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export let MAZE_DENSITY: number = 0.1
-export let MAZE_CHANGE_RATE: number = 1000 / 1000
+export let MAZE_CHANGE_RATE: number = 0.1 / 1000

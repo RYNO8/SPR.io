@@ -33,7 +33,7 @@ export class ServerGameState {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = true
+                this.maze[row][col] = false
             }
         }
         //this.dfsMazeGen(0, 0)
@@ -56,9 +56,7 @@ export class ServerGameState {
 
     randMazeGen() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = true
                 this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
             }
         }
@@ -94,7 +92,7 @@ export class ServerGameState {
             }
         }
         others.sort(function(p1: Player, p2: Player) {
-            return p2.score - p1.score
+            return p1.score - p2.score
         })
         if (me) {
             others.push(me)
@@ -121,7 +119,7 @@ export class ServerGameState {
     //////////////////////////// MAZE ////////////////////////////
     
     getMaze() {
-        let output = [];
+        let output = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 if (this.maze[row][col]) {
@@ -133,10 +131,10 @@ export class ServerGameState {
     }
 
     //////////////////////////// GAME UTILITIES ////////////////////////////
-    progress(timeStep: number) {
+    progress() {
         this.time = Date.now()
         for (let id in this.players) {
-            this.players[id].progress(timeStep, this.maze)
+            this.players[id].progress(this.maze)
         }
 
         let toRemove: string[] = []

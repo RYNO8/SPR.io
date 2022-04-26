@@ -28,20 +28,18 @@ export class Player extends GameObject {
         this.score++
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
-
-    canCapture(p: Player): boolean {
-        return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS || (this.hasPowerup >= Date.now() && this.id != p.id)
-    }
-
     hasCapture(p: Player): boolean {
-        return this.canCapture(p) && this.canAttack(p)
+        let canCapture = p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS || (this.hasPowerup >= Date.now() && p.hasPowerup < Date.now())
+        return canCapture && this.canAttack(p)
     }
 
-    progress(timeStep: number, maze: boolean[][]) {
-        let distance = CONSTANTS.PLAYER_SPEED * timeStep
+    progress(maze: boolean[][]) {
+        let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_TIMESTEP
         this.x += Math.sin(this.direction) * distance
         this.y -= Math.cos(this.direction) * distance
-
+        
+        // TODO: corner cutting? its not a bug its a feature!
+        // TODO: entering walls via corner
         let mazeX = Math.floor(this.x / CONSTANTS.CELL_SIZE)
         let mazeY = Math.floor(this.y / CONSTANTS.CELL_SIZE)
         
@@ -60,10 +58,10 @@ export class Player extends GameObject {
     }
 
     getColour(me: Player) {
-        if (me.canCapture(this)) {
+        if (this.team == (me.team + 1) % CONSTANTS.NUM_TEAMS) {
             return CONSTANTS.PLAYER_PREY_COLOUR
         }
-        else if (this.canCapture(me)) {
+        else if (me.team == (this.team + 1) % CONSTANTS.NUM_TEAMS) {
             return CONSTANTS.PLAYER_ENEMY_COLOUR
         }
         else {
