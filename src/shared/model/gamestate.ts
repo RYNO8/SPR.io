@@ -40,28 +40,6 @@ export class ServerGameState {
         this.randMazeGen()
     }
 
-    dfsMazeGen(row: number, col: number) {
-        this.maze[row][col] = false
-
-        for (let rep = 0; rep < 10; rep++) {
-            let i = Math.floor(Math.random() * 4)
-            let dRow: number = <any>(i == 0) - <any>(i == 1)
-            let dCol: number = <any>(i == 2) - <any>(i == 3)
-            if (0 <= row + 2 * dRow && row + 2 * dRow < CONSTANTS.NUM_CELLS && 0 <= col + 2 * dCol && col + 2 * dCol <= CONSTANTS.NUM_CELLS && this.maze[row + 2 * dRow][col + 2 * dCol]) {
-                this.maze[row + dRow][col + dCol] = false
-                this.dfsMazeGen(row + 2 * dRow, col + 2 * dCol)
-            }
-        }
-    }
-
-    randMazeGen() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
-            }
-        }
-    }
-
     //////////////////////////// PLAYER ////////////////////////////
     updatePlayer(id: string, newDirection: number) {
         if (id in this.players) {
@@ -128,6 +106,28 @@ export class ServerGameState {
             }
         }
         return output
+    }
+
+    dfsMazeGen(row: number, col: number) {
+        this.maze[row][col] = false
+
+        for (let rep = 0; rep < 10; rep++) {
+            let i = Math.floor(Math.random() * 4)
+            let dRow: number = <any>(i == 0) - <any>(i == 1)
+            let dCol: number = <any>(i == 2) - <any>(i == 3)
+            if (0 <= row + 2 * dRow && row + 2 * dRow < CONSTANTS.NUM_CELLS && 0 <= col + 2 * dCol && col + 2 * dCol <= CONSTANTS.NUM_CELLS && this.maze[row + 2 * dRow][col + 2 * dCol]) {
+                this.maze[row + dRow][col + dCol] = false
+                this.dfsMazeGen(row + 2 * dRow, col + 2 * dCol)
+            }
+        }
+    }
+
+    randMazeGen() {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
+            }
+        }
     }
 
     //////////////////////////// GAME UTILITIES ////////////////////////////
