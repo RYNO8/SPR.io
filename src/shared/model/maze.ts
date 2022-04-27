@@ -1,32 +1,35 @@
 import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
 
+function randDirection() {
+    let i = Math.floor(Math.random() * 4)
+    let dRow: number = <any>(i == 0) - <any>(i == 1)
+    let dCol: number = <any>(i == 2) - <any>(i == 3)
+    return [dRow, dCol]
+}
+
 export class Maze {
     public maze: boolean[][] = []
 
     constructor() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+        //this.randMazeGen()
+
+        /*for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 this.maze[row][col] = false
             }
         }
-        //this.dfsMazeGen(0, 0)
-        this.randMazeGen()
-    }
+        this.dfsMazeGen(0, 0)*/
 
-    dfsMazeGen(row: number, col: number) {
-        this.maze[row][col] = false
-
-        for (let rep = 0; rep < 10; rep++) {
-            let i = Math.floor(Math.random() * 4)
-            let dRow: number = <any>(i == 0) - <any>(i == 1)
-            let dCol: number = <any>(i == 2) - <any>(i == 3)
-            if (0 <= row + 2 * dRow && row + 2 * dRow < CONSTANTS.NUM_CELLS && 0 <= col + 2 * dCol && col + 2 * dCol <= CONSTANTS.NUM_CELLS && this.maze[row + 2 * dRow][col + 2 * dCol]) {
-                this.maze[row + dRow][col + dCol] = false
-                this.dfsMazeGen(row + 2 * dRow, col + 2 * dCol)
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.maze[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                this.maze[row][col] = true
             }
         }
+        this.randwalkMazeGen()
+        
     }
 
     randMazeGen() {
@@ -37,12 +40,58 @@ export class Maze {
         }
     }
 
+    dfsMazeGen(row: number, col: number) {
+        this.maze[row][col] = false
+
+        for (let rep = 0; rep < 10; rep++) {
+            let [dRow, dCol] = randDirection()
+            if (0 <= row + 2 * dRow && row + 2 * dRow < CONSTANTS.NUM_CELLS && 0 <= col + 2 * dCol && col + 2 * dCol <= CONSTANTS.NUM_CELLS && this.maze[row + 2 * dRow][col + 2 * dCol]) {
+                this.maze[row + dRow][col + dCol] = false
+                this.dfsMazeGen(row + 2 * dRow, col + 2 * dCol)
+            }
+        }
+    }
+
+    randwalkMazeGen() {
+        // these constants are specific to CONSTANTS.NUM_CELLS == 20
+        // TODO: test if these constants scale linearly with NUM_CELLS
+        // tested using https://cdpn.io/abdolsa/fullembedgrid/zEKdop?animations=run&type=embed
+        let NUM_TUNNELS = 90
+        let MAX_LENGTH = 7
+
+        let mazeX = Math.floor(CONSTANTS.NUM_CELLS / 2)
+        let mazeY = Math.floor(CONSTANTS.NUM_CELLS / 2)
+        let prevdx = 0
+        let prevdy = 0
+        for (let rep = 0; rep < NUM_TUNNELS; rep++) {
+            let dx: number
+            let dy: number
+            do {
+                [dx, dy] = randDirection()
+            } while (dx == prevdx && dy == prevdy)
+
+            let length = Math.floor(Math.random() * MAX_LENGTH)
+            for (let i = 0; i < length && this.isValidCell(mazeX + dx, mazeY + dy); i++) {
+                this.maze[mazeX][mazeY] = false
+                mazeX += dx
+                mazeY += dy
+                prevdx = dx
+                prevdy = dy
+            }
+            this.maze[mazeX][mazeY] = false
+        }
+    }
+
+    isValidCell(mazeX: number, mazeY: number) {
+        return 0 <= mazeX && mazeX < CONSTANTS.NUM_CELLS && 0 <= mazeY && mazeY < CONSTANTS.NUM_CELLS
+    }
+
     getCell(mazeX: number, mazeY: number) {
-        return mazeX < 0 || mazeX >= CONSTANTS.NUM_CELLS || mazeY < 0 || mazeY >= CONSTANTS.NUM_CELLS || this.maze[mazeX][mazeY]
+        return !this.isValidCell(mazeX, mazeY) || this.maze[mazeX][mazeY]
     }
 
     isPointBlocked(x: number, y: number) {
-        return !this.getCell(Math.floor(x / CONSTANTS.CELL_SIZE), Math.floor(y / CONSTANTS.CELL_SIZE))
+        return this.getCell(Math.floor(x / CONSTANTS.CELL_SIZE), Math.floor(y / CONSTANTS.CELL_SIZE))
     }
 
     isRegionBlocked(x1: number, y1: number, x2: number, y2: number) {
@@ -50,12 +99,12 @@ export class Maze {
         y2 = Math.ceil(y2 / CONSTANTS.CELL_SIZE) * CONSTANTS.CELL_SIZE
         for (let x = x1; x < x2; x += CONSTANTS.CELL_SIZE) {
             for (let y = y1; y < y2; y += CONSTANTS.CELL_SIZE) {
-                if (this.isPointBlocked(x, y) == false) {
-                    return false
+                if (this.isPointBlocked(x, y)) {
+                    return true
                 }
             }
         }
-        return true
+        return false
     }
 
     clamp(x: number, y: number): [number, number] {

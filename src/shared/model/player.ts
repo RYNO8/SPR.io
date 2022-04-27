@@ -12,15 +12,15 @@ export class Player extends GameObject {
     public direction: number
     public hasPowerup: number
 
-    constructor(id: string, name: string) {
-        super()
+    constructor(id: string, name: string, x: number, y: number) {
+        super(x, y)
 
         this.id = id
         this.name = name
         // TODO: something better than random, try balancing teams
         this.team = Math.floor(Math.random() * CONSTANTS.NUM_TEAMS)
         this.score = 0
-        this.direction = 0
+        this.direction = Math.random() * 2 * Math.PI
         this.hasPowerup = 0
     }
 
@@ -68,11 +68,9 @@ export class Player extends GameObject {
 
 // why is js/ts so stupid
 export function copyPlayer(player : Player) {
-    let output : Player = new Player(player.id, player.name)
+    let output : Player = new Player(player.id, player.name, player.x, player.y)
     output.team = player.team
     output.score = player.score
-    output.x = player.x
-    output.y = player.y
     output.direction = player.direction
     output.hasPowerup = player.hasPowerup
     return output

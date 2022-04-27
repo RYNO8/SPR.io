@@ -48,10 +48,10 @@ export let MAP_LINE_COLOUR: string = "lightgrey"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "lightgrey"
 export let MAP_LINE_WIDTH: number = 2
-export let MAP_STYLE: string = "grid" // or "dots" or "none"
+export let MAP_STYLE: string = "none" // or "dots" or "grid"
 
 // maze
-export let CELL_SIZE: number = 200 // there is a grid line every this many pixels
+export let CELL_SIZE: number = 150 // there is a grid line every this many pixels
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
-export let MAZE_DENSITY: number = 0.1
-export let MAZE_CHANGE_RATE: number = 0.1 / 1000
+export let MAZE_DENSITY: number = 0.1 // must be between 0 and 1 inclusive
+export let MAZE_CHANGE_RATE: number = 0 //0.1 / 1000

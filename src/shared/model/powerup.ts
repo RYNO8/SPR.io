@@ -6,16 +6,14 @@ export class Powerup extends GameObject {
     public x: number
     public y: number
 
-    constructor() {
-        super()
+    constructor(x: number, y: number) {
+        super(x, y)
         this.time = Date.now()
     }
 }
 
 export function copyPowerup(powerup : Powerup) {
-    let output : Powerup = new Powerup()
+    let output : Powerup = new Powerup(powerup.x, powerup.y)
     output.time = powerup.time
-    output.x = powerup.x
-    output.y = powerup.y
     return output
 }

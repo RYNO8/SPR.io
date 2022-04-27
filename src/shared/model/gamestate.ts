@@ -18,16 +18,11 @@ export class ClientGameState {
     public powerups: Powerup[] = []
     public maze: [number, number][] = []
     
-    constructor(time_: number, players_: Player[], powerups_: Powerup[], maze_ : [number, number][]) {
-        this.time = time_
-        for (let i in players_) {
-            this.players.push(copyPlayer(players_[i]))
-        }
-        for (let i in powerups_) {
-            this.powerups.push(copyPowerup(powerups_[i]))
-        }
-        this.powerups = powerups_
-        this.maze = maze_
+    constructor(time: number, players: Player[], powerups: Powerup[], maze: [number, number][]) {
+        this.time = time
+        this.players = players.map(copyPlayer)
+        this.powerups = powerups.map(copyPowerup)
+        this.maze = maze
     }
 }
 
@@ -65,7 +60,6 @@ export class ServerGameState {
     }
 
     setPlayer(p: Player) {
-        // todo: dont spawn on walls
         this.players[p.id] = p
     }
 
@@ -163,11 +157,8 @@ export class ServerGameState {
         this.powerups = remainingPowerups
 
         if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIMESTEP) {
-            let powerup: Powerup
-            do {
-                powerup = new Powerup()
-            } while (!this.maze.isPointBlocked(powerup.x, powerup.y) || this.isPointOccupied(powerup.x, powerup.y))
-            this.powerups.push(powerup)
+            let [x, y] = this.getSpawnPos()
+            this.powerups.push(new Powerup(x, y))
         }
     }
 
@@ -186,9 +177,10 @@ export class ServerGameState {
             let x: number
             let y: number
             do {
-               x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
-               y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
-            } while (this.maze.maze[x][y] == (Math.random() < CONSTANTS.MAZE_DENSITY))
+               [x, y] = this.getSpawnPos()
+               x = Math.floor(x / CONSTANTS.CELL_SIZE)
+               y = Math.floor(y / CONSTANTS.CELL_SIZE)
+            } while (this.maze.maze[x][y] == (Math.random() <= CONSTANTS.MAZE_DENSITY))
             this.maze.maze[x][y] = !this.maze.maze[x][y]
         }
     }
@@ -211,6 +203,16 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
     ///////////////////////////// GAME //////////////////////////////
     /////////////////////////////////////////////////////////////////
+
+    getSpawnPos() {
+        let x: number
+        let y: number
+        do {
+            x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
+            y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
+        } while (this.maze.isPointBlocked(x, y) || this.isPointOccupied(x, y))
+        return [x, y]
+    }
 
     update() {
         // TODO: think about best order

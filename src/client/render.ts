@@ -147,7 +147,8 @@ function renderMap() {
 function renderMaze(maze : [number, number][]) {
     for (let i in maze) {
         context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-        context.fillRect(maze[i][0], maze[i][1], CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
+        // extra pixels to make sure there are no 0 width gaps between adjacent walls
+        context.fillRect(maze[i][0] - 2, maze[i][1] - 2, CONSTANTS.CELL_SIZE + 2, CONSTANTS.CELL_SIZE + 2)
     }
 }
 
