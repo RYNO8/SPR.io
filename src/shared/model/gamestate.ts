@@ -1,8 +1,16 @@
 import { GameObject } from "./../model/game_object"
 import { Player, copyPlayer } from "./player"
 import { Powerup, copyPowerup } from "./powerup"
-import * as CONSTANTS from "../constants"
-// maintain global data about other peoples positions & speeds & directions
+import { Maze } from "./maze"
+import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
+
+function isVisible(obj: GameObject, me: Player) {
+    if (!me) {
+        // TODO: you are dead, but you shouldnt be able to see everything
+        return true
+    }
+    return Math.abs(obj.x - me.x) <= CONSTANTS.VISIBLE_SIZE && Math.abs(obj.y - me.y) <= CONSTANTS.VISIBLE_SIZE
+}
 
 export class ClientGameState {
     public time: number = 0
@@ -27,21 +35,18 @@ export class ServerGameState {
     public time: number = 0
     public players: { [id: string]: Player } = {}
     public powerups: Powerup[] = []
-    public maze: boolean[][] = []
+    public maze: Maze
 
     constructor() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = false
-            }
-        }
-        //this.dfsMazeGen(0, 0)
-        this.randMazeGen()
+        this.time = Date.now()
+        this.maze = new Maze()
     }
 
+    /////////////////////////////////////////////////////////////////
     //////////////////////////// PLAYER ////////////////////////////
-    updatePlayer(id: string, newDirection: number) {
+    /////////////////////////////////////////////////////////////////
+
+    setPlayerDirection(id: string, newDirection: number) {
         if (id in this.players) {
             this.players[id].direction = newDirection
         }
@@ -59,26 +64,8 @@ export class ServerGameState {
         return Object.values(this.players)
     }
 
-    getPlayersPriority(targetID: string) {
-        let others: Player[] = []
-        let me: Player = null
-        for (let id in this.players) {
-            if (id == targetID) {
-                me = this.players[id]
-            } else {
-                others.push(this.players[id])
-            }
-        }
-        others.sort(function(p1: Player, p2: Player) {
-            return p1.score - p2.score
-        })
-        if (me) {
-            others.push(me)
-        }
-        return others
-    }
-
     setPlayer(p: Player) {
+        // todo: dont spawn on walls
         this.players[p.id] = p
     }
 
@@ -88,55 +75,17 @@ export class ServerGameState {
         }
     }
 
-    //////////////////////////// POWERUP ////////////////////////////
-    
-    getPowerups() {
-        return Object.values(this.powerups)
-    }
-
-    //////////////////////////// MAZE ////////////////////////////
-    
-    getMaze() {
-        let output = []
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                if (this.maze[row][col]) {
-                    output.push([row * CONSTANTS.CELL_SIZE, col * CONSTANTS.CELL_SIZE]);
-                }
-            }
-        }
-        return output
-    }
-
-    dfsMazeGen(row: number, col: number) {
-        this.maze[row][col] = false
-
-        for (let rep = 0; rep < 10; rep++) {
-            let i = Math.floor(Math.random() * 4)
-            let dRow: number = <any>(i == 0) - <any>(i == 1)
-            let dCol: number = <any>(i == 2) - <any>(i == 3)
-            if (0 <= row + 2 * dRow && row + 2 * dRow < CONSTANTS.NUM_CELLS && 0 <= col + 2 * dCol && col + 2 * dCol <= CONSTANTS.NUM_CELLS && this.maze[row + 2 * dRow][col + 2 * dCol]) {
-                this.maze[row + dRow][col + dCol] = false
-                this.dfsMazeGen(row + 2 * dRow, col + 2 * dCol)
-            }
-        }
-    }
-
-    randMazeGen() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
-            }
-        }
-    }
-
-    //////////////////////////// GAME UTILITIES ////////////////////////////
-    progress() {
-        this.time = Date.now()
+    updatePlayers() {
+        
         for (let id in this.players) {
-            this.players[id].progress(this.maze)
+            this.players[id].progress()
+            let [x, y] = this.maze.clamp(this.players[id].x, this.players[id].y)
+            this.players[id].x = x
+            this.players[id].y = y
         }
+    }
 
+    updateCaptures() {
         let toRemove: string[] = []
         let toIncr: string[] = []
         // TODO: O(n^2) yikes
@@ -165,7 +114,39 @@ export class ServerGameState {
                 this.players[toIncr[i]].increment()
             }
         }
+    }
 
+    exportPlayers(me: Player) {
+        let others: Player[] = []
+        for (let id in this.players) {
+            if ((!me || id != me.id) && isVisible(this.players[id], me)) {
+                others.push(this.players[id])
+            }
+        }
+        others.sort(function(p1: Player, p2: Player) {
+            return p1.score - p2.score
+        })
+        if (me) {
+            others.push(me)
+        }
+        return others
+    }
+
+    /////////////////////////////////////////////////////////////////
+    //////////////////////////// POWERUP ////////////////////////////
+    /////////////////////////////////////////////////////////////////
+
+    isPointOccupied(x: number, y: number) {
+        for (let i in this.powerups) {
+            // TODO: this is very sus, pls fix
+            if (this.powerups[i].canAttack({x: x, y: y, canAttack: null})) {
+                return true
+            }
+        }
+        return false
+    }
+
+    updatePowerups() {
         let remainingPowerups: Powerup[] = []
         for (let i in this.powerups) {
             let captured = false
@@ -182,27 +163,72 @@ export class ServerGameState {
         this.powerups = remainingPowerups
 
         if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIMESTEP) {
-            this.powerups.push(new Powerup())
+            let powerup: Powerup
+            do {
+                powerup = new Powerup()
+            } while (!this.maze.isPointBlocked(powerup.x, powerup.y) || this.isPointOccupied(powerup.x, powerup.y))
+            this.powerups.push(powerup)
         }
+    }
 
+    exportPowerups(me: Player) {
+        return Object.values(this.powerups.filter(function(powerup: Powerup) {
+            return isVisible(powerup, me)
+        }))
+    }
+
+    /////////////////////////////////////////////////////////////////
+    ///////////////////////////// MAZE //////////////////////////////
+    /////////////////////////////////////////////////////////////////
+
+    updateMaze() {
         if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_TIMESTEP) {
             let x: number
             let y: number
             do {
                x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
                y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS)
-            } while (this.maze[x][y] == (Math.random() < CONSTANTS.MAZE_DENSITY))
-            this.maze[x][y] = !this.maze[x][y]
+            } while (this.maze.maze[x][y] == (Math.random() < CONSTANTS.MAZE_DENSITY))
+            this.maze.maze[x][y] = !this.maze.maze[x][y]
         }
+    }
+    
+    exportMaze(me: Player) {
+        let output = []
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                let x = row * CONSTANTS.CELL_SIZE
+                let y = col * CONSTANTS.CELL_SIZE
+                // TODO: this is sus, pls fix
+                if (this.maze.maze[row][col] && isVisible({x: x + CONSTANTS.CELL_SIZE / 2, y: y + CONSTANTS.CELL_SIZE / 2, canAttack: null}, me)) {
+                    output.push([x, y]);
+                }
+            }
+        }
+        return output
+    }
+
+    /////////////////////////////////////////////////////////////////
+    ///////////////////////////// GAME //////////////////////////////
+    /////////////////////////////////////////////////////////////////
+
+    update() {
+        // TODO: think about best order
+        this.time = Date.now()
+        this.updatePlayers()
+        this.updateCaptures()
+        this.updatePowerups()
+        this.updateMaze()
     }
 
     exportState(id : string) {
         // TODO: make custom packet for each player
+        let me = this.getPlayer(id)
         return {
             time: this.time,
-            players: this.getPlayersPriority(id),
-            powerups: this.getPowerups(),
-            maze: this.getMaze()
+            players: this.exportPlayers(me),
+            powerups: this.exportPowerups(me),
+            maze: this.exportMaze(me)
         }
     }
 }

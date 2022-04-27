@@ -33,55 +33,10 @@ export class Player extends GameObject {
         return canCapture && this.canAttack(p)
     }
 
-    progress(maze: boolean[][]) {
+    progress() {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_TIMESTEP
         this.x += Math.sin(this.direction) * distance
         this.y -= Math.cos(this.direction) * distance
-        
-        let mazeX = Math.floor(this.x / CONSTANTS.CELL_SIZE)
-        let mazeY = Math.floor(this.y / CONSTANTS.CELL_SIZE)
-
-        let leftBound = mazeX * CONSTANTS.CELL_SIZE + CONSTANTS.PLAYER_RADIUS
-        let rightBound = (mazeX + 1) * CONSTANTS.CELL_SIZE - CONSTANTS.PLAYER_RADIUS
-        let topBound = mazeY * CONSTANTS.CELL_SIZE + CONSTANTS.PLAYER_RADIUS
-        let bottomBound = (mazeY + 1) * CONSTANTS.CELL_SIZE - CONSTANTS.PLAYER_RADIUS
-
-
-        let getCell = function(x: number, y: number) {
-            return x < 0 || x >= CONSTANTS.NUM_CELLS || y < 0 || y >= CONSTANTS.NUM_CELLS || maze[x][y]
-        }
-
-        // edges
-        if (getCell(mazeX - 1, mazeY)) {
-            this.x = Math.max(this.x, leftBound)
-        }
-        if (getCell(mazeX + 1, mazeY)) {
-            this.x = Math.min(this.x, rightBound)
-        }
-        if (getCell(mazeX, mazeY - 1)) {
-            this.y = Math.max(this.y, topBound)
-        }
-        if (getCell(mazeX, mazeY + 1)) {
-            this.y = Math.min(this.y, bottomBound)
-        }
-
-        // corners
-        if (getCell(mazeX - 1, mazeY + 1) && this.x <= leftBound && this.y >= bottomBound) {
-            if (leftBound - this.x < this.y - bottomBound) this.x = leftBound
-            else this.y = bottomBound
-        }
-        if (getCell(mazeX + 1, mazeY + 1) && this.x >= rightBound && this.y >= bottomBound) {
-            if (this.x - rightBound < this.y - bottomBound) this.x = rightBound
-            else this.y = bottomBound
-        }
-        if (getCell(mazeX - 1, mazeY - 1) && this.x <= leftBound && this.y <= topBound) {
-            if (leftBound - this.x < topBound - this.y) this.x = leftBound
-            else this.y = topBound
-        }
-        if (getCell(mazeX + 1, mazeY - 1) && this.x >= rightBound && this.y <= topBound) {
-            if (this.x - rightBound < topBound - this.y) this.x = rightBound
-            else this.y = topBound
-        }
     }
 
     getColour(me: Player) {

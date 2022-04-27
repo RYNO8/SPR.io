@@ -6,7 +6,7 @@ import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 
 let gamestate: ServerGameState = new ServerGameState()
-setInterval(() => gamestate.progress(), CONSTANTS.SERVER_TIMESTEP)
+setInterval(() => gamestate.update(), CONSTANTS.SERVER_TIMESTEP)
 
 const app = express()
 app.set("port", CONSTANTS.PORT)
@@ -44,7 +44,7 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
     })
 
     socket.on(CONSTANTS.ENDPOINT_UPDATE_DIRECTION, function(direction: number) {
-        gamestate.updatePlayer(socket.id, direction)
+        gamestate.setPlayerDirection(socket.id, direction)
     })
 
     socket.on(CONSTANTS.ENDPOINT_UPDATE_SPEED, function(speed: number) {
