@@ -17,44 +17,24 @@ TODO
 */
 
 import { debounce } from "throttle-debounce"
-import { startCapturingInput } from "./send"
+import { startCapturingInput } from "./playerInput"
 import { render } from "./render"
-import { socket, initStatusMsg } from "./networking"
-import * as CONSTANTS from "./../shared/constants"
+import { onResize, initStatusMsg, initGameOver, startGame } from "./events"
 
-const canvas = <HTMLCanvasElement> document.getElementById('game-canvas')
-// thank you Luke
-function onResize() {
-    // get the ratio of physical pixels to CSS pixels
-    const dpr = window.devicePixelRatio || 1
+startCapturingInput()
 
-    // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
-    canvas.style.width = `${window.innerWidth}px`
-    canvas.style.height = `${window.innerHeight}px`
+requestAnimationFrame(render)
 
-    // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
-    // (doesn't affect the actual size on screen I think)
-    // because this is larger than the size on screen (when dpr > 1), it'll get scaled back down to normal
-    // (while retaining the sharpness of all the physical pixels within each CSS pixel)
-    canvas.width = window.innerWidth * dpr
-    canvas.height = window.innerHeight * dpr
-}
 window.addEventListener("resize", debounce(40, onResize))
 onResize()
 
 initStatusMsg()
-requestAnimationFrame(render)
 
-let playButton = document.getElementById("play-button")
-playButton.onclick = startGame
+initGameOver()
+
+document.getElementById("play-button").onclick = startGame
 document.onkeyup = function(event: KeyboardEvent) {
     if (event.code == "Enter") {
         startGame()
     }
-}
-
-function startGame() {
-    let name: string = (<HTMLInputElement> document.getElementById("name")).value || "Player"
-    socket.emit(CONSTANTS.ENDPOINT_GAME_INIT, name)
-    startCapturingInput()
 }

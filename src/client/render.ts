@@ -2,7 +2,7 @@ import { socket } from "./networking"
 import { ClientGameState } from "../shared/model/gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
-import { direction } from "./send"
+import { direction } from "./playerInput"
 import { Powerup } from "../shared/model/powerup"
 import { PriorityQueue } from "@datastructures-js/priority-queue";
 
@@ -62,8 +62,8 @@ export function render() {
     updateGamestate()
     context.restore()
     context.save()
-    renderBackground()
     updateLeaderboard(gamestate)
+    renderBackground()
 
     let me: Player = gamestate.players[gamestate.players.length - 1]
     if (me && me.id == socket.id) {
@@ -96,6 +96,32 @@ export function render() {
 
     // Rerun this render function on the next frame
     requestAnimationFrame(render)
+}
+
+function updateLeaderboard(gamestate: ClientGameState) {
+    let sortedPlayers: Player[] = Object.values(gamestate.players).sort(function(p1: Player, p2: Player) {
+        return p2.score - p1.score
+    })
+
+    let table = document.querySelector("#leaderboard > table > tbody")
+    table.innerHTML = ""
+    sortedPlayers.map(function(p: Player, i: number) {
+        let rank = document.createElement("td")
+        rank.innerHTML = "#" + (i + 1).toString()
+
+        let name = document.createElement("td")
+        name.innerHTML = p.name
+
+        let score = document.createElement("td")
+        score.innerHTML = p.score.toString()
+
+        let row = document.createElement("tr")
+        row.appendChild(rank)
+        row.appendChild(name)
+        row.appendChild(score)
+        
+        table.appendChild(row)
+    })
 }
 
 function renderBackground() {
@@ -185,30 +211,4 @@ function renderPlayer(player: Player, colour: string) {
     context.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
 
     context.restore()
-}
-
-function updateLeaderboard(gamestate: ClientGameState) {
-    let sortedPlayers: Player[] = Object.values(gamestate.players).sort(function(p1: Player, p2: Player) {
-        return p2.score - p1.score
-    })
-
-    let table = document.querySelector("#leaderboard > table > tbody")
-    table.innerHTML = ""
-    sortedPlayers.map(function(p: Player, i: number) {
-        let rank = document.createElement("td")
-        rank.innerHTML = "#" + (i + 1).toString()
-
-        let name = document.createElement("td")
-        name.innerHTML = p.name
-
-        let score = document.createElement("td")
-        score.innerHTML = p.score.toString()
-
-        let row = document.createElement("tr")
-        row.appendChild(rank)
-        row.appendChild(name)
-        row.appendChild(score)
-        
-        table.appendChild(row)
-    })
 }

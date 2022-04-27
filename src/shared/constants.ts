@@ -17,6 +17,7 @@ export let ENDPOINT_UPDATE_DIRECTION: string = "update_direction"
 export let ENDPOINT_UPDATE_SPEED: string = "update_speed"
 export let ENDPOINT_UPDATE_GAME_STATE: string = "update_game"
 export let ENDPOINT_GAME_INIT: string = "game_init"
+export let ENDPOINT_GAME_OVER: string = "game_over"
 
 // misc
 export let NUM_TEAMS: number = 3
