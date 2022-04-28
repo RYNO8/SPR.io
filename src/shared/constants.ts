@@ -22,6 +22,7 @@ export let ENDPOINT_GAME_OVER: string = "game_over"
 // misc
 export let NUM_TEAMS: number = 3
 export let VISIBLE_SIZE: number = 1000
+export let VISIBLE_BUFFER: number = 200 // >= 0
 export let CANVAS_FONT: string = "20px serif"
 export let INTERPOLATE_SPEED: number = 5
 

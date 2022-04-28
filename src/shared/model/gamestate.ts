@@ -4,13 +4,6 @@ import { Powerup, copyPowerup } from "./powerup"
 import { Maze } from "./maze"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
 
-function isVisible(obj: GameObject, me: Player) {
-    if (!me) {
-        // TODO: you are dead, but you shouldnt be able to see everything
-        return true
-    }
-    return Math.abs(obj.x - me.x) <= CONSTANTS.VISIBLE_SIZE && Math.abs(obj.y - me.y) <= CONSTANTS.VISIBLE_SIZE
-}
 
 export class ClientGameState {
     public time: number = 0
@@ -31,6 +24,7 @@ export class ServerGameState {
     public players: { [id: string]: Player } = {}
     public powerups: Powerup[] = []
     public maze: Maze
+    public me: { [id: string]: string } = {}
 
     constructor() {
         this.time = Date.now()
@@ -113,7 +107,7 @@ export class ServerGameState {
     exportPlayers(me: Player) {
         let others: Player[] = []
         for (let id in this.players) {
-            if ((!me || id != me.id) && isVisible(this.players[id], me)) {
+            if (!me || (id != me.id && me.isVisible(this.players[id]))) {
                 others.push(this.players[id])
             }
         }
@@ -164,7 +158,7 @@ export class ServerGameState {
 
     exportPowerups(me: Player) {
         return Object.values(this.powerups.filter(function(powerup: Powerup) {
-            return isVisible(powerup, me)
+            return !me || me.isVisible(powerup)
         }))
     }
 
@@ -192,8 +186,8 @@ export class ServerGameState {
                 let x = row * CONSTANTS.CELL_SIZE
                 let y = col * CONSTANTS.CELL_SIZE
                 // TODO: this is sus, pls fix
-                if (this.maze.maze[row][col] && isVisible({x: x + CONSTANTS.CELL_SIZE / 2, y: y + CONSTANTS.CELL_SIZE / 2, canAttack: null}, me)) {
-                    output.push([x, y]);
+                if (this.maze.maze[row][col] && (!me || me.isVisible({x: x + CONSTANTS.CELL_SIZE / 2, y: y + CONSTANTS.CELL_SIZE / 2, canAttack: null}))) {
+                    output.push([x, y])
                 }
             }
         }

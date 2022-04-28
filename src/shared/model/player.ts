@@ -24,6 +24,13 @@ export class Player extends GameObject {
         this.hasPowerup = 0
     }
 
+    isVisible(obj: GameObject) {
+        return (
+            Math.abs(obj.x - this.x) <= CONSTANTS.VISIBLE_SIZE / 2 + CONSTANTS.VISIBLE_BUFFER && 
+            Math.abs(obj.y - this.y) <= CONSTANTS.VISIBLE_SIZE / 2 + CONSTANTS.VISIBLE_BUFFER
+        )
+    }
+
     increment() {
         this.score++
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
