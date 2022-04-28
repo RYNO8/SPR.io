@@ -4,6 +4,8 @@ body {
     overflow-x: hidden;
     overflow-y: hidden;
     font-family: sans-serif;
+	opacity: 0;
+	transition: 0.2s, opacity 0.2s linear 0.2s, background-color linear 0.5s;
 }
 
 .overlay {
@@ -15,6 +17,8 @@ body {
 .slide-in {
     animation: slide-in 0.69s forwards;
     -webkit-animation: slide-in 0.69s forwards;
+    animation-delay: 0.8s;
+    -webkit-animation-delay: 0.8s;
 }
 
 .slide-out {
@@ -23,21 +27,23 @@ body {
 }
 
 @keyframes slide-in {
-    100% { transform: translateY(0%); }
+    0% { opacity: 0; transform: translateY(-200%); }
+    100% { opacity: 0.9; transform: translateY(0%); }
 }
 
 @-webkit-keyframes slide-in {
-    100% { -webkit-transform: translateY(0%); }
+    0% { opacity: 0; transform: translateY(-200%); }
+    100% { opacity: 0.9; -webkit-transform: translateY(0%); }
 }
-    
+
 @keyframes slide-out {
-    0% { transform: translateY(0%); }
-    100% { transform: translateY(-200%); }
+    0% { opacity: 0.9; transform: translateY(0%); }
+    100% { opacity: 0; transform: translateY(-200%); }
 }
 
 @-webkit-keyframes slide-out {
-    0% { -webkit-transform: translateY(0%); }
-    100% { -webkit-transform: translateY(-200%); }
+    0% { opacity: 0.9; -webkit-transform: translateY(0%); }
+    100% { opacity: 0; -webkit-transform: translateY(-200%); }
 }
 
 #game-canvas {
@@ -85,13 +91,14 @@ td:last-child {
     border-bottom: 2px solid #009879;
 }*/
 
-#gaveover {
+#gameover-menu {
     top: 20vh;
     left: 20vw;
     height: 60vh;
     width: 60vw;
     text-align: center;
-    opacity: 0.9;
+    opacity: 0;
+    transform: translateY(-200%);
 }
 
 #menu {
@@ -100,7 +107,8 @@ td:last-child {
     height: 60vh;
     width: 60vw;
     text-align: center;
-    opacity: 0.9;
+    opacity: 0;
+    transform: translateY(-200%);
 }
 
 #name {

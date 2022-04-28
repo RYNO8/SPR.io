@@ -2,8 +2,9 @@ import { socket } from "./networking"
 import * as CONSTANTS from "./../shared/constants"
 
 const menu = document.getElementById("menu")
-const gameover = document.getElementById("gameover")
+const gameoverMenu = document.getElementById("gameover-menu")
 const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
+
 
 // thank you Luke
 export function onResize() {
@@ -11,8 +12,8 @@ export function onResize() {
     const dpr = window.devicePixelRatio || 1
 
     // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
-    canvas.style.width = `${window.innerWidth}px`
-    canvas.style.height = `${window.innerHeight}px`
+    canvas.style.width = `${window.outerWidth}px`
+    canvas.style.height = `${window.outerHeight}px`
 
     // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
     // (doesn't affect the actual size on screen I think)
@@ -28,6 +29,9 @@ export function initStatusMsg() {
         alert.style.visibility = "visible" // "hidden"
         alert.style.borderColor = "#1D7755" // green
         alert.innerHTML = "CONNECTED!"
+
+        document.body.style.opacity = "1";
+        document.documentElement.style.opacity = "1";
     })
 
     socket.on(CONSTANTS.ENDPOINT_CLIENT_DISCONNECT, function() {
@@ -38,13 +42,13 @@ export function initStatusMsg() {
     })
 }
 
-export function initGameOver() {
-    socket.on(CONSTANTS.ENDPOINT_GAME_OVER, function() {
-        gameover.classList.remove("slide-out")
-        gameover.classList.add("slide-in")
-    })
-}
+export function toMainMenu() {
+    menu.classList.remove("slide-out")
+    menu.classList.add("slide-in")
 
+    gameoverMenu.classList.remove("slide-in")
+    gameoverMenu.classList.add("slide-out")
+}
 export function startGame() {
     let name: string = (<HTMLInputElement> document.getElementById("name")).value || "Player"
     socket.emit(CONSTANTS.ENDPOINT_GAME_INIT, name)

@@ -9,11 +9,13 @@ import { PriorityQueue } from "@datastructures-js/priority-queue";
 
 let targetStates = new PriorityQueue<ClientGameState>(function(a: ClientGameState, b: ClientGameState) { return b.time - a.time })
 let gamestate = new ClientGameState(0, [], [], [])
+let isInGame = false
 let initTimeDiff: boolean = true
 let timeDiff: number = 0
 let framerateSamples: number[] = []
 
 const menu = document.getElementById("menu")
+const gameoverMenu = document.getElementById("gameover-menu")
 const canvas = <HTMLCanvasElement> document.getElementById('game-canvas')
 const context: CanvasRenderingContext2D = canvas.getContext('2d')
 context.font = CONSTANTS.CANVAS_FONT
@@ -68,9 +70,19 @@ export function render() {
 
     let me: Player = gamestate.players[gamestate.players.length - 1]
     if (me && me.id == socket.id) {
+        isInGame = true
         menu.classList.remove("slide-in")
         menu.classList.add("slide-out")
+        gameoverMenu.classList.remove("slide-in")
+        gameoverMenu.classList.add("slide-out")
+    } else {
+        if (isInGame) {
+            gameoverMenu.classList.remove("slide-out")
+            gameoverMenu.classList.add("slide-in")
+        }
+        isInGame = false
     }
+
     if (gamestate.players.length == 0) {
         let size: number = Math.min(canvas.width, canvas.height)
         context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)

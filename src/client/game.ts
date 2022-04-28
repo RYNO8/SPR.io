@@ -19,7 +19,7 @@ TODO
 import { debounce } from "throttle-debounce"
 import { startCapturingInput } from "./playerInput"
 import { render } from "./render"
-import { onResize, initStatusMsg, initGameOver, startGame } from "./events"
+import { onResize, initStatusMsg, toMainMenu, startGame } from "./events"
 
 startCapturingInput()
 
@@ -30,9 +30,10 @@ onResize()
 
 initStatusMsg()
 
-initGameOver()
+document.getElementById("back-button").onclick = toMainMenu
 
 document.getElementById("play-button").onclick = startGame
+document.getElementById("play-button-2").onclick = startGame
 document.onkeyup = function(event: KeyboardEvent) {
     if (event.code == "Enter") {
         startGame()
