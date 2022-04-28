@@ -28,7 +28,7 @@ export function initStatusMsg() {
         let alert = document.getElementById("alert")
         alert.style.visibility = "visible" // "hidden"
         alert.style.borderColor = "#1D7755" // green
-        alert.innerHTML = "CONNECTED!"
+        alert.innerText = "CONNECTED!"
 
         document.body.style.opacity = "1";
         document.documentElement.style.opacity = "1";
@@ -38,7 +38,7 @@ export function initStatusMsg() {
         let alert = document.getElementById("alert")
         alert.style.visibility = "visible"
         alert.style.borderColor = "#DB423D" // red
-        alert.innerHTML = "DISCONNECTED!"
+        alert.innerText = "DISCONNECTED!"
     })
 }
 
@@ -48,13 +48,13 @@ export function updateLeaderboard() {
         table.innerHTML = ""
         for (let i in bestPlayers) {
             let rank = document.createElement("td")
-            rank.innerHTML = "#" + (1 + parseInt(i)).toString()
+            rank.innerText = "#" + (1 + parseInt(i)).toString()
 
             let name = document.createElement("td")
-            name.innerHTML = bestPlayers[i][0]
+            name.innerText = bestPlayers[i][0]
 
             let score = document.createElement("td")
-            score.innerHTML = bestPlayers[i][1].toString()
+            score.innerText = bestPlayers[i][1].toString()
 
             let row = document.createElement("tr")
             row.appendChild(rank)
