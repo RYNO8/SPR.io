@@ -5,6 +5,12 @@ const menu = document.getElementById("menu")
 const gameoverMenu = document.getElementById("gameover-menu")
 const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
 
+export function initGameoverMenu(name: string, score: number) {
+    gameoverMenu.classList.remove("slide-out")
+    gameoverMenu.classList.add("slide-in")
+    document.getElementById("eaten-by").innerText = name
+    document.getElementById("score").innerText = score.toString()
+}
 
 // thank you Luke
 export function onResize() {

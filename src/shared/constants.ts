@@ -53,10 +53,10 @@ export let POWERUP_COLOUR = "purple"
 export let MAP_SIZE: number = 3000
 export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
-export let MAP_UNREACHABLE_COLOUR: string = "lightgrey"
+export let MAP_UNREACHABLE_COLOUR: string = "grey"
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "none" // or "dots" or "grid"
-export let MAP_SHADOW_COLOUR = "lightblue"
+export let MAP_SHADOW_COLOUR = "lightgrey"
 export let MAP_SHADOW_WIDTH = 10 // >= 2
 
 // maze

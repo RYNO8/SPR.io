@@ -5,13 +5,14 @@ import { Player } from "../shared/model/player"
 import { direction } from "./playerInput"
 import { Powerup } from "../shared/model/powerup"
 import { PriorityQueue } from "@datastructures-js/priority-queue";
-
+import { initGameoverMenu } from "./events"
 
 let targetStates = new PriorityQueue<ClientGameState>(function(a: ClientGameState, b: ClientGameState) { return b.time - a.time })
 let gamestate = new ClientGameState(0, [], [], [])
 let isInGame = false
 let initTimeDiff: boolean = true
 let timeDiff: number = 0
+let score: number = 0
 let framerateSamples: number[] = []
 
 const menu = document.getElementById("menu")
@@ -76,12 +77,13 @@ export function render() {
         menu.classList.add("slide-out")
         gameoverMenu.classList.remove("slide-in")
         gameoverMenu.classList.add("slide-out")
+        score = me.score
     } else {
         if (isInGame) {
-            gameoverMenu.classList.remove("slide-out")
-            gameoverMenu.classList.add("slide-in")
+            initGameoverMenu(me.name, score)
         }
         isInGame = false
+        score = 0
     }
 
     if (gamestate.players.length == 0) {
@@ -175,8 +177,8 @@ function renderMaze(maze : [number, number][]) {
     context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     for (let i in maze) {
         // extra pixels to make sure there are no 0 width gaps between adjacent walls
-        //context.fillRect(maze[i][0] - 1, maze[i][1] - 1, CONSTANTS.CELL_SIZE + 2, CONSTANTS.CELL_SIZE + 2)
-        context.fillRect(maze[i][0], maze[i][1], CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
+        context.fillRect(maze[i][0] - 2, maze[i][1] - 2, CONSTANTS.CELL_SIZE + 4, CONSTANTS.CELL_SIZE + 4)
+        //context.fillRect(maze[i][0], maze[i][1], CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
     }
 }
 

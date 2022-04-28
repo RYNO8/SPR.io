@@ -35,12 +35,13 @@ export class Player extends GameObject {
         this.score++
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
+    
     hasCapture(p: Player): boolean {
         if (this.id != p.id && this.canAttack(p)) {
             let mePowerup = this.hasPowerup >= Date.now()
             let otherPowerup = p.hasPowerup >= Date.now()
             if (mePowerup == otherPowerup) {
-                p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
+                return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
             } else {
                 return mePowerup
             }

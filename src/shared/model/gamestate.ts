@@ -36,7 +36,7 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     setPlayerDirection(id: string, newDirection: number) {
-        if (id in this.players) {
+        if (id in this.players && newDirection != NaN) {
             this.players[id].direction = newDirection
         }
     }
