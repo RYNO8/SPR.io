@@ -45,11 +45,13 @@ export let POWERUP_COLOUR = "purple"
 
 // map
 export let MAP_SIZE: number = 3000
-export let MAP_LINE_COLOUR: string = "lightgrey"
+export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "lightgrey"
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "none" // or "dots" or "grid"
+export let MAP_SHADOW_COLOUR = "lightblue"
+export let MAP_SHADOW_WIDTH = 10 // >= 2
 
 // maze
 export let CELL_SIZE: number = 150 // there is a grid line every this many pixels

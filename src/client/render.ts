@@ -13,6 +13,7 @@ let initTimeDiff: boolean = true
 let timeDiff: number = 0
 let framerateSamples: number[] = []
 
+const menu = document.getElementById("menu")
 const canvas = <HTMLCanvasElement> document.getElementById('game-canvas')
 const context: CanvasRenderingContext2D = canvas.getContext('2d')
 context.font = CONSTANTS.CANVAS_FONT
@@ -62,14 +63,13 @@ export function render() {
     updateGamestate()
     context.restore()
     context.save()
+    renderUnreachable()
     updateLeaderboard(gamestate)
-    renderBackground()
 
     let me: Player = gamestate.players[gamestate.players.length - 1]
     if (me && me.id == socket.id) {
-        document.getElementById("menu").style.visibility = "hidden"
-    } else {
-        document.getElementById("menu").style.visibility = "visible"
+        menu.classList.remove("slide-in")
+        menu.classList.add("slide-out")
     }
     if (gamestate.players.length == 0) {
         let size: number = Math.min(canvas.width, canvas.height)
@@ -82,6 +82,8 @@ export function render() {
         context.translate(-me.x, -me.y)
     }
 
+    renderBackround()
+    renderShadow(gamestate.maze)
     renderMap()
     renderMaze(gamestate.maze)
     for (let i in gamestate.powerups) {
@@ -124,25 +126,32 @@ function updateLeaderboard(gamestate: ClientGameState) {
     })
 }
 
-function renderBackground() {
+function renderUnreachable() {
     // clear all from previous render
     context.clearRect(0, 0, canvas.width, canvas.height)
 
-    // unreachable
+    // background
     context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     context.fillRect(0, 0, canvas.width, canvas.height)
 }
 
-function renderMap() {
-    // boundaries
+function renderBackround() {
     context.fillStyle = CONSTANTS.MAP_BACKGROUND_COLOUR
-    context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-    context.lineWidth = CONSTANTS.MAP_LINE_WIDTH
-    context.beginPath()
-    context.rect(0, 0, CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE)
-    context.fill()
-    context.stroke()
+    context.fillRect(0, 0, CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE)
+}
 
+function renderShadow(maze : [number, number][]) {
+    context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
+    context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
+    context.strokeRect(CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH)
+
+    context.fillStyle = CONSTANTS.MAP_SHADOW_COLOUR
+    for (let i in maze) {
+        context.fillRect(maze[i][0] - CONSTANTS.MAP_SHADOW_WIDTH, maze[i][1] - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.CELL_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.CELL_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH)
+    }
+}
+
+function renderMap() {
     if (CONSTANTS.MAP_STYLE == "grid") {
         for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.CELL_SIZE) {
             context.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
@@ -168,13 +177,19 @@ function renderMap() {
             }
         }
     }
+
+    // boundaries
+    context.strokeStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
+    context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
+    context.strokeRect(-CONSTANTS.MAP_SHADOW_WIDTH / 2, -CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE + CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + CONSTANTS.MAP_SHADOW_WIDTH)
 }
 
 function renderMaze(maze : [number, number][]) {
+    context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     for (let i in maze) {
-        context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
         // extra pixels to make sure there are no 0 width gaps between adjacent walls
-        context.fillRect(maze[i][0] - 2, maze[i][1] - 2, CONSTANTS.CELL_SIZE + 2, CONSTANTS.CELL_SIZE + 2)
+        //context.fillRect(maze[i][0] - 1, maze[i][1] - 1, CONSTANTS.CELL_SIZE + 2, CONSTANTS.CELL_SIZE + 2)
+        context.fillRect(maze[i][0], maze[i][1], CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
     }
 }
 

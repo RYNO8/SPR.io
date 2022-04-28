@@ -12,6 +12,34 @@ body {
     background-color: #e8f3ee;
 }
 
+.slide-in {
+    animation: slide-in 0.69s forwards;
+    -webkit-animation: slide-in 0.69s forwards;
+}
+
+.slide-out {
+    animation: slide-out 0.69s forwards;
+    -webkit-animation: slide-out 0.69s forwards;
+}
+
+@keyframes slide-in {
+    100% { transform: translateY(0%); }
+}
+
+@-webkit-keyframes slide-in {
+    100% { -webkit-transform: translateY(0%); }
+}
+    
+@keyframes slide-out {
+    0% { transform: translateY(0%); }
+    100% { transform: translateY(-200%); }
+}
+
+@-webkit-keyframes slide-out {
+    0% { -webkit-transform: translateY(0%); }
+    100% { -webkit-transform: translateY(-200%); }
+}
+
 #game-canvas {
 
 }
@@ -27,7 +55,7 @@ h3 {
 
 .styled-table {
     font-size: 0.8em;
-    min-width: 280px;
+    min-width: 200px;
 }
 
 td {
@@ -57,6 +85,15 @@ td:last-child {
     border-bottom: 2px solid #009879;
 }*/
 
+#gaveover {
+    top: 20vh;
+    left: 20vw;
+    height: 60vh;
+    width: 60vw;
+    text-align: center;
+    opacity: 0.9;
+}
+
 #menu {
     top: 20vh;
     left: 20vw;
@@ -70,7 +107,7 @@ td:last-child {
     padding: 0.7em 0.4em;
 }
 
-#play-button {
+.button {
     display: inline-block;
     padding: 0.7em 1.4em;
     margin: 0 0.3em 0.3em 0;
@@ -87,12 +124,12 @@ td:last-child {
     position: relative;
 }
 
-#play-button:active{
+.button:active{
     top:0.1em;
 }
 
 @media all and (max-width:30em){
-    #play-button {
+    .button {
         display:block;
         margin:0.4em auto;
     }

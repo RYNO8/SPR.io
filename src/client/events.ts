@@ -1,7 +1,10 @@
 import { socket } from "./networking"
 import * as CONSTANTS from "./../shared/constants"
 
+const menu = document.getElementById("menu")
+const gameover = document.getElementById("gameover")
 const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
+
 // thank you Luke
 export function onResize() {
     // get the ratio of physical pixels to CSS pixels
@@ -37,7 +40,8 @@ export function initStatusMsg() {
 
 export function initGameOver() {
     socket.on(CONSTANTS.ENDPOINT_GAME_OVER, function() {
-
+        gameover.classList.remove("slide-out")
+        gameover.classList.add("slide-in")
     })
 }
 
