@@ -19,7 +19,7 @@ TODO
 import { debounce } from "throttle-debounce"
 import { startCapturingInput } from "./playerInput"
 import { render } from "./render"
-import { onResize, initStatusMsg, toMainMenu, startGame } from "./events"
+import { onResize, initStatusMsg, updateLeaderboard, toMainMenu, startGame } from "./events"
 
 startCapturingInput()
 
@@ -29,6 +29,8 @@ window.addEventListener("resize", debounce(40, onResize))
 onResize()
 
 initStatusMsg()
+
+updateLeaderboard()
 
 document.getElementById("back-button").onclick = toMainMenu
 

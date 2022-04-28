@@ -26,8 +26,8 @@ export class Player extends GameObject {
 
     isVisible(obj: GameObject) {
         return (
-            Math.abs(obj.x - this.x) <= CONSTANTS.VISIBLE_SIZE / 2 + CONSTANTS.VISIBLE_BUFFER && 
-            Math.abs(obj.y - this.y) <= CONSTANTS.VISIBLE_SIZE / 2 + CONSTANTS.VISIBLE_BUFFER
+            Math.abs(obj.x - this.x) <= CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER && 
+            Math.abs(obj.y - this.y) <= CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
         )
     }
 
@@ -36,8 +36,15 @@ export class Player extends GameObject {
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
     hasCapture(p: Player): boolean {
-        let canCapture = p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS || (this.hasPowerup >= Date.now() && p.hasPowerup < Date.now())
-        return canCapture && this.canAttack(p)
+        if (this.id != p.id && this.canAttack(p)) {
+            let mePowerup = this.hasPowerup >= Date.now()
+            let otherPowerup = p.hasPowerup >= Date.now()
+            if (mePowerup == otherPowerup) {
+                p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
+            } else {
+                return mePowerup
+            }
+        }
     }
 
     progress() {

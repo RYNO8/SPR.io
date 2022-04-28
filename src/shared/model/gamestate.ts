@@ -49,22 +49,50 @@ export class ServerGameState {
         }
     }
 
+    // get player with max score, break ties arbitarily
+    getDefaultPlayerID() {
+        if (this.getPlayers().length == 0) {
+            return null
+        }
+        return this.getPlayers().reduce(function(p1: Player, p2: Player) {
+            return (p1.score > p2.score) ? p1 : p2
+        }).id
+    }
+
     getPlayers(): Player[] {
         return Object.values(this.players)
     }
 
-    setPlayer(p: Player) {
-        this.players[p.id] = p
-    }
-
-    remPlayer(id: string) {
+    playerJoin(id: string) {
         if (id in this.players) {
             delete this.players[id]
+        }
+        this.me[id] = this.getDefaultPlayerID()
+    }
+
+    playerEnter(id: string, name: string) {
+        let [x, y] = this.getSpawnPos()
+        this.players[id] = new Player(id, name, x, y)
+        this.me[id] = id
+    }
+
+    playerExit(id: string, attackerID: string) {
+        if (id in this.players) {
+            delete this.players[id]
+        }
+        this.me[id] = attackerID
+    }
+
+    playerLeave(id: string) {
+        if (id in this.players) {
+            delete this.players[id]
+        }
+        if (id in this.me) {
+            delete this.me[id]
         }
     }
 
     updatePlayers() {
-        
         for (let id in this.players) {
             this.players[id].progress()
             let [x, y] = this.maze.clamp(this.players[id].x, this.players[id].y)
@@ -74,33 +102,23 @@ export class ServerGameState {
     }
 
     updateCaptures() {
-        let toRemove: string[] = []
-        let toIncr: string[] = []
         // TODO: O(n^2) yikes
         // https://news.ycombinator.com/item?id=13266692
         // At first I tried checking every creature for collisions against everything else, but unsurprisingly that was too slow (N^2). To reduce the checks I put each creature in a grid cell based on their position, then check for collisions only against creatures in the same or adjacent cells.
         // I think overlapping grids would be even more efficient, or perhaps to do these checks on GPU.
         // Use a quadtree or similar structure for your broadphase detection, it will help right off the bat.
+        let attacker: { [id: string]: string } = {}
         for (let id1 in this.players) {
             for (let id2 in this.players) {
-                if (id1 < id2 && this.players[id1].hasCapture(this.players[id2])) {
-                    toIncr.push(id1)
-                    toRemove.push(id2)
-                }
-                else if (id1 < id2 && this.players[id2].hasCapture(this.players[id1])) {
-                    toIncr.push(id2)
-                    toRemove.push(id1)
+                if (this.players[id2].hasCapture(this.players[id1])) {
+                    this.players[id2].increment()
+                    attacker[id1] = id2
                 }
             }
         }
 
-        for (let i in toRemove) {
-            this.remPlayer(toRemove[i])
-        }
-        for (let i in toIncr) {
-            if (toIncr[i] in this.players) {
-                this.players[toIncr[i]].increment()
-            }
+        for (let id in attacker) {
+            this.playerExit(id, attacker[id])
         }
     }
 
@@ -195,6 +213,19 @@ export class ServerGameState {
     }
 
     /////////////////////////////////////////////////////////////////
+    ////////////////////////// LEADERBOARD //////////////////////////
+    /////////////////////////////////////////////////////////////////
+
+    exportLeaderboard() {
+        let sortedPlayers: Player[] = this.getPlayers().sort(function(p1: Player, p2: Player) {
+            return p2.score - p1.score
+        })
+        return sortedPlayers.map(function(p: Player) {
+            return [p.name, p.score]
+        })
+    }
+
+    /////////////////////////////////////////////////////////////////
     ///////////////////////////// GAME //////////////////////////////
     /////////////////////////////////////////////////////////////////
 
@@ -212,8 +243,8 @@ export class ServerGameState {
         // TODO: think about best order
         this.time = Date.now()
         this.updatePlayers()
-        this.updateCaptures()
         this.updatePowerups()
+        this.updateCaptures()
         this.updateMaze()
     }
 

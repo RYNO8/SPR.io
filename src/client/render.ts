@@ -21,7 +21,7 @@ const context: CanvasRenderingContext2D = canvas.getContext('2d')
 context.font = CONSTANTS.CANVAS_FONT
 
 function serverTime() {
-    return Date.now() + timeDiff /*- CONSTANTS.RENDER_DELAY*/
+    return Date.now() + timeDiff - CONSTANTS.RENDER_DELAY
 }
 
 socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
@@ -30,6 +30,7 @@ socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
         timeDiff = gamestate.time - Date.now()
         initTimeDiff = false
     }
+    //if (!targetStates.isEmpty()) console.log(targetStates.front().time - gamestate.time)
     targetStates.enqueue(gamestate)
 })
 
@@ -45,7 +46,8 @@ function updateGamestate() {
     while (targetStates.size() > 0 && targetStates.front().time < serverTime()) {
         targetStates.dequeue()
     }
-    if (targetStates.size() == 0) {
+    if (targetStates.isEmpty()) {
+        //console.log("empty!")
         return
     }
 
@@ -66,7 +68,6 @@ export function render() {
     context.restore()
     context.save()
     renderUnreachable()
-    updateLeaderboard(gamestate)
 
     let me: Player = gamestate.players[gamestate.players.length - 1]
     if (me && me.id == socket.id) {
@@ -84,13 +85,13 @@ export function render() {
     }
 
     if (gamestate.players.length == 0) {
-        let size: number = Math.min(canvas.width, canvas.height)
-        context.translate((canvas.width - size) / 2, (canvas.height - size) / 2)
-        context.scale(size / CONSTANTS.MAP_SIZE, size / CONSTANTS.MAP_SIZE)
+        let size: number = Math.min(canvas.width, canvas.height) / CONSTANTS.MAP_SIZE
+        context.translate((canvas.width - size * CONSTANTS.MAP_SIZE) / 2, (canvas.height - size * CONSTANTS.MAP_SIZE) / 2)
+        context.scale(size, size)
     } else {
-        let size: number = Math.min(canvas.width, canvas.height)
+        let size: number = Math.max(canvas.width / CONSTANTS.VISIBLE_WIDTH, canvas.height / CONSTANTS.VISIBLE_HEIGHT)
         context.translate(canvas.width / 2, canvas.height / 2)
-        context.scale(size / CONSTANTS.VISIBLE_SIZE, size / CONSTANTS.VISIBLE_SIZE)
+        context.scale(size, size)
         context.translate(-me.x, -me.y)
     }
 
@@ -110,32 +111,6 @@ export function render() {
 
     // Rerun this render function on the next frame
     requestAnimationFrame(render)
-}
-
-function updateLeaderboard(gamestate: ClientGameState) {
-    let sortedPlayers: Player[] = Object.values(gamestate.players).sort(function(p1: Player, p2: Player) {
-        return p2.score - p1.score
-    })
-
-    let table = document.querySelector("#leaderboard > table > tbody")
-    table.innerHTML = ""
-    sortedPlayers.map(function(p: Player, i: number) {
-        let rank = document.createElement("td")
-        rank.innerHTML = "#" + (i + 1).toString()
-
-        let name = document.createElement("td")
-        name.innerHTML = p.name
-
-        let score = document.createElement("td")
-        score.innerHTML = p.score.toString()
-
-        let row = document.createElement("tr")
-        row.appendChild(rank)
-        row.appendChild(name)
-        row.appendChild(score)
-        
-        table.appendChild(row)
-    })
 }
 
 function renderUnreachable() {
@@ -218,9 +193,11 @@ function renderPlayer(player: Player, colour: string) {
     context.translate(player.x, player.y)
     context.rotate(player.direction)
     if (player.hasPowerup >= serverTime()) {
-            context.fillStyle = CONSTANTS.PLAYER_POWERUP_COLOUR
+        // TODO: change intensity of colour
+        context.fillStyle = CONSTANTS.PLAYER_POWERUP_COLOUR
+        //console.log("purple", player.hasPowerup - serverTime())
     } else {
-            context.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
+        context.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
     }
     context.strokeStyle = colour
     context.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH

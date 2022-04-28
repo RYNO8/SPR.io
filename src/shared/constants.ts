@@ -9,6 +9,7 @@ export let RENDER_DELAY: number = 50
 export let CLIENT_FRAME_RATE_SAMPLE_SIZE: number = 10
 
 // socketio "endpoints"
+// TODO: enum
 export let ENDPOINT_CLIENT_CONNECT: string = "connect"
 export let ENDPOINT_CLIENT_DISCONNECT: string = "disconnect"
 export let ENDPOINT_SERVER_CONNECT: string = "connection"
@@ -16,15 +17,19 @@ export let ENDPOINT_SERVER_DISCONNECT: string = "disconnect"
 export let ENDPOINT_UPDATE_DIRECTION: string = "update_direction"
 export let ENDPOINT_UPDATE_SPEED: string = "update_speed"
 export let ENDPOINT_UPDATE_GAME_STATE: string = "update_game"
+export let ENDPOINT_UPDATE_LEADERBOARD: string = "update_leaderboard"
+export let ENDPOINT_RESET: string = "reset"
 export let ENDPOINT_GAME_INIT: string = "game_init"
 export let ENDPOINT_GAME_OVER: string = "game_over"
 
 // misc
 export let NUM_TEAMS: number = 3
-export let VISIBLE_SIZE: number = 1000
+export let VISIBLE_WIDTH: number = 1500
+export let VISIBLE_HEIGHT: number = 1500
 export let VISIBLE_BUFFER: number = 200 // >= 0
 export let CANVAS_FONT: string = "20px serif"
 export let INTERPOLATE_SPEED: number = 5
+export let LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
 
 // player
 export let PLAYER_RADIUS: number = 35

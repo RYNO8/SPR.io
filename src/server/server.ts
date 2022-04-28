@@ -3,7 +3,7 @@ import * as path from "path"
 import { Server } from "socket.io"
 import { ServerGameState } from "../shared/model/gamestate"
 import * as CONSTANTS from "../shared/constants"
-import { Player } from "../shared/model/player"
+import { validName } from "../shared/utilities"
 
 let gamestate: ServerGameState = new ServerGameState()
 setInterval(() => gamestate.update(), CONSTANTS.SERVER_TIMESTEP)
@@ -24,24 +24,28 @@ app.get("/css/style.css", (req: any, res: any) => {
 
 const httpServer = require("http").createServer(app)
 httpServer.listen(CONSTANTS.PORT, function() {
-    console.log("listening")
+    console.log(new Date().toLocaleTimeString(), "listening")
 })
 
 const io = new Server(httpServer)
 io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
-    console.log(socket.id, "Client connected!")
+    console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
 
+    gamestate.playerJoin(socket.id)
     socket.on(CONSTANTS.ENDPOINT_GAME_INIT, function(name: string) {
-        if (!(socket.id in gamestate.players)) {
-            console.log(socket.id, "Game init")
-            let [x, y] = gamestate.getSpawnPos()
-            gamestate.setPlayer(new Player(socket.id, name, x, y))
+        if (!(socket.id in gamestate.players) && validName(name)) {
+            console.log(new Date().toLocaleTimeString(), socket.id, "Game init")
+            gamestate.playerEnter(socket.id, name)
         }
     })
 
     socket.on(CONSTANTS.ENDPOINT_SERVER_DISCONNECT, function() {
-        console.log(socket.id, "Client disconnected!")
-        gamestate.remPlayer(socket.id)
+        console.log(new Date().toLocaleTimeString(), socket.id, "Client disconnected!")
+        gamestate.playerLeave(socket.id)
+    })
+
+    socket.on(CONSTANTS.ENDPOINT_RESET, function() {
+        gamestate.playerJoin(socket.id)
     })
 
     socket.on(CONSTANTS.ENDPOINT_UPDATE_DIRECTION, function(direction: number) {
@@ -59,3 +63,10 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
         CONSTANTS.SERVER_TIMESTEP
     )
 })
+
+setInterval(
+    function() {
+        io.emit(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
+    },
+    CONSTANTS.LEADERBOARD_UPDATE_RATE
+)

@@ -12,8 +12,8 @@ export function onResize() {
     const dpr = window.devicePixelRatio || 1
 
     // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
-    canvas.style.width = `${window.outerWidth}px`
-    canvas.style.height = `${window.outerHeight}px`
+    canvas.style.width = `${window.innerWidth}px`
+    canvas.style.height = `${window.innerHeight}px`
 
     // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
     // (doesn't affect the actual size on screen I think)
@@ -42,13 +42,40 @@ export function initStatusMsg() {
     })
 }
 
+export function updateLeaderboard() {
+    socket.on(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, function(bestPlayers: [string, number][]) {
+        let table = document.querySelector("#leaderboard > table > tbody")
+        table.innerHTML = ""
+        for (let i in bestPlayers) {
+            let rank = document.createElement("td")
+            rank.innerHTML = "#" + (1 + parseInt(i)).toString()
+
+            let name = document.createElement("td")
+            name.innerHTML = bestPlayers[i][0]
+
+            let score = document.createElement("td")
+            score.innerHTML = bestPlayers[i][1].toString()
+
+            let row = document.createElement("tr")
+            row.appendChild(rank)
+            row.appendChild(name)
+            row.appendChild(score)
+            
+            table.appendChild(row)
+        }
+    })
+}
+
 export function toMainMenu() {
+    socket.emit(CONSTANTS.ENDPOINT_RESET)
     menu.classList.remove("slide-out")
     menu.classList.add("slide-in")
 
     gameoverMenu.classList.remove("slide-in")
     gameoverMenu.classList.add("slide-out")
 }
+
+
 export function startGame() {
     let name: string = (<HTMLInputElement> document.getElementById("name")).value || "Player"
     socket.emit(CONSTANTS.ENDPOINT_GAME_INIT, name)
