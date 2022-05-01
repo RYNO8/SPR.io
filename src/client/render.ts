@@ -5,55 +5,57 @@ import { Player } from "../shared/model/player"
 import { direction } from "./playerInput"
 import { Powerup } from "../shared/model/powerup"
 import { PriorityQueue } from "@datastructures-js/priority-queue";
-import { initGameoverMenu } from "./events"
+import { initGameoverMenu, initDisconnectedMenu } from "./events"
+import { RollingAvg } from "../shared/utilities"
 
-let targetStates = new PriorityQueue<ClientGameState>(function(a: ClientGameState, b: ClientGameState) { return b.time - a.time })
+let targetStates = new PriorityQueue<ClientGameState>(function(a: ClientGameState, b: ClientGameState) { return a.time - b.time })
 let gamestate = new ClientGameState(0, [], [], [])
 let isInGame = false
-let initTimeDiff: boolean = true
-let timeDiff: number = 0
 let score: number = 0
-let framerateSamples: number[] = []
+let framerateSamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 1)
+let timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
+let latencySamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 
+const debug1 = document.getElementById("debug-1")
+const debug2 = document.getElementById("debug-2")
+const debug3 = document.getElementById("debug-3")
 const menu = document.getElementById("menu")
 const gameoverMenu = document.getElementById("gameover-menu")
-const canvas = <HTMLCanvasElement> document.getElementById('game-canvas')
-const context: CanvasRenderingContext2D = canvas.getContext('2d')
+const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
+const context: CanvasRenderingContext2D = canvas.getContext("2d")
 context.font = CONSTANTS.CANVAS_FONT
 
 function serverTime() {
-    return Date.now() + timeDiff - CONSTANTS.RENDER_DELAY
+    return Date.now() + timeDiff.getAvg() - CONSTANTS.RENDER_DELAY
 }
 
 socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
     let gamestate: ClientGameState = new ClientGameState(jsonstate.time, jsonstate.players, jsonstate.powerups, jsonstate.maze)
-    if (initTimeDiff) {
-        timeDiff = gamestate.time - Date.now()
-        initTimeDiff = false
-    }
+    timeDiff.update(gamestate.time - Date.now())
+    latencySamples.update(Date.now())
     //if (!targetStates.isEmpty()) console.log(targetStates.front().time - gamestate.time)
     targetStates.enqueue(gamestate)
 })
 
-function updateFramerate() {
-    framerateSamples.push(Date.now())
-    while (framerateSamples.length > CONSTANTS.CLIENT_FRAME_RATE_SAMPLE_SIZE) {
-        framerateSamples.shift() // pop
-    }
-}
 
 // modify gamestate towards targetState
 function updateGamestate() {
+    debug1.innerText = latencySamples.getDiff().toString()
+    debug2.innerText = timeDiff.getAvg().toString()
+
     while (targetStates.size() > 0 && targetStates.front().time < serverTime()) {
+        console.log(targetStates.size(), targetStates.front().time - serverTime())
         targetStates.dequeue()
     }
     if (targetStates.isEmpty()) {
-        //console.log("empty!")
+        console.log("empty!")
         return
     }
-
     let targetState: ClientGameState = targetStates.front()
-    let framerate = (framerateSamples.length - 1) / (framerateSamples[framerateSamples.length - 1] - framerateSamples[0])
+
+    framerateSamples.update(Date.now())
+    let framerate = 1 / framerateSamples.getDiff()
+
     for (let i in targetState.players) {
         let prev = gamestate.players.find(function(value: Player) { return value.id == targetState.players[i].id })
         if (prev) {
@@ -64,26 +66,34 @@ function updateGamestate() {
 }
 
 export function render() {
-    updateFramerate()
     updateGamestate()
     context.restore()
     context.save()
     renderUnreachable()
 
     let me: Player = gamestate.players[gamestate.players.length - 1]
-    if (me && me.id == socket.id) {
-        isInGame = true
+    if (!socket.id) {
+        if (isInGame) {
+            // disconnected
+            initDisconnectedMenu("Your bad internet connection", score)
+            isInGame = false
+            score = 0
+        }
+    } else if (me && me.id != socket.id) {
+        if (isInGame) {
+            initGameoverMenu(me.name, score)
+            isInGame = false
+            score = 0
+        }
+    } else if (me) {
         menu.classList.remove("slide-in")
         menu.classList.add("slide-out")
         gameoverMenu.classList.remove("slide-in")
         gameoverMenu.classList.add("slide-out")
+
+        isInGame = true
+        console.assert(me.score >= score)
         score = me.score
-    } else {
-        if (isInGame) {
-            initGameoverMenu(me.name, score)
-        }
-        isInGame = false
-        score = 0
     }
 
     if (gamestate.players.length == 0) {

@@ -8,6 +8,15 @@ const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
 export function initGameoverMenu(name: string, score: number) {
     gameoverMenu.classList.remove("slide-out")
     gameoverMenu.classList.add("slide-in")
+    document.getElementById("gameover-title").innerText = "GAME OVER!"
+    document.getElementById("eaten-by").innerText = name
+    document.getElementById("score").innerText = score.toString()
+}
+
+export function initDisconnectedMenu(name: string, score: number) {
+    gameoverMenu.classList.remove("slide-out")
+    gameoverMenu.classList.add("slide-in")
+    document.getElementById("gameover-title").innerText = "DISCONNECTED!"
     document.getElementById("eaten-by").innerText = name
     document.getElementById("score").innerText = score.toString()
 }
@@ -31,20 +40,20 @@ export function onResize() {
 
 export function initStatusMsg() {
     socket.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function() {
-        let alert = document.getElementById("alert")
+        /*let alert = document.getElementById("alert")
         alert.style.visibility = "visible" // "hidden"
         alert.style.borderColor = "#1D7755" // green
-        alert.innerText = "CONNECTED!"
+        alert.innerText = "CONNECTED!"*/
 
         document.body.style.opacity = "1";
         document.documentElement.style.opacity = "1";
     })
 
     socket.on(CONSTANTS.ENDPOINT_CLIENT_DISCONNECT, function() {
-        let alert = document.getElementById("alert")
+        /*let alert = document.getElementById("alert")
         alert.style.visibility = "visible"
         alert.style.borderColor = "#DB423D" // red
-        alert.innerText = "DISCONNECTED!"
+        alert.innerText = "DISCONNECTED!"*/
     })
 }
 
@@ -83,6 +92,7 @@ export function toMainMenu() {
 
 
 export function startGame() {
-    let name: string = (<HTMLInputElement> document.getElementById("name")).value || "Player"
+    // TODO: fun name ganerator?
+    let name: string = (<HTMLInputElement> document.getElementById("name")).value || "Placeholder"
     socket.emit(CONSTANTS.ENDPOINT_GAME_INIT, name)
 }

@@ -3,10 +3,10 @@
 export let PORT: number = 80
 
 // networking
-export let SERVER_TICK_RATE: number = 30 / 1000
+export let SERVER_TICK_RATE: number = 50 / 1000
 export let SERVER_TIMESTEP = 1 / SERVER_TICK_RATE
-export let RENDER_DELAY: number = 50
-export let CLIENT_FRAME_RATE_SAMPLE_SIZE: number = 10
+export let RENDER_DELAY: number = 60
+export let SAMPLE_SIZE: number = 6
 
 // socketio "endpoints"
 // TODO: enum

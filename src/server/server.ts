@@ -66,7 +66,7 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
 
 setInterval(
     function() {
-        io.emit(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
+        io.volatile.emit(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
     },
     CONSTANTS.LEADERBOARD_UPDATE_RATE
 )

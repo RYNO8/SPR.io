@@ -5,3 +5,40 @@ export function quadrance(x1: number, y1: number, x2: number, y2: number) {
 export function validName(name: string) {
     return 1 <= name.length && name.length <= 20
 }
+
+export class RollingAvg {
+    private sample_size: number
+    private defaultValue: number
+    private values: number[] = []
+    private total: number = 0
+
+    constructor(sample_size: number, defaultValue: number) {
+        this.sample_size = sample_size
+        this.defaultValue = defaultValue
+    }
+    
+    update(value: number) {
+        this.total += value
+        this.values.push(value) // push from right
+        if (this.values.length > this.sample_size) {
+            this.total -= this.values[0]
+            this.values.shift() // pop from left
+        }
+    }
+
+    getAvg() {
+        if (this.values.length == 0) {
+            return this.defaultValue
+        } else {
+             return this.total / this.values.length
+        }
+    }
+
+    getDiff() {
+        if (this.values.length <= 1) {
+            return this.defaultValue
+        } else {
+             return (this.values[this.values.length - 1] - this.values[0]) / (this.values.length - 1)
+        }
+    }
+}

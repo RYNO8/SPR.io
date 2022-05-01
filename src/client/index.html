@@ -30,18 +30,22 @@
             Instructions lorem ipsum dolir sit amet, jfldsk fjdsop csdp cfdklhgcopa, ixh cdspfsih psdxoi shcfldv,
             hlcfsd.
         </div>
-        <input id="name" type="text" placeholder="Player" minlength="1" maxlength="20">
+        
+        <input id="name" type="text" minlength="1" maxlength="20">
         <a id="play-button" class="button">Play!</a>
     </div>
     <div id="gameover-menu" class="overlay slide-out">
-        <h1>GAME OVER!</h1>
-        <div>You were eaten by: <div id="eaten-by"></div></div>
-        <div>Score: <div id="score"></div></div>
+        <h1 id="gameover-title">GAME OVER!</h1>
+        <div>You were eaten by: <span id="eaten-by"></span></div>
+        <div>Score: <span id="score"></span></div>
         <div>stats</div>
         <a id="back-button" class="button">Back</a>
         <a id="play-button-2" class="button">Play!</a>
     </div>
-    <div id="alert" class="overlay">DISCONNECTED</div>
+    <!--<div id="alert" class="overlay">DISCONNECTED</div>-->
+    <div id="debug-1" class="overlay"></div>
+    <div id="debug-2" class="overlay"></div>
+    <div id="debug-3" class="overlay"></div>
     <script src="game.js" type="text/javascript"></script>
     <script>
         // smart fix for FOUC (Flash Of Unstyled Content) where the raw, unstyled page would generate before the final one.
