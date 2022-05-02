@@ -21,7 +21,7 @@ export class ClientGameState {
     }
     
     update(targetState: ClientGameState, framerate: number) {
-        if (this.me) targetState.me.updatePlayer(this.me, 1 - CONSTANTS.INTERPOLATE_SPEED * framerate)
+        if (this.me && targetState.me) targetState.me.updatePlayer(this.me, 1 - CONSTANTS.INTERPOLATE_SPEED * framerate)
         for (let i in targetState.others) {
             let prev = this.others.find(function(value: Player) { return value.id == targetState.others[i].id })
             if (prev) {
@@ -66,13 +66,13 @@ export class ServerGameState {
     }
 
     // get player with max score, break ties arbitarily
-    getDefaultPlayerID() {
+    getDefaultPlayer() {
         if (this.getPlayers().length == 0) {
             return null
         }
         return this.getPlayers().reduce(function(p1: Player, p2: Player) {
             return (p1.score > p2.score) ? p1 : p2
-        }).id
+        })
     }
 
     getPlayers(): Player[] {
@@ -83,7 +83,11 @@ export class ServerGameState {
         if (id in this.players) {
             delete this.players[id]
         }
-        this.me[id] = this.getDefaultPlayerID()
+        if (this.getPlayers().length == 0) {
+            this.me[id] = null
+        } else {
+            this.me[id] = this.getDefaultPlayer().id
+        }
     }
 
     playerEnter(id: string, name: string) {
@@ -180,7 +184,7 @@ export class ServerGameState {
         }
         this.powerups = remainingPowerups
 
-        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_TIMESTEP) {
+        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
             let [x, y] = this.getSpawnPos()
             this.powerups.push(new Powerup(x, y))
         }
@@ -197,7 +201,7 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     updateMaze() {
-        if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_TIMESTEP) {
+        if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
             let x: number
             let y: number
             do {
@@ -262,7 +266,7 @@ export class ServerGameState {
 
     exportState(id : string) {
         // TODO: make custom packet for each player
-        let me = this.getPlayer(id)
+        let me = this.getPlayer(id) || this.getDefaultPlayer()
         return {
             time: this.time,
             me: me,

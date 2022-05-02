@@ -1,12 +1,13 @@
 import * as express from "express"
 import * as path from "path"
 import { Server } from "socket.io"
+import { createServer } from "http"
 import { ServerGameState } from "../shared/model/gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { validName } from "../shared/utilities"
 
 let gamestate: ServerGameState = new ServerGameState()
-setInterval(() => gamestate.update(), CONSTANTS.SERVER_TIMESTEP)
+setInterval(() => gamestate.update(), CONSTANTS.SERVER_UPDATE_RATE)
 
 const app = express()
 app.set("port", CONSTANTS.PORT)
@@ -22,12 +23,13 @@ app.get("/css/style.css", (req: any, res: any) => {
     res.sendFile(path.resolve("./dist/client/css/style.css"))
 })
 
-const httpServer = require("http").createServer(app)
+const httpServer = createServer(app)
 httpServer.listen(CONSTANTS.PORT, function() {
     console.log(new Date().toLocaleTimeString(), "listening")
 })
 
 const io = new Server(httpServer)
+
 io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
     console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
 
@@ -56,9 +58,12 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
         gamestate.players[socket.id].x = speed
     })
 
-    socket.on(CONSTANTS.ENDPOINT_REQUEST_GAME_STATE, function() {
-        socket.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState(socket.id))
-    })
+    setInterval(
+        function() {
+            socket.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState(socket.id))
+        },
+        CONSTANTS.SERVER_TICK_RATE
+    )
 })
 
 setInterval(

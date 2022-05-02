@@ -4,6 +4,7 @@ import * as CONSTANTS from "./../shared/constants"
 const menu = document.getElementById("menu")
 const gameoverMenu = document.getElementById("gameover-menu")
 const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
+const nameInput = <HTMLInputElement> document.getElementById("name")
 
 export function initGameoverMenu(name: string, score: number) {
     gameoverMenu.classList.remove("slide-out")
@@ -83,6 +84,7 @@ export function updateLeaderboard() {
 
 export function toMainMenu() {
     socket.emit(CONSTANTS.ENDPOINT_RESET)
+    nameInput.placeholder = localStorage.getItem("name")
     menu.classList.remove("slide-out")
     menu.classList.add("slide-in")
 
@@ -93,6 +95,7 @@ export function toMainMenu() {
 
 export function startGame() {
     // TODO: fun name ganerator?
-    let name: string = (<HTMLInputElement> document.getElementById("name")).value || "Placeholder"
+    let name: string = nameInput.value || localStorage.getItem("name")
+    localStorage.setItem("name", name)
     socket.emit(CONSTANTS.ENDPOINT_GAME_INIT, name)
 }

@@ -41,11 +41,7 @@ socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
     latencySamples.update(Date.now())
     //if (!targetStates.isEmpty()) console.log(targetStates.front().time - newGamestate.time)
     targetStates.push(newGamestate)
-    
-    socket.emit(CONSTANTS.ENDPOINT_REQUEST_GAME_STATE)
 })
-
-socket.emit(CONSTANTS.ENDPOINT_REQUEST_GAME_STATE)
 
 // modify gamestate towards targetState
 function updateGamestate() {
@@ -67,6 +63,8 @@ function updateGamestate() {
 export function render() {
     debug1.innerText = latencySamples.getDiff().toString()
     debug2.innerText = timeDiff.getAvg().toString()
+    debug3.innerText = framerateSamples.getDiff().toString()
+
     updateGamestate()
     context.restore()
     context.save()
@@ -95,6 +93,7 @@ export function render() {
         isInGame = true
         console.assert(gamestate.me.score >= score)
         score = gamestate.me.score
+        gamestate.me.direction = direction
     }
 
     if (gamestate.me) {
@@ -119,7 +118,6 @@ export function render() {
         renderPlayer(gamestate.others[i], gamestate.others[i].getColour(gamestate.me))
     }
     if (gamestate.me) {
-        gamestate.me.direction = direction
         renderPlayer(gamestate.me, CONSTANTS.PLAYER_TEAMMATE_COLOUR)
     }
 
@@ -181,8 +179,8 @@ function renderMap() {
 
     // boundaries
     context.strokeStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-    context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
-    context.strokeRect(-CONSTANTS.MAP_SHADOW_WIDTH / 2, -CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE + CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + CONSTANTS.MAP_SHADOW_WIDTH)
+    context.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
+    context.strokeRect(-CONSTANTS.MAP_SHADOW_WIDTH, -CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH)
 }
 
 function renderMaze(maze : [number, number][]) {

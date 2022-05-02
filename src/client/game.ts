@@ -20,6 +20,7 @@ import { debounce } from "throttle-debounce"
 import { startCapturingInput } from "./playerInput"
 import { render } from "./render"
 import { onResize, initStatusMsg, updateLeaderboard, toMainMenu, startGame } from "./events"
+import * as CONSTANTS from "../shared/constants"
 
 startCapturingInput()
 
@@ -32,6 +33,8 @@ initStatusMsg()
 
 updateLeaderboard()
 
+localStorage.setItem("name", localStorage.getItem("name") || CONSTANTS.NAME_PLACEHOLDER)
+toMainMenu()
 document.getElementById("back-button").onclick = toMainMenu
 
 document.getElementById("play-button").onclick = startGame

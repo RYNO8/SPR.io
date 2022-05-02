@@ -49,7 +49,7 @@ export class Player extends GameObject {
     }
 
     progress() {
-        let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_TIMESTEP
+        let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
         this.x += Math.cos(this.direction) * distance
         this.y += Math.sin(this.direction) * distance
     }
