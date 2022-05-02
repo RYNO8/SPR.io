@@ -40,20 +40,20 @@ export function onResize() {
 
 export function initStatusMsg() {
     socket.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function() {
-        /*let alert = document.getElementById("alert")
+        let alert = document.getElementById("alert")
         alert.style.visibility = "visible" // "hidden"
         alert.style.borderColor = "#1D7755" // green
-        alert.innerText = "CONNECTED!"*/
+        alert.innerText = "CONNECTED!"
 
         document.body.style.opacity = "1";
         document.documentElement.style.opacity = "1";
     })
 
     socket.on(CONSTANTS.ENDPOINT_CLIENT_DISCONNECT, function() {
-        /*let alert = document.getElementById("alert")
+        let alert = document.getElementById("alert")
         alert.style.visibility = "visible"
         alert.style.borderColor = "#DB423D" // red
-        alert.innerText = "DISCONNECTED!"*/
+        alert.innerText = "DISCONNECTED!"
     })
 }
 

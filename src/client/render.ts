@@ -4,12 +4,11 @@ import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 import { direction } from "./playerInput"
 import { Powerup } from "../shared/model/powerup"
-import { PriorityQueue } from "@datastructures-js/priority-queue";
 import { initGameoverMenu, initDisconnectedMenu } from "./events"
 import { RollingAvg } from "../shared/utilities"
 
-let targetStates = new PriorityQueue<ClientGameState>(function(a: ClientGameState, b: ClientGameState) { return a.time - b.time })
-let gamestate = new ClientGameState(0, [], [], [])
+let targetStates: ClientGameState[] = []
+let gamestate = new ClientGameState(0, null, [], [], [])
 let isInGame = false
 let score: number = 0
 let framerateSamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 1)
@@ -30,48 +29,50 @@ function serverTime() {
 }
 
 socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
-    let gamestate: ClientGameState = new ClientGameState(jsonstate.time, jsonstate.players, jsonstate.powerups, jsonstate.maze)
-    timeDiff.update(gamestate.time - Date.now())
+    let newGamestate: ClientGameState = new ClientGameState(
+        jsonstate.time,
+        jsonstate.me,
+        jsonstate.others,
+        jsonstate.powerups,
+        jsonstate.maze
+    )
+
+    timeDiff.update(newGamestate.time - Date.now())
     latencySamples.update(Date.now())
-    //if (!targetStates.isEmpty()) console.log(targetStates.front().time - gamestate.time)
-    targetStates.enqueue(gamestate)
+    //if (!targetStates.isEmpty()) console.log(targetStates.front().time - newGamestate.time)
+    targetStates.push(newGamestate)
+    
+    socket.emit(CONSTANTS.ENDPOINT_REQUEST_GAME_STATE)
 })
 
+socket.emit(CONSTANTS.ENDPOINT_REQUEST_GAME_STATE)
 
 // modify gamestate towards targetState
 function updateGamestate() {
-    debug1.innerText = latencySamples.getDiff().toString()
-    debug2.innerText = timeDiff.getAvg().toString()
-
-    while (targetStates.size() > 0 && targetStates.front().time < serverTime()) {
-        console.log(targetStates.size(), targetStates.front().time - serverTime())
-        targetStates.dequeue()
+    while (targetStates.length > 0 && targetStates[0].time < serverTime()) {
+        //console.log(targetStates.length, targetStates[0].time - serverTime())
+        targetStates.shift()
     }
-    if (targetStates.isEmpty()) {
+    if (targetStates.length == 0) {
         console.log("empty!")
         return
     }
-    let targetState: ClientGameState = targetStates.front()
+    let targetState: ClientGameState = targetStates[0]
 
     framerateSamples.update(Date.now())
     let framerate = 1 / framerateSamples.getDiff()
-
-    for (let i in targetState.players) {
-        let prev = gamestate.players.find(function(value: Player) { return value.id == targetState.players[i].id })
-        if (prev) {
-            targetState.players[i].updatePlayer(prev, 1 - CONSTANTS.INTERPOLATE_SPEED * framerate)
-        }
-    }
-    gamestate = targetState
+    gamestate.update(targetState, framerate)
 }
 
 export function render() {
+    debug1.innerText = latencySamples.getDiff().toString()
+    debug2.innerText = timeDiff.getAvg().toString()
     updateGamestate()
     context.restore()
     context.save()
     renderUnreachable()
 
-    let me: Player = gamestate.players[gamestate.players.length - 1]
+    
     if (!socket.id) {
         if (isInGame) {
             // disconnected
@@ -79,32 +80,32 @@ export function render() {
             isInGame = false
             score = 0
         }
-    } else if (me && me.id != socket.id) {
+    } else if (gamestate.me && gamestate.me.id != socket.id) {
         if (isInGame) {
-            initGameoverMenu(me.name, score)
+            initGameoverMenu(gamestate.me.name, score)
             isInGame = false
             score = 0
         }
-    } else if (me) {
+    } else if (gamestate.me) {
         menu.classList.remove("slide-in")
         menu.classList.add("slide-out")
         gameoverMenu.classList.remove("slide-in")
         gameoverMenu.classList.add("slide-out")
 
         isInGame = true
-        console.assert(me.score >= score)
-        score = me.score
+        console.assert(gamestate.me.score >= score)
+        score = gamestate.me.score
     }
 
-    if (gamestate.players.length == 0) {
-        let size: number = Math.min(canvas.width, canvas.height) / CONSTANTS.MAP_SIZE
-        context.translate((canvas.width - size * CONSTANTS.MAP_SIZE) / 2, (canvas.height - size * CONSTANTS.MAP_SIZE) / 2)
-        context.scale(size, size)
-    } else {
+    if (gamestate.me) {
         let size: number = Math.max(canvas.width / CONSTANTS.VISIBLE_WIDTH, canvas.height / CONSTANTS.VISIBLE_HEIGHT)
         context.translate(canvas.width / 2, canvas.height / 2)
         context.scale(size, size)
-        context.translate(-me.x, -me.y)
+        context.translate(-gamestate.me.x, -gamestate.me.y)
+    } else {
+        let size: number = Math.min(canvas.width, canvas.height) / CONSTANTS.MAP_SIZE
+        context.translate((canvas.width - size * CONSTANTS.MAP_SIZE) / 2, (canvas.height - size * CONSTANTS.MAP_SIZE) / 2)
+        context.scale(size, size)
     }
 
     renderBackround()
@@ -114,11 +115,12 @@ export function render() {
     for (let i in gamestate.powerups) {
         renderPowerup(gamestate.powerups[i])
     }
-    for (let i in gamestate.players) {
-        if (gamestate.players[i].id == socket.id) {
-            gamestate.players[i].direction = direction
-        }
-        renderPlayer(gamestate.players[i], gamestate.players[i].getColour(me))
+    for (let i in gamestate.others) {
+        renderPlayer(gamestate.others[i], gamestate.others[i].getColour(gamestate.me))
+    }
+    if (gamestate.me) {
+        gamestate.me.direction = direction
+        renderPlayer(gamestate.me, CONSTANTS.PLAYER_TEAMMATE_COLOUR)
     }
 
     // Rerun this render function on the next frame

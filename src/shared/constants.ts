@@ -3,19 +3,21 @@
 export let PORT: number = 80
 
 // networking
+export let SERVER_UPDATE_RATE: number = 10 / 1000
 export let SERVER_TICK_RATE: number = 50 / 1000
 export let SERVER_TIMESTEP = 1 / SERVER_TICK_RATE
 export let RENDER_DELAY: number = 60
 export let SAMPLE_SIZE: number = 6
 
 // socketio "endpoints"
-// TODO: enum
+// TODO: enum, might break the bot
 export let ENDPOINT_CLIENT_CONNECT: string = "connect"
 export let ENDPOINT_CLIENT_DISCONNECT: string = "disconnect"
 export let ENDPOINT_SERVER_CONNECT: string = "connection"
 export let ENDPOINT_SERVER_DISCONNECT: string = "disconnect"
 export let ENDPOINT_UPDATE_DIRECTION: string = "update_direction"
 export let ENDPOINT_UPDATE_SPEED: string = "update_speed"
+export let ENDPOINT_REQUEST_GAME_STATE: string = "request_game_state"
 export let ENDPOINT_UPDATE_GAME_STATE: string = "update_game"
 export let ENDPOINT_UPDATE_LEADERBOARD: string = "update_leaderboard"
 export let ENDPOINT_RESET: string = "reset"

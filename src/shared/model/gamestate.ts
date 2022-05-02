@@ -7,15 +7,31 @@ import * as CONSTANTS from "../constants"// maintain global data about other peo
 
 export class ClientGameState {
     public time: number = 0
-    public players: Player[] = []
+    public me: Player
+    public others: Player[] = []
     public powerups: Powerup[] = []
     public maze: [number, number][] = []
     
-    constructor(time: number, players: Player[], powerups: Powerup[], maze: [number, number][]) {
+    constructor(time: number, me: Player, others: Player[], powerups: Powerup[], maze: [number, number][]) {
         this.time = time
-        this.players = players.map(copyPlayer)
+        if (me) this.me = copyPlayer(me)
+        this.others = others.map(copyPlayer)
         this.powerups = powerups.map(copyPowerup)
         this.maze = maze
+    }
+    
+    update(targetState: ClientGameState, framerate: number) {
+        if (this.me) targetState.me.updatePlayer(this.me, 1 - CONSTANTS.INTERPOLATE_SPEED * framerate)
+        for (let i in targetState.others) {
+            let prev = this.others.find(function(value: Player) { return value.id == targetState.others[i].id })
+            if (prev) {
+                targetState.others[i].updatePlayer(prev, 1 - CONSTANTS.INTERPOLATE_SPEED * framerate)
+            }
+        }
+        this.me = targetState.me
+        this.others = targetState.others
+        this.powerups = targetState.powerups
+        this.maze = targetState.maze
     }
 }
 
@@ -129,13 +145,9 @@ export class ServerGameState {
                 others.push(this.players[id])
             }
         }
-        others.sort(function(p1: Player, p2: Player) {
+        return others.sort(function(p1: Player, p2: Player) {
             return p1.score - p2.score
         })
-        if (me) {
-            others.push(me)
-        }
-        return others
     }
 
     /////////////////////////////////////////////////////////////////
@@ -253,7 +265,8 @@ export class ServerGameState {
         let me = this.getPlayer(id)
         return {
             time: this.time,
-            players: this.exportPlayers(me),
+            me: me,
+            others: this.exportPlayers(me),
             powerups: this.exportPowerups(me),
             maze: this.exportMaze(me)
         }

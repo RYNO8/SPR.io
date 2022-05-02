@@ -56,17 +56,14 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
         gamestate.players[socket.id].x = speed
     })
 
-    setInterval(
-        function() {
-            socket.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState(socket.id))
-        },
-        CONSTANTS.SERVER_TIMESTEP
-    )
+    socket.on(CONSTANTS.ENDPOINT_REQUEST_GAME_STATE, function() {
+        socket.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState(socket.id))
+    })
 })
 
 setInterval(
     function() {
-        io.volatile.emit(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
+        io.emit(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
     },
     CONSTANTS.LEADERBOARD_UPDATE_RATE
 )
