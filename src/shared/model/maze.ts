@@ -46,7 +46,7 @@ export class Maze {
 
         // standard DnD algo
         // http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
-        // variation
+        // variation, more implement trek
         // https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
         
     }
