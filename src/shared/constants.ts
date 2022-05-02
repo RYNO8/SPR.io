@@ -59,7 +59,7 @@ export let MAP_UNREACHABLE_COLOUR: string = "grey"
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "none" // or "dots" or "grid"
 export let MAP_SHADOW_COLOUR = "lightgrey"
-export let MAP_SHADOW_WIDTH = 30 // >= 2
+export let MAP_SHADOW_WIDTH = 8 // >= 2
 
 // maze
 export let CELL_SIZE: number = 150 // there is a grid line every this many pixels

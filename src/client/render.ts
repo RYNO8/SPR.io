@@ -50,7 +50,7 @@ function updateGamestate() {
         targetStates.shift()
     }
     if (targetStates.length == 0) {
-        console.log("empty!")
+        //console.log("empty!")
         return
     }
     let targetState: ClientGameState = targetStates[0]

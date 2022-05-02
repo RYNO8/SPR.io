@@ -29,7 +29,9 @@ export class Maze {
             }
         }
         this.randwalkMazeGen()
-        
+
+        // https://en.wikipedia.org/wiki/Gabriel_graph
+        // https://en.wikipedia.org/wiki/Relative_neighborhood_graph
     }
 
     randMazeGen() {
@@ -56,27 +58,25 @@ export class Maze {
         // these constants are specific to CONSTANTS.NUM_CELLS == 20
         // TODO: test if these constants scale linearly with NUM_CELLS
         // tested using https://cdpn.io/abdolsa/fullembedgrid/zEKdop?animations=run&type=embed
-        let NUM_TUNNELS = 90
+        let NUM_TUNNELS = 140
         let MAX_LENGTH = 7
 
         let mazeX = Math.floor(CONSTANTS.NUM_CELLS / 2)
         let mazeY = Math.floor(CONSTANTS.NUM_CELLS / 2)
-        let prevdx = 0
-        let prevdy = 0
+        let dx = 1
+        let dy = 0
         for (let rep = 0; rep < NUM_TUNNELS; rep++) {
-            let dx: number
-            let dy: number
-            do {
-                [dx, dy] = randDirection()
-            } while (dx == prevdx && dy == prevdy)
+            if (Math.random() < 0.5) {
+                [dx, dy] = [-dy, dx]
+            } else {
+                [dx, dy] = [dy, -dx]
+            }
 
             let length = Math.floor(Math.random() * MAX_LENGTH)
             for (let i = 0; i < length && this.isValidCell(mazeX + dx, mazeY + dy); i++) {
                 this.maze[mazeX][mazeY] = false
                 mazeX += dx
                 mazeY += dy
-                prevdx = dx
-                prevdy = dy
             }
             this.maze[mazeX][mazeY] = false
         }
