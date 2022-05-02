@@ -1,5 +1,6 @@
 import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
+import Two from "two.js"
 
 function randDirection() {
     let i = Math.floor(Math.random() * 4)
@@ -22,20 +23,37 @@ export class Maze {
         }
         this.dfsMazeGen(0, 0)*/
 
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+        /*for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 this.maze[row][col] = true
             }
         }
-        this.randwalkMazeGen()
+        this.randwalkMazeGen()*/
+
+        /*for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.maze[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                this.maze[row][col] = true
+            }
+        }
+        this.drunkardwalkMazeGen()*/
+
+        this.cellAutomataMazeGen()
 
         // https://en.wikipedia.org/wiki/Gabriel_graph
         // https://en.wikipedia.org/wiki/Relative_neighborhood_graph
+
+        // standard DnD algo
+        // http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
+        // variation
+        // https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
+        
     }
 
     randMazeGen() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
             }
@@ -79,6 +97,67 @@ export class Maze {
                 mazeY += dy
             }
             this.maze[mazeX][mazeY] = false
+        }
+    }
+
+    drunkardwalkMazeGen() {
+        let NUM_STEPS = CONSTANTS.NUM_CELLS * CONSTANTS.NUM_CELLS
+
+        let mazeX = Math.floor(CONSTANTS.NUM_CELLS / 2)
+        let mazeY = Math.floor(CONSTANTS.NUM_CELLS / 2)
+        let seen: [number, number][] = []
+        for (let rep = 0; rep < NUM_STEPS; rep++) {
+            let [dx, dy] = randDirection()
+            if (this.isValidCell(mazeX + dx, mazeY + dy) && this.maze[mazeX + dx][mazeY + dy]) {
+                mazeX += dx
+                mazeY += dy
+                this.maze[mazeX][mazeY] = false
+                seen.push([mazeX, mazeY])
+            } else {
+                [mazeX, mazeY] = seen[Math.floor(Math.random() * seen.length)]
+            }
+        }
+    }
+
+    aliveNeighbours(mazeX: number, mazeY: number) {
+        let total = 0
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx != 0 || dy != 0) {
+                    total += <any>(this.getCell(mazeX + dx, mazeY + dy))
+                }
+            }
+        }
+        return total
+    }
+    cellAutomataMazeGen() {
+        // https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
+        let INITIAL_CHANCE = 0.45
+        let NUM_STEPS = 5
+        let DEATH_LIMIT = 2
+        let BIRTH_LIMIT = 4
+
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.maze[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                this.maze[row][col] = Math.random() <= INITIAL_CHANCE
+            }
+        }
+
+        
+        for (let rep = 0; rep < NUM_STEPS; rep++) {
+            let newMaze: boolean[][] = []
+            for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+                newMaze[row] = []
+                for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                    if (this.maze[row][col]) {
+                        newMaze[row][col] = this.aliveNeighbours(row, col) <= DEATH_LIMIT
+                    } else {
+                        newMaze[row][col] = this.aliveNeighbours(row, col) <= BIRTH_LIMIT
+                    }
+                }
+            }
+            this.maze = newMaze
         }
     }
 
@@ -149,5 +228,20 @@ export class Maze {
         }
 
         return [x, y]
+    }
+
+    exportMaze(me: Player) {
+        let output = []
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                let x = row * CONSTANTS.CELL_SIZE
+                let y = col * CONSTANTS.CELL_SIZE
+                // TODO: this is sus, pls fix
+                if (this.maze[row][col] && (!me || me.isVisible({x: x + CONSTANTS.CELL_SIZE / 2, y: y + CONSTANTS.CELL_SIZE / 2, canAttack: null}))) {
+                    output.push([x, y])
+                }
+            }
+        }
+        return output
     }
 }

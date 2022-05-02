@@ -46,23 +46,23 @@ export let PLAYER_TEAMMATE_COLOUR: string = "#60ACBC" // blue // NOTE: this is a
 
 // powerup
 export let POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
-export let POWERUP_MAX: number = 10
+export let POWERUP_MAX: number = 100
 export let POWERUP_DURATION: number = 5 * 1000
 export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 3000
+export let MAP_SIZE: number = 6300
 export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "none" // or "dots" or "grid"
 export let MAP_SHADOW_COLOUR = "lightgrey"
-export let MAP_SHADOW_WIDTH = 8 // >= 2
+export let MAP_SHADOW_WIDTH = 0 // >= 2
 
 // maze
-export let CELL_SIZE: number = 150 // there is a grid line every this many pixels
+export let CELL_SIZE: number = 90 // there is a grid line every this many pixels
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export let MAZE_DENSITY: number = 0.1 // must be between 0 and 1 inclusive
 export let MAZE_CHANGE_RATE: number = 0 //0.1 / 1000

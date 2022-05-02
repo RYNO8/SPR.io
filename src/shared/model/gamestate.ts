@@ -158,6 +158,7 @@ export class ServerGameState {
     //////////////////////////// POWERUP ////////////////////////////
     /////////////////////////////////////////////////////////////////
 
+    
     isPointOccupied(x: number, y: number) {
         for (let i in this.powerups) {
             // TODO: this is very sus, pls fix
