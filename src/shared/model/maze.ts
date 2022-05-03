@@ -38,7 +38,7 @@ export class Maze {
         }
         this.drunkardwalkMazeGen()*/
 
-        this.cellAutomataMazeGen()
+        //this.cellAutomataMazeGen()
 
         // https://en.wikipedia.org/wiki/Gabriel_graph
         // https://en.wikipedia.org/wiki/Relative_neighborhood_graph
@@ -47,7 +47,6 @@ export class Maze {
         // http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
         // variation, more implement trek
         // https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
-        
     }
 
     randMazeGen() {
