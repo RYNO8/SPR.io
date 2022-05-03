@@ -5,6 +5,7 @@ import { Maze } from "./maze"
 import { Obstacle } from "./obstacle"
 import { Position } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
+//import { Bot } from "../../server/ai/bot"
 
 
 export class ClientGameState {

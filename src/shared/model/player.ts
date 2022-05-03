@@ -36,7 +36,7 @@ export class Player extends GameObject {
         this.score++
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
-    
+
     hasCapture(p: Player): boolean {
         if (this.id != p.id && this.canAttack(p)) {
             let mePowerup = this.hasPowerup >= Date.now()
@@ -49,6 +49,7 @@ export class Player extends GameObject {
         }
     }
 
+    
     progress() {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
         // TODO: abstract

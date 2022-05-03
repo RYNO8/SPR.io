@@ -1,6 +1,6 @@
 // NOTE: all times are in milliseconds, all distances are in pixels
 
-export let PORT: number = 80
+export let PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
 
 // networking
 export let SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
@@ -45,6 +45,14 @@ export let PLAYER_PREY_COLOUR: string = "#1D7755" // green
 export let PLAYER_ENEMY_COLOUR: string = "#DB423D" // red
 export let PLAYER_TEAMMATE_COLOUR: string = "#60ACBC" // blue // NOTE: this is also your colour, since you are your own teammate
 
+// bots
+export let AMOUNT_BOTS: number = 3;
+export const BOT_NAMES = [
+    "Inky",
+    "Pinky",
+    "Clyde"
+]
+
 // powerup
 export let POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
 export let POWERUP_MAX: number = 100
@@ -53,7 +61,7 @@ export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 6300
+export let MAP_SIZE: number = 900 //6300
 export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"

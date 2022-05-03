@@ -18,6 +18,8 @@
     "author": "Ryno",
     "license": "MIT",
     "dependencies": {
+        "@types/dotenv": "^8.2.0",
+        "dotenv": "^16.0.0",
         "express": "^4.17.3",
         "phaser": "^3.16.2",
         "socket.io": "^3.1.2",
