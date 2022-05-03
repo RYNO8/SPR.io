@@ -44,6 +44,14 @@ export let PLAYER_PREY_COLOUR: string = "#1D7755" // green
 export let PLAYER_ENEMY_COLOUR: string = "#DB423D" // red
 export let PLAYER_TEAMMATE_COLOUR: string = "#60ACBC" // blue // NOTE: this is also your colour, since you are your own teammate
 
+// bots
+export let AMOUNT_BOTS: number = 3;
+export const BOT_NAMES = [
+    "Inky",
+    "Pinky",
+    "Clyde"
+]
+
 // powerup
 export let POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
 export let POWERUP_MAX: number = 100

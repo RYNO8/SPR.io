@@ -1,5 +1,7 @@
 import * as CONSTANTS from "./../constants"
 import { GameObject } from "./game_object"
+import { Maze } from "./maze"
+import { Powerup } from "./powerup"
 
 export class Player extends GameObject {
     public id: string
@@ -12,6 +14,8 @@ export class Player extends GameObject {
     public direction: number
     public hasPowerup: number
 
+    public isBot: boolean
+
     constructor(id: string, name: string, x: number, y: number) {
         super(x, y)
 
@@ -22,6 +26,8 @@ export class Player extends GameObject {
         this.score = 0
         this.direction = Math.random() * 2 * Math.PI
         this.hasPowerup = 0
+
+        this.isBot = false;
     }
 
     isVisible(obj: GameObject) {
@@ -35,23 +41,32 @@ export class Player extends GameObject {
         this.score++
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
-    
-    hasCapture(p: Player): boolean {
-        if (this.id != p.id && this.canAttack(p)) {
-            let mePowerup = this.hasPowerup >= Date.now()
-            let otherPowerup = p.hasPowerup >= Date.now()
-            if (mePowerup == otherPowerup) {
-                return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
-            } else {
-                return mePowerup
-            }
+
+    canCapture(p: Player): boolean {
+        if(this.id === p.id) {
+            return false
+        }
+        let mePowerup = this.hasPowerup >= Date.now()
+        let otherPowerup = p.hasPowerup >= Date.now()
+        if (mePowerup == otherPowerup) {
+            return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
+        } else {
+            return mePowerup
         }
     }
+    
+    hasCapture(p: Player): boolean {
+        return this.canAttack(p) && this.canCapture(p)
+    }
 
-    progress() {
+    progress(maze: Maze, otherPlayers: Player[], powerups: Powerup[]) {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE * (1 + this.score / 2)
         this.x += Math.cos(this.direction) * distance
         this.y += Math.sin(this.direction) * distance
+
+        let [x, y] = maze.clamp(this.x, this.y)
+        this.x = x
+        this.y = y
     }
 
     getColour(me: Player) {
