@@ -46,11 +46,14 @@ export let PLAYER_ENEMY_COLOUR: string = "#DB423D" // red
 export let PLAYER_TEAMMATE_COLOUR: string = "#60ACBC" // blue // NOTE: this is also your colour, since you are your own teammate
 
 // bots
-export let AMOUNT_BOTS: number = 3;
+export let BOTS_MAX: number = 2
+export let BOT_SPAWN_RATE: number = 0.3 / 1000
+// assuming all names pass the utilities.validName() check
 export const BOT_NAMES = [
     "Inky",
     "Pinky",
-    "Clyde"
+    "Clyde",
+    "Daniel"
 ]
 
 // powerup
@@ -61,7 +64,7 @@ export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 900 //6300
+export let MAP_SIZE: number = 1800 //6300
 export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"

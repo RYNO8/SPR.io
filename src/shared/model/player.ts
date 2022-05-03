@@ -7,15 +7,18 @@ export class Player extends GameObject {
     public name!: string
     public team: number
     public score: number
+    public isBot: boolean
 
     public direction: number
     public hasPowerup: number
 
-    constructor(centroid: Position, id: string, name: string, ) {
+    constructor(centroid: Position, id: string, name: string, isBot: boolean) {
         super(centroid)
 
         this.id = id
         this.name = name
+        this.isBot = isBot
+
         // TODO: something better than random, try balancing teams
         this.team = Math.floor(Math.random() * CONSTANTS.NUM_TEAMS)
         this.score = 0
@@ -24,7 +27,7 @@ export class Player extends GameObject {
     }
 
     static deserialise(player : Player) {
-        let output : Player = new Player(Position.deserialise(player.centroid), player.id, player.name)
+        let output : Player = new Player(Position.deserialise(player.centroid), player.id, player.name, player.isBot)
         output.team = player.team
         output.score = player.score
         output.direction = player.direction
@@ -37,16 +40,18 @@ export class Player extends GameObject {
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
 
-    hasCapture(p: Player): boolean {
-        if (this.id != p.id && this.canAttack(p)) {
-            let mePowerup = this.hasPowerup >= Date.now()
-            let otherPowerup = p.hasPowerup >= Date.now()
-            if (mePowerup == otherPowerup) {
-                return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
-            } else {
-                return mePowerup
-            }
+    canCapture(p: Player): boolean {
+        let mePowerup = this.hasPowerup >= Date.now()
+        let otherPowerup = p.hasPowerup >= Date.now()
+        if (mePowerup == otherPowerup) {
+            return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
+        } else {
+            return mePowerup
         }
+    }
+
+    hasCapture(p: Player): boolean {
+        return this.id != p.id && this.canAttack(p) && this.canCapture(p)
     }
 
     

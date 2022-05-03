@@ -6,6 +6,15 @@ export function validName(name: string) {
     return 1 <= name.length && name.length <= 20
 }
 
+export function randChoice(arr: any[]) {
+    return arr[Math.floor(Math.random() * arr.length)]
+}
+
+// chose integer in [min..max]
+export function randRange(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
 export class RollingAvg {
     private sample_size: number
     private defaultValue: number

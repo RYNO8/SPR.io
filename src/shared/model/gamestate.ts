@@ -5,8 +5,8 @@ import { Maze } from "./maze"
 import { Obstacle } from "./obstacle"
 import { Position } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
-//import { Bot } from "../../server/ai/bot"
-
+import { findBotDirection } from "../ai/util"
+import { randChoice, randRange } from "../utilities"
 
 export class ClientGameState {
     public time: number = 0
@@ -93,16 +93,20 @@ export class ServerGameState {
         }
     }
 
-    playerEnter(id: string, name: string) {
-        this.players[id] = new Player(this.getSpawnCentroid(), id, name)
+    playerEnter(id: string, name: string, isBot: boolean) {
+        this.players[id] = new Player(this.getSpawnCentroid(), id, name, isBot)
         this.me[id] = id
     }
 
     playerExit(id: string, attackerID: string) {
-        if (id in this.players) {
-            delete this.players[id]
+        if (this.players[id].isBot) {
+            this.playerLeave(id)
+        } else {
+            if (id in this.players) {
+                delete this.players[id]
+            }
+            this.me[id] = attackerID
         }
-        this.me[id] = attackerID
     }
 
     playerLeave(id: string) {
@@ -111,6 +115,26 @@ export class ServerGameState {
         }
         if (id in this.me) {
             delete this.me[id]
+        }
+    }
+
+    updateBots() {
+        let numBots = 0
+        for (let id in this.players) {
+            numBots += <any>this.players[id].isBot
+        }
+        if (Math.random() <= CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_UPDATE_RATE && numBots < CONSTANTS.BOTS_MAX) {
+            // TODO: better ID
+            let newID = Math.random().toString()
+            this.playerJoin(newID)
+            this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true)
+        }
+
+        for (let id in this.players) {
+            if (this.players[id].isBot) {
+                let direction = findBotDirection(this.players[id], this)
+                this.setPlayerDirection(id, direction)
+            }
         }
     }
 
@@ -234,8 +258,8 @@ export class ServerGameState {
     getSpawnCentroid() {
         let pos = new Position(0, 0)
         do {
-            pos.x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
-            pos.y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
+            pos.x = randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
+            pos.y = randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
         } while (this.maze.isPointBlocked(pos) || this.isPointOccupied(pos))
         return pos
     }
@@ -243,6 +267,7 @@ export class ServerGameState {
     update() {
         // TODO: think about best order
         this.time = Date.now()
+        this.updateBots()
         this.updatePlayers()
         this.updatePowerups()
         this.updateCaptures()

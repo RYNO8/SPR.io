@@ -43,7 +43,7 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
     socket.on(CONSTANTS.ENDPOINT_GAME_INIT, function(name: string) {
         if (!(socket.id in gamestate.players) && validName(name)) {
             console.log(new Date().toLocaleTimeString(), socket.id, "Game init")
-            gamestate.playerEnter(socket.id, name)
+            gamestate.playerEnter(socket.id, name, false)
         }
     })
 
