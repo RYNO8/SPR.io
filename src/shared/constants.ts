@@ -3,6 +3,7 @@
 export let PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
 
 // networking
+export let SERVER_BOT_UPDATE_RATE: number = 40
 export let SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
 export let SERVER_TICK_RATE: number = 40 // duration between each packet send
 export let RENDER_DELAY: number = 60

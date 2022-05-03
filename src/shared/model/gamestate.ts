@@ -48,6 +48,8 @@ export class ServerGameState {
     constructor() {
         this.time = Date.now()
         this.maze = new Maze()
+        setInterval(() => this.update(), CONSTANTS.SERVER_UPDATE_RATE)
+        setInterval(() => this.updateBots(), CONSTANTS.SERVER_BOT_UPDATE_RATE)
     }
 
     /////////////////////////////////////////////////////////////////
@@ -123,7 +125,7 @@ export class ServerGameState {
         for (let id in this.players) {
             numBots += <any>this.players[id].isBot
         }
-        if (Math.random() <= CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_UPDATE_RATE && numBots < CONSTANTS.BOTS_MAX) {
+        if (Math.random() <= CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE && numBots < CONSTANTS.BOTS_MAX) {
             // TODO: better ID
             let newID = Math.random().toString()
             this.playerJoin(newID)
@@ -267,7 +269,6 @@ export class ServerGameState {
     update() {
         // TODO: think about best order
         this.time = Date.now()
-        this.updateBots()
         this.updatePlayers()
         this.updatePowerups()
         this.updateCaptures()

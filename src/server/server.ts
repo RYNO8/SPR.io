@@ -13,7 +13,6 @@ import * as CONSTANTS from "../shared/constants"
 import { validName } from "../shared/utilities"
 
 let gamestate: ServerGameState = new ServerGameState()
-setInterval(() => gamestate.update(), CONSTANTS.SERVER_UPDATE_RATE)
 
 const app = express()
 app.set("port", CONSTANTS.PORT)
