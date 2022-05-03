@@ -1,6 +1,6 @@
 // NOTE: all times are in milliseconds, all distances are in pixels
 
-export let PORT: number = 80
+export let PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
 
 // networking
 export let SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()

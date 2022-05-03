@@ -1,6 +1,5 @@
 import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
-import Two from "two.js"
 
 function randDirection() {
     let i = Math.floor(Math.random() * 4)

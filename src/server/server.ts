@@ -2,6 +2,12 @@ import * as express from "express"
 import * as path from "path"
 import { Server } from "socket.io"
 import { createServer } from "http"
+import * as dotenv from "dotenv"
+
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config();
+}
+
 import { ServerGameState } from "../shared/model/gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { validName } from "../shared/utilities"
