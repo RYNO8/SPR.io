@@ -6,6 +6,7 @@ import { direction } from "./playerInput"
 import { Powerup } from "../shared/model/powerup"
 import { initGameoverMenu, initDisconnectedMenu } from "./events"
 import { RollingAvg } from "../shared/utilities"
+import { Obstacle } from "../shared/model/obstacle"
 
 let targetStates: ClientGameState[] = []
 let gamestate = new ClientGameState(0, null, [], [], [])
@@ -22,7 +23,6 @@ const menu = document.getElementById("menu")
 const gameoverMenu = document.getElementById("gameover-menu")
 const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
 const context: CanvasRenderingContext2D = canvas.getContext("2d")
-context.font = CONSTANTS.CANVAS_FONT
 
 function serverTime() {
     return Date.now() + timeDiff.getAvg() - CONSTANTS.RENDER_DELAY
@@ -66,11 +66,14 @@ export function render() {
     debug3.innerText = framerateSamples.getDiff().toString()
 
     updateGamestate()
+
     context.restore()
     context.save()
+    context.font = CONSTANTS.CANVAS_FONT
+    context.lineJoin = "round"
+
     renderUnreachable()
 
-    
     if (!socket.id) {
         if (isInGame) {
             // disconnected
@@ -100,7 +103,7 @@ export function render() {
         let size: number = Math.max(canvas.width / CONSTANTS.VISIBLE_WIDTH, canvas.height / CONSTANTS.VISIBLE_HEIGHT)
         context.translate(canvas.width / 2, canvas.height / 2)
         context.scale(size, size)
-        context.translate(-gamestate.me.x, -gamestate.me.y)
+        context.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)
     } else {
         let size: number = Math.min(canvas.width, canvas.height) / CONSTANTS.MAP_SIZE
         context.translate((canvas.width - size * CONSTANTS.MAP_SIZE) / 2, (canvas.height - size * CONSTANTS.MAP_SIZE) / 2)
@@ -108,7 +111,7 @@ export function render() {
     }
 
     renderBackround()
-    renderShadow(gamestate.maze)
+    //renderShadow(gamestate.maze)
     renderMap()
     renderMaze(gamestate.maze)
     for (let i in gamestate.powerups) {
@@ -139,7 +142,8 @@ function renderBackround() {
     context.fillRect(0, 0, CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE)
 }
 
-function renderShadow(maze : [number, number][]) {
+// TODO
+/*function renderShadow(maze : [number, number][]) {
     context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
     context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
     context.strokeRect(CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH)
@@ -148,7 +152,7 @@ function renderShadow(maze : [number, number][]) {
     for (let i in maze) {
         context.fillRect(maze[i][0] - CONSTANTS.MAP_SHADOW_WIDTH, maze[i][1] - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.CELL_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.CELL_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH)
     }
-}
+}*/
 
 function renderMap() {
     if (CONSTANTS.MAP_STYLE == "grid") {
@@ -176,33 +180,53 @@ function renderMap() {
             }
         }
     }
-
-    // boundaries
-    context.strokeStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-    context.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
-    context.strokeRect(-CONSTANTS.MAP_SHADOW_WIDTH, -CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH)
 }
 
-function renderMaze(maze : [number, number][]) {
+function renderMaze(maze: Obstacle[]) {
+    context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
+    context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
+    context.strokeRect(CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH)
+
     context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     for (let i in maze) {
-        // extra pixels to make sure there are no 0 width gaps between adjacent walls
-        context.fillRect(maze[i][0] - 2, maze[i][1] - 2, CONSTANTS.CELL_SIZE + 4, CONSTANTS.CELL_SIZE + 4)
-        //context.fillRect(maze[i][0], maze[i][1], CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
+        context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
+        context.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
+        context.beginPath()
+        for (let j in maze[i].points) {
+            context.lineTo(maze[i].points[j].x, maze[i].points[j].y)
+        }
+        context.lineTo(maze[i].points[0].x, maze[i].points[0].y)
+        context.lineTo(maze[i].points[1].x, maze[i].points[1].y)
+        context.stroke()
     }
+    for (let i in maze) {
+        context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
+        context.beginPath()
+        for (let j in maze[i].points) {
+            context.lineTo(maze[i].points[j].x, maze[i].points[j].y)
+        }
+        // TODO: handle 0 width gaps
+        context.lineTo(maze[i].points[0].x, maze[i].points[0].y)
+        context.lineTo(maze[i].points[1].x, maze[i].points[1].y)
+        context.fill()
+    }
+
+    context.strokeStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
+    context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
+    context.strokeRect(-CONSTANTS.MAP_SHADOW_WIDTH / 2, -CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE + CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + CONSTANTS.MAP_SHADOW_WIDTH)
 }
 
 function renderPowerup(powerup: Powerup) {
     context.fillStyle = CONSTANTS.POWERUP_COLOUR
     context.beginPath()
-    context.arc(powerup.x, powerup.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
+    context.arc(powerup.centroid.x, powerup.centroid.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
     context.fill()
 }
 
 function renderPlayer(player: Player, colour: string) {
     context.save()
 
-    context.translate(player.x, player.y)
+    context.translate(player.centroid.x, player.centroid.y)
     context.rotate(player.direction)
     if (player.hasPowerup >= serverTime()) {
         // TODO: change intensity of colour

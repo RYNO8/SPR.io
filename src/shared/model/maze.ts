@@ -1,5 +1,7 @@
 import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
+import { Obstacle } from "./obstacle"
+import { Position } from "./position"
 
 function randDirection() {
     let i = Math.floor(Math.random() * 4)
@@ -9,11 +11,12 @@ function randDirection() {
 }
 
 export class Maze {
-    public maze: boolean[][] = []
+    public maze: Obstacle[][] = []
 
     constructor() {
-        //this.randMazeGen()
+        this.randMazeGen()
 
+        // TODO
         /*for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
@@ -53,12 +56,21 @@ export class Maze {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = Math.random() < CONSTANTS.MAZE_DENSITY
+                if (Math.random() <= CONSTANTS.MAZE_DENSITY) {
+                    this.maze[row][col] = new Obstacle([
+                        new Position(row * CONSTANTS.CELL_SIZE, col * CONSTANTS.CELL_SIZE),
+                        new Position((row + 1) * CONSTANTS.CELL_SIZE, col * CONSTANTS.CELL_SIZE),
+                        new Position((row + 1) * CONSTANTS.CELL_SIZE, (col + 1) * CONSTANTS.CELL_SIZE),
+                        new Position(row * CONSTANTS.CELL_SIZE, (col + 1) * CONSTANTS.CELL_SIZE),
+                    ])
+                } else {
+                    this.maze[row][col] = null
+                }
             }
         }
     }
 
-    dfsMazeGen(row: number, col: number) {
+    /*dfsMazeGen(row: number, col: number) {
         this.maze[row][col] = false
 
         for (let rep = 0; rep < 10; rep++) {
@@ -157,34 +169,24 @@ export class Maze {
             }
             this.maze = newMaze
         }
-    }
+    }*/
 
     isValidCell(mazeX: number, mazeY: number) {
         return 0 <= mazeX && mazeX < CONSTANTS.NUM_CELLS && 0 <= mazeY && mazeY < CONSTANTS.NUM_CELLS
     }
 
     getCell(mazeX: number, mazeY: number) {
-        return !this.isValidCell(mazeX, mazeY) || this.maze[mazeX][mazeY]
+        return !this.isValidCell(mazeX, mazeY) || this.maze[mazeX][mazeY] != null
     }
 
-    isPointBlocked(x: number, y: number) {
-        return this.getCell(Math.floor(x / CONSTANTS.CELL_SIZE), Math.floor(y / CONSTANTS.CELL_SIZE))
+    isPointBlocked(pos: Position) {
+        return this.getCell(Math.floor(pos.x / CONSTANTS.CELL_SIZE), Math.floor(pos.y / CONSTANTS.CELL_SIZE))
     }
 
-    isRegionBlocked(x1: number, y1: number, x2: number, y2: number) {
-        x2 = Math.ceil(x2 / CONSTANTS.CELL_SIZE) * CONSTANTS.CELL_SIZE
-        y2 = Math.ceil(y2 / CONSTANTS.CELL_SIZE) * CONSTANTS.CELL_SIZE
-        for (let x = x1; x < x2; x += CONSTANTS.CELL_SIZE) {
-            for (let y = y1; y < y2; y += CONSTANTS.CELL_SIZE) {
-                if (this.isPointBlocked(x, y)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    clamp(x: number, y: number): [number, number] {
+    clamp(pos: Position) {
+        // TODO
+        let x = pos.x
+        let y = pos.y
         let mazeX = Math.floor(x / CONSTANTS.CELL_SIZE)
         let mazeY = Math.floor(y / CONSTANTS.CELL_SIZE)
 
@@ -225,18 +227,15 @@ export class Maze {
             else y = topBound
         }
 
-        return [x, y]
+        return new Position(x, y)
     }
 
     exportMaze(me: Player) {
-        let output = []
+        let output: Obstacle[] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                let x = row * CONSTANTS.CELL_SIZE
-                let y = col * CONSTANTS.CELL_SIZE
-                // TODO: this is sus, pls fix
-                if (this.maze[row][col] && (!me || me.isVisible({x: x + CONSTANTS.CELL_SIZE / 2, y: y + CONSTANTS.CELL_SIZE / 2, canAttack: null}))) {
-                    output.push([x, y])
+                if (this.maze[row][col] && this.maze[row][col].isVisible(me)) {
+                    output.push(this.maze[row][col])
                 }
             }
         }

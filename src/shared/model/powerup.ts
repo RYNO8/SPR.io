@@ -1,19 +1,17 @@
 import * as CONSTANTS from "../constants"
 import { GameObject } from "./game_object"
-
+import { Position } from "./position"
 export class Powerup extends GameObject {
     public time: number
-    public x: number
-    public y: number
 
-    constructor(x: number, y: number) {
-        super(x, y)
+    constructor(centroid: Position) {
+        super(centroid)
         this.time = Date.now()
     }
-}
 
-export function copyPowerup(powerup : Powerup) {
-    let output : Powerup = new Powerup(powerup.x, powerup.y)
-    output.time = powerup.time
-    return output
+    static deserialise(powerup : Powerup) {
+        let output : Powerup = new Powerup(Position.deserialise(powerup.centroid))
+        output.time = powerup.time
+        return output
+    }
 }

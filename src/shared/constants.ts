@@ -29,9 +29,10 @@ export let VISIBLE_WIDTH: number = 1500
 export let VISIBLE_HEIGHT: number = 1500
 export let VISIBLE_BUFFER: number = 200 // >= 0
 export let CANVAS_FONT: string = "20px serif"
-export let INTERPOLATE_SPEED: number = 3 // depends on SERVER_TICK_RATE
+export let INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
 export let LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
 export let NAME_PLACEHOLDER: string = "Placeholder"
+export let EPSILON: number = 1e-5
 
 // player
 export let PLAYER_RADIUS: number = 35
@@ -57,9 +58,9 @@ export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"
 export let MAP_LINE_WIDTH: number = 2
-export let MAP_STYLE: string = "none" // or "dots" or "grid"
+export let MAP_STYLE: string = "dots" // or "none" or "grid"
 export let MAP_SHADOW_COLOUR = "lightgrey"
-export let MAP_SHADOW_WIDTH = 0 // >= 2
+export let MAP_SHADOW_WIDTH = 20 // >= 2
 
 // maze
 export let CELL_SIZE: number = 90 // there is a grid line every this many pixels

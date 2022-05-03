@@ -1,21 +1,26 @@
 import * as CONSTANTS from "./../constants"
+import { Position, sub } from "./position"
 
 export class GameObject {
-    public x: number
-    public y: number
+    public centroid: Position
 
-    constructor(x: number, y: number) {
-        this.x = x
-        this.y = y
+    constructor(centroid: Position) {
+        this.centroid = centroid
     }
 
-    canAttack(o: GameObject): boolean {
-        let quadrance = (this.x - o.x) * (this.x - o.x) + (this.y - o.y) * (this.y - o.y)
-        return quadrance <= 2 * CONSTANTS.PLAYER_RADIUS * CONSTANTS.PLAYER_RADIUS
+    static deserialise(gameObject: GameObject) {
+        return new GameObject(Position.deserialise(gameObject.centroid))
     }
-}
 
-// why is js/ts so stupid
-export function copyGameObject(gameObject : GameObject) {
-    return new GameObject(gameObject.x, gameObject.y)
+    canAttack(o: GameObject) {
+        return sub(this.centroid, o.centroid).quadrance() <= 2 * CONSTANTS.PLAYER_RADIUS * CONSTANTS.PLAYER_RADIUS
+    }
+
+    isVisible(o: GameObject) {
+        if (o == null) return true
+        return (
+            Math.abs(o.centroid.x - this.centroid.x) <= CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER && 
+            Math.abs(o.centroid.y - this.centroid.y) <= CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
+        )
+    }
 }

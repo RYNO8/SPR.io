@@ -55,7 +55,7 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
     })
 
     socket.on(CONSTANTS.ENDPOINT_UPDATE_SPEED, function(speed: number) {
-        gamestate.players[socket.id].x = speed
+        gamestate.players[socket.id].centroid.x = speed
     })
 
     setInterval(

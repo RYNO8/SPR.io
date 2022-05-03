@@ -1,5 +1,6 @@
 import * as CONSTANTS from "./../constants"
 import { GameObject } from "./game_object"
+import { Position, add } from "./position"
 
 export class Player extends GameObject {
     public id: string
@@ -7,13 +8,11 @@ export class Player extends GameObject {
     public team: number
     public score: number
 
-    public x: number
-    public y: number
     public direction: number
     public hasPowerup: number
 
-    constructor(id: string, name: string, x: number, y: number) {
-        super(x, y)
+    constructor(centroid: Position, id: string, name: string, ) {
+        super(centroid)
 
         this.id = id
         this.name = name
@@ -24,11 +23,13 @@ export class Player extends GameObject {
         this.hasPowerup = 0
     }
 
-    isVisible(obj: GameObject) {
-        return (
-            Math.abs(obj.x - this.x) <= CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER && 
-            Math.abs(obj.y - this.y) <= CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
-        )
+    static deserialise(player : Player) {
+        let output : Player = new Player(Position.deserialise(player.centroid), player.id, player.name)
+        output.team = player.team
+        output.score = player.score
+        output.direction = player.direction
+        output.hasPowerup = player.hasPowerup
+        return output
     }
 
     increment() {
@@ -50,8 +51,9 @@ export class Player extends GameObject {
 
     progress() {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
-        this.x += Math.cos(this.direction) * distance
-        this.y += Math.sin(this.direction) * distance
+        // TODO: abstract
+        this.centroid.x += Math.cos(this.direction) * distance
+        this.centroid.y += Math.sin(this.direction) * distance
     }
 
     getColour(me: Player) {
@@ -67,8 +69,7 @@ export class Player extends GameObject {
     }
 
     updatePlayer(newPlayer: Player, delta: number) {
-        this.x = this.x * (1 - delta) + newPlayer.x * delta
-        this.y = this.y * (1 - delta) + newPlayer.y * delta
+        this.centroid = add(this.centroid.scale(1 - delta), newPlayer.centroid.scale(delta))
         this.direction %= 2 * Math.PI
         newPlayer.direction %= 2 * Math.PI
         if (this.direction - newPlayer.direction >= Math.PI) {
@@ -79,14 +80,4 @@ export class Player extends GameObject {
             this.direction += (newPlayer.direction - this.direction) * delta
         }
     }
-}
-
-// why is js/ts so stupid
-export function copyPlayer(player : Player) {
-    let output : Player = new Player(player.id, player.name, player.x, player.y)
-    output.team = player.team
-    output.score = player.score
-    output.direction = player.direction
-    output.hasPowerup = player.hasPowerup
-    return output
 }

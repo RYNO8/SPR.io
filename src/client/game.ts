@@ -19,6 +19,7 @@ TODO
  - maze generation remove dead ends
  - changing map
  - aestetic styling
+ - https://x-c3ll.github.io/posts/javascript-antidebugging/
 
 THINK ABOUT
  - powerup to gain (temporary?) wider field of view

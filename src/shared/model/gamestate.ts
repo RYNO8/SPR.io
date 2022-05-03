@@ -1,7 +1,9 @@
 import { GameObject } from "./../model/game_object"
-import { Player, copyPlayer } from "./player"
-import { Powerup, copyPowerup } from "./powerup"
+import { Player } from "./player"
+import { Powerup } from "./powerup"
 import { Maze } from "./maze"
+import { Obstacle } from "./obstacle"
+import { Position } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
 
 
@@ -10,14 +12,14 @@ export class ClientGameState {
     public me: Player
     public others: Player[] = []
     public powerups: Powerup[] = []
-    public maze: [number, number][] = []
+    public maze: Obstacle[] = []
     
-    constructor(time: number, me: Player, others: Player[], powerups: Powerup[], maze: [number, number][]) {
+    constructor(time: number, me: Player, others: Player[], powerups: Powerup[], maze: Obstacle[]) {
         this.time = time
-        if (me) this.me = copyPlayer(me)
-        this.others = others.map(copyPlayer)
-        this.powerups = powerups.map(copyPowerup)
-        this.maze = maze
+        if (me) this.me = Player.deserialise(me)
+        this.others = others.map(Player.deserialise)
+        this.powerups = powerups.map(Powerup.deserialise)
+        this.maze = maze.map(Obstacle.deserialise)
     }
     
     update(targetState: ClientGameState, framerate: number) {
@@ -91,8 +93,7 @@ export class ServerGameState {
     }
 
     playerEnter(id: string, name: string) {
-        let [x, y] = this.getSpawnPos()
-        this.players[id] = new Player(id, name, x, y)
+        this.players[id] = new Player(this.getSpawnCentroid(), id, name)
         this.me[id] = id
     }
 
@@ -115,9 +116,7 @@ export class ServerGameState {
     updatePlayers() {
         for (let id in this.players) {
             this.players[id].progress()
-            let [x, y] = this.maze.clamp(this.players[id].x, this.players[id].y)
-            this.players[id].x = x
-            this.players[id].y = y
+            this.players[id].centroid = this.maze.clamp(this.players[id].centroid)
         }
     }
 
@@ -159,10 +158,10 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     
-    isPointOccupied(x: number, y: number) {
+    isPointOccupied(v: Position) {
         for (let i in this.powerups) {
             // TODO: this is very sus, pls fix
-            if (this.powerups[i].canAttack({x: x, y: y, canAttack: null})) {
+            if (this.powerups[i].canAttack(new GameObject(v))) {
                 return true
             }
         }
@@ -186,15 +185,14 @@ export class ServerGameState {
         this.powerups = remainingPowerups
 
         if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
-            let [x, y] = this.getSpawnPos()
-            this.powerups.push(new Powerup(x, y))
+            this.powerups.push(new Powerup(this.getSpawnCentroid()))
         }
     }
 
     exportPowerups(me: Player) {
-        return Object.values(this.powerups.filter(function(powerup: Powerup) {
+        return this.powerups.filter(function(powerup: Powerup) {
             return !me || me.isVisible(powerup)
-        }))
+        })
     }
 
     /////////////////////////////////////////////////////////////////
@@ -202,7 +200,8 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     updateMaze() {
-        if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
+        // TODO
+        /*if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
             let x: number
             let y: number
             do {
@@ -211,22 +210,7 @@ export class ServerGameState {
                y = Math.floor(y / CONSTANTS.CELL_SIZE)
             } while (this.maze.maze[x][y] == (Math.random() <= CONSTANTS.MAZE_DENSITY))
             this.maze.maze[x][y] = !this.maze.maze[x][y]
-        }
-    }
-    
-    exportMaze(me: Player) {
-        let output = []
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                let x = row * CONSTANTS.CELL_SIZE
-                let y = col * CONSTANTS.CELL_SIZE
-                // TODO: this is sus, pls fix
-                if (this.maze.maze[row][col] && (!me || me.isVisible({x: x + CONSTANTS.CELL_SIZE / 2, y: y + CONSTANTS.CELL_SIZE / 2, canAttack: null}))) {
-                    output.push([x, y])
-                }
-            }
-        }
-        return output
+        }*/
     }
 
     /////////////////////////////////////////////////////////////////
@@ -246,14 +230,13 @@ export class ServerGameState {
     ///////////////////////////// GAME //////////////////////////////
     /////////////////////////////////////////////////////////////////
 
-    getSpawnPos() {
-        let x: number
-        let y: number
+    getSpawnCentroid() {
+        let pos = new Position(0, 0)
         do {
-            x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
-            y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
-        } while (this.maze.isPointBlocked(x, y) || this.isPointOccupied(x, y))
-        return [x, y]
+            pos.x = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
+            pos.y = Math.floor(Math.random() * CONSTANTS.NUM_CELLS) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
+        } while (this.maze.isPointBlocked(pos) || this.isPointOccupied(pos))
+        return pos
     }
 
     update() {
@@ -273,7 +256,7 @@ export class ServerGameState {
             me: me,
             others: this.exportPlayers(me),
             powerups: this.exportPowerups(me),
-            maze: this.exportMaze(me)
+            maze: this.maze.exportMaze(me)
         }
     }
 }
