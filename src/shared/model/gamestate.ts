@@ -3,6 +3,7 @@ import { Player, copyPlayer } from "./player"
 import { Powerup, copyPowerup } from "./powerup"
 import { Maze } from "./maze"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
+import { Bot } from "../ai/bot"
 
 
 export class ClientGameState {
@@ -45,6 +46,13 @@ export class ServerGameState {
     constructor() {
         this.time = Date.now()
         this.maze = new Maze()
+
+        for (let i=0; i < CONSTANTS.AMOUNT_BOTS; i++) {
+            const botId = `bot_${i}`;
+
+            let [x, y] = this.getSpawnPos()
+            this.players[botId] = new Bot(botId, CONSTANTS.BOT_NAMES[i % CONSTANTS.BOT_NAMES.length], x, y);
+        }
     }
 
     /////////////////////////////////////////////////////////////////
@@ -98,6 +106,19 @@ export class ServerGameState {
 
     playerExit(id: string, attackerID: string) {
         if (id in this.players) {
+            if(this.players[id].isBot) {
+                // Bots respawn instantly
+                // dirty hack to prevent client thinking the bot is moving a long distance
+                let newId;
+                if(id.endsWith('x')) {
+                    newId = id.substring(0,id.length-1);
+                } else {
+                    newId = id + 'x';
+                }
+                let [x, y] = this.getSpawnPos()
+                this.players[newId] = new Bot(newId, this.players[id].name, x, y)
+            }
+
             delete this.players[id]
         }
         this.me[id] = attackerID
@@ -114,10 +135,9 @@ export class ServerGameState {
 
     updatePlayers() {
         for (let id in this.players) {
-            this.players[id].progress()
-            let [x, y] = this.maze.clamp(this.players[id].x, this.players[id].y)
-            this.players[id].x = x
-            this.players[id].y = y
+            const {[id]: player, ...otherPlayers} = this.players;
+
+            player.progress(this.maze, Object.values(otherPlayers), this.powerups);
         }
     }
 
