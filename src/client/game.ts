@@ -14,6 +14,16 @@ TODO
  - changing labyrinth
  - teleports?
  - collaboration in labyrinth?
+ - integrate box2d and canvas: https://www.youtube.com/watch?v=FrMExe93O1U
+ - ads
+ - maze generation remove dead ends
+ - changing map
+ - aestetic styling
+
+THINK ABOUT
+ - powerup to gain (temporary?) wider field of view
+ - powerup to gain partial points
+ - colour coded gates
 */
 
 import { debounce } from "throttle-debounce"
