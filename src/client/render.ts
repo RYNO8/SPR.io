@@ -99,7 +99,7 @@ export function render() {
         gamestate.me.direction = direction
     }
 
-    if (gamestate.me) {
+    if (gamestate.me && !process.env.MAPVIEWTEST) {
         let size: number = Math.max(canvas.width / CONSTANTS.VISIBLE_WIDTH, canvas.height / CONSTANTS.VISIBLE_HEIGHT)
         context.translate(canvas.width / 2, canvas.height / 2)
         context.scale(size, size)

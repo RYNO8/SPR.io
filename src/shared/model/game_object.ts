@@ -17,6 +17,9 @@ export class GameObject {
     }
 
     isVisible(o: GameObject) {
+        if(process.env.MAPVIEWTEST) {
+            return true;
+        }
         if (o == null) return true
         return (
             Math.abs(o.centroid.x - this.centroid.x) <= CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER && 

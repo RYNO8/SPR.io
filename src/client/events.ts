@@ -99,3 +99,7 @@ export function startGame() {
     localStorage.setItem("name", name)
     socket.emit(CONSTANTS.ENDPOINT_GAME_INIT, name)
 }
+
+if(process.env.MAPVIEWTEST){
+    menu.parentElement.removeChild(menu);
+}

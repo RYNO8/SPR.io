@@ -13,7 +13,8 @@
         "start": "node dist/server/server.js",
         "dev": "nodemon --watch src -e ts --exec npm-run-all build start",
         "start_maze": "node dist/server/maze_test.js",
-        "maze": "nodemon --watch src -e ts --exec npm-run-all build start_maze"
+        "maze": "nodemon --watch src -e ts --exec npm-run-all build start_maze",
+        "ai-test": "MAPVIEWTEST=true npm run dev"
     },
     "author": "Ryno",
     "license": "MIT",
