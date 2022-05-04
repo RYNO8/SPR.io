@@ -5,51 +5,92 @@ import { Maze } from "./maze"
 import { Obstacle } from "./obstacle"
 import { Position } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
-import { findBotDirection } from "../ai/util"
-import { randChoice, randRange } from "../utilities"
+import { findBotDirection, generateInputs } from "../ai/util";
+import { randChoice, randRange } from "../utilities";
+import { LIFETIME, NEAT_CONFIG, POPULATION_SIZE } from "../ai/ai_constants";
+import { NEAT } from "../ai/neatJS/NEAT";
+import * as fs from "fs";
 
 export class ClientGameState {
-    public time: number = 0
-    public me: Player
-    public others: Player[] = []
-    public powerups: Powerup[] = []
-    public maze: Obstacle[] = []
-    
-    constructor(time: number, me: Player, others: Player[], powerups: Powerup[], maze: Obstacle[]) {
-        this.time = time
-        if (me) this.me = Player.deserialise(me)
-        this.others = others.map(Player.deserialise)
-        this.powerups = powerups.map(Powerup.deserialise)
-        this.maze = maze.map(Obstacle.deserialise)
+    public time: number = 0;
+    public me: Player;
+    public others: Player[] = [];
+    public powerups: Powerup[] = [];
+    public maze: Obstacle[] = [];
+
+    constructor(
+        time: number,
+        me: Player,
+        others: Player[],
+        powerups: Powerup[],
+        maze: Obstacle[]
+    ) {
+        this.time = time;
+        if (me) this.me = Player.deserialise(me);
+        this.others = others.map(Player.deserialise);
+        this.powerups = powerups.map(Powerup.deserialise);
+        this.maze = maze.map(Obstacle.deserialise);
     }
-    
+
     update(targetState: ClientGameState, framerate: number) {
-        if (this.me && targetState.me) targetState.me.updatePlayer(this.me, 1 - CONSTANTS.INTERPOLATE_SPEED * framerate)
+        if (this.me && targetState.me)
+            targetState.me.updatePlayer(
+                this.me,
+                1 - CONSTANTS.INTERPOLATE_SPEED * framerate
+            );
         for (let i in targetState.others) {
-            let prev = this.others.find(function(value: Player) { return value.id == targetState.others[i].id })
+            let prev = this.others.find(function (value: Player) {
+                return value.id == targetState.others[i].id;
+            });
             if (prev) {
-                targetState.others[i].updatePlayer(prev, 1 - CONSTANTS.INTERPOLATE_SPEED * framerate)
+                targetState.others[i].updatePlayer(
+                    prev,
+                    1 - CONSTANTS.INTERPOLATE_SPEED * framerate
+                );
             }
         }
-        this.me = targetState.me
-        this.others = targetState.others
-        this.powerups = targetState.powerups
-        this.maze = targetState.maze
+        this.me = targetState.me;
+        this.others = targetState.others;
+        this.powerups = targetState.powerups;
+        this.maze = targetState.maze;
     }
 }
 
 export class ServerGameState {
-    public time: number = 0
-    public players: { [id: string]: Player } = {}
-    public powerups: Powerup[] = []
-    public maze: Maze
-    public me: { [id: string]: string } = {}
+    public time: number = 0;
+    public players: { [id: string]: Player } = {};
+    public powerups: Powerup[] = [];
+    public maze: Maze;
+    public me: { [id: string]: string } = {};
+
+    // AI training stuff
+    public neat: any;
+    public botIdToNeatIndex: { [id: string]: number } = {};
+    public indexToBotId: { [ind: number]: string } = {};
+    public trainCounter: number;
 
     constructor() {
-        this.time = Date.now()
-        this.maze = new Maze()
-        setInterval(() => this.update(), CONSTANTS.SERVER_UPDATE_RATE)
-        setInterval(() => this.updateBots(), CONSTANTS.SERVER_BOT_UPDATE_RATE)
+        this.time = Date.now();
+        this.maze = new Maze();
+        setInterval(() => this.update(), CONSTANTS.SERVER_UPDATE_RATE);
+        setInterval(() => this.updateBots(), CONSTANTS.SERVER_BOT_UPDATE_RATE);
+
+        if (process.env.AITRAINING) {
+            for (let i = 0; i < POPULATION_SIZE; i++) {
+                let newID = Math.random().toString();
+                this.playerJoin(newID);
+                this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true);
+
+                this.botIdToNeatIndex[newID] = i;
+                this.indexToBotId[i] = newID;
+            }
+
+            this.neat = new NEAT(NEAT_CONFIG);
+            this.trainCounter = 0;
+        } else {
+            this.neat = new NEAT(NEAT_CONFIG);
+            this.neat.import(JSON.parse(fs.readFileSync("network.json").toString()));
+        }
     }
 
     /////////////////////////////////////////////////////////////////
@@ -58,92 +99,158 @@ export class ServerGameState {
 
     setPlayerDirection(id: string, newDirection: number) {
         if (id in this.players && newDirection != NaN) {
-            this.players[id].direction = newDirection
+            this.players[id].direction = newDirection;
         }
     }
 
     getPlayer(id: string) {
         if (id in this.players) {
-            return this.players[id]
+            return this.players[id];
         } else {
-            return null
+            return null;
         }
     }
 
     // get player with max score, break ties arbitarily
     getDefaultPlayer() {
         if (this.getPlayers().length == 0) {
-            return null
+            return null;
         }
-        return this.getPlayers().reduce(function(p1: Player, p2: Player) {
-            return (p1.score > p2.score) ? p1 : p2
-        })
+        return this.getPlayers().reduce(function (p1: Player, p2: Player) {
+            return p1.score > p2.score ? p1 : p2;
+        });
     }
 
     getPlayers(): Player[] {
-        return Object.values(this.players)
+        return Object.values(this.players);
     }
 
     playerJoin(id: string) {
         if (id in this.players) {
-            delete this.players[id]
+            delete this.players[id];
         }
         if (this.getPlayers().length == 0) {
-            this.me[id] = null
+            this.me[id] = null;
         } else {
-            this.me[id] = this.getDefaultPlayer().id
+            this.me[id] = this.getDefaultPlayer().id;
         }
     }
 
     playerEnter(id: string, name: string, isBot: boolean) {
-        this.players[id] = new Player(this.getSpawnCentroid(), id, name, isBot)
-        this.me[id] = id
+        this.players[id] = new Player(this.getSpawnCentroid(), id, name, isBot);
+        this.me[id] = id;
     }
 
     playerExit(id: string, attackerID: string) {
         if (this.players[id].isBot) {
-            this.playerLeave(id)
+            this.playerLeave(id);
         } else {
             if (id in this.players) {
-                delete this.players[id]
+                delete this.players[id];
             }
-            this.me[id] = attackerID
+            this.me[id] = attackerID;
         }
     }
 
     playerLeave(id: string) {
         if (id in this.players) {
-            delete this.players[id]
+            delete this.players[id];
         }
         if (id in this.me) {
-            delete this.me[id]
+            delete this.me[id];
         }
     }
 
     updateBots() {
-        let numBots = 0
-        for (let id in this.players) {
-            numBots += <any>this.players[id].isBot
+        if (process.env.AITRAINING) {
+            // Training mode
+            
+            this.trainCounter++;
+
+            if(this.trainCounter > LIFETIME) {
+                // Generation ends
+                for(let i=0;i<POPULATION_SIZE;i++){
+                    if(this.indexToBotId[i] in this.players){
+                        // This bot is not dead
+                        this.neat.setFitness(this.players[this.indexToBotId[i]].score, i);
+                        
+                        this.playerLeave(this.indexToBotId[i]);
+                    } else {
+                        this.neat.setFitness(0, i);
+                    }
+                }
+
+                fs.writeFile("network.json", JSON.stringify(this.neat.export()), (err) => {
+                    if(err) {console.error(err)}
+                })
+
+                this.neat.doGen();
+
+
+                for (let i = 0; i < POPULATION_SIZE; i++) {
+                    let newID = Math.random().toString();
+                    this.playerJoin(newID);
+                    this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true);
+    
+                    this.botIdToNeatIndex[newID] = i;
+                    this.indexToBotId[i] = newID;
+                }
+
+                this.trainCounter = 0;
+
+                return;
+            }
+
+            // First, generate the input neurons for each alive bot
+            for (let id in this.players) {
+                const inputs = generateInputs(this.players[id], this);
+
+                this.neat.setInputs(inputs, this.botIdToNeatIndex[id]);
+            }
+
+            // Now feedforward the networks
+            this.neat.feedForward();
+
+            const outputs = this.neat.getOutputs();
+
+            for (let i = 0; i < outputs.length; i++) {
+                this.setPlayerDirection(this.indexToBotId[i], outputs[i][0]);
+            }
+
+            return;
         }
-        if (Math.random() <= CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE && numBots < CONSTANTS.BOTS_MAX) {
+
+        let numBots = 0;
+        for (let id in this.players) {
+            numBots += <any>this.players[id].isBot;
+        }
+        if (
+            Math.random() <=
+                CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE &&
+            numBots < CONSTANTS.BOTS_MAX
+        ) {
             // TODO: better ID
-            let newID = Math.random().toString()
-            this.playerJoin(newID)
-            this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true)
+            let newID = Math.random().toString();
+            this.playerJoin(newID);
+            this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true);
         }
 
         for (let id in this.players) {
             if (this.players[id].isBot) {
-                let direction = findBotDirection(this.players[id], this)
-                this.setPlayerDirection(id, direction)
+                this.neat.creatures[0].setInputs(generateInputs(this.players[id], this));
+                this.neat.creatures[0].feedForward();
+                
+                this.setPlayerDirection(id, this.neat.creatures[0].getOutputs()[0]);
             }
         }
     }
 
     updatePlayers() {
         for (let id in this.players) {
-            this.players[id].progress()
-            this.players[id].centroid = this.maze.clamp(this.players[id].centroid)
+            this.players[id].progress();
+            this.players[id].centroid = this.maze.clamp(
+                this.players[id].centroid
+            );
         }
     }
 
@@ -153,73 +260,77 @@ export class ServerGameState {
         // At first I tried checking every creature for collisions against everything else, but unsurprisingly that was too slow (N^2). To reduce the checks I put each creature in a grid cell based on their position, then check for collisions only against creatures in the same or adjacent cells.
         // I think overlapping grids would be even more efficient, or perhaps to do these checks on GPU.
         // Use a quadtree or similar structure for your broadphase detection, it will help right off the bat.
-        let attacker: { [id: string]: string } = {}
+        let attacker: { [id: string]: string } = {};
         for (let id1 in this.players) {
             for (let id2 in this.players) {
                 if (this.players[id2].hasCapture(this.players[id1])) {
-                    this.players[id2].increment()
-                    attacker[id1] = id2
+                    this.players[id2].increment();
+                    attacker[id1] = id2;
                 }
             }
         }
 
         for (let id in attacker) {
-            this.playerExit(id, attacker[id])
+            this.playerExit(id, attacker[id]);
         }
     }
 
     exportPlayers(me: Player) {
-        let others: Player[] = []
+        let others: Player[] = [];
         for (let id in this.players) {
             if (!me || (id != me.id && me.isVisible(this.players[id]))) {
-                others.push(this.players[id])
+                others.push(this.players[id]);
             }
         }
-        return others.sort(function(p1: Player, p2: Player) {
-            return p1.score - p2.score
-        })
+        return others.sort(function (p1: Player, p2: Player) {
+            return p1.score - p2.score;
+        });
     }
 
     /////////////////////////////////////////////////////////////////
     //////////////////////////// POWERUP ////////////////////////////
     /////////////////////////////////////////////////////////////////
 
-    
     isPointOccupied(v: Position) {
         for (let i in this.powerups) {
             // TODO: this is very sus, pls fix
             if (this.powerups[i].canAttack(new GameObject(v))) {
-                return true
+                return true;
             }
         }
-        return false
+        return false;
     }
 
     updatePowerups() {
-        let remainingPowerups: Powerup[] = []
+        let remainingPowerups: Powerup[] = [];
         for (let i in this.powerups) {
-            let captured = false
+            let captured = false;
             for (let id in this.players) {
                 if (this.players[id].canAttack(this.powerups[i])) {
-                    captured = true
-                    this.players[id].hasPowerup = Date.now() + CONSTANTS.POWERUP_DURATION
+                    captured = true;
+                    this.players[id].hasPowerup =
+                        Date.now() + CONSTANTS.POWERUP_DURATION;
                 }
             }
             if (!captured) {
-                remainingPowerups.push(this.powerups[i])
+                remainingPowerups.push(this.powerups[i]);
             }
         }
-        this.powerups = remainingPowerups
+        this.powerups = remainingPowerups;
 
-        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
-            this.powerups.push(new Powerup(this.getSpawnCentroid()))
+        if (
+            this.powerups.length < CONSTANTS.POWERUP_MAX &&
+            Math.random() <=
+                CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_UPDATE_RATE
+        ) {
+            this.powerups.push(new Powerup(this.getSpawnCentroid()));
         }
     }
 
     exportPowerups(me: Player) {
-        return this.powerups.filter(function(powerup: Powerup) {
-            return !me || me.isVisible(powerup)
-        })
+        return this.powerups.filter(function (powerup: Powerup) {
+            return !me || me.isVisible(powerup);
+        });
     }
 
     /////////////////////////////////////////////////////////////////
@@ -245,12 +356,15 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     exportLeaderboard() {
-        let sortedPlayers: Player[] = this.getPlayers().sort(function(p1: Player, p2: Player) {
-            return p2.score - p1.score
-        })
-        return sortedPlayers.map(function(p: Player) {
-            return [p.name, p.score]
-        })
+        let sortedPlayers: Player[] = this.getPlayers().sort(function (
+            p1: Player,
+            p2: Player
+        ) {
+            return p2.score - p1.score;
+        });
+        return sortedPlayers.map(function (p: Player) {
+            return [p.name, p.score];
+        });
     }
 
     /////////////////////////////////////////////////////////////////
@@ -258,32 +372,36 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     getSpawnCentroid() {
-        let pos = new Position(0, 0)
+        let pos = new Position(0, 0);
         do {
-            pos.x = randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
-            pos.y = randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
-        } while (this.maze.isPointBlocked(pos) || this.isPointOccupied(pos))
-        return pos
+            pos.x =
+                randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE +
+                CONSTANTS.CELL_SIZE / 2;
+            pos.y =
+                randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE +
+                CONSTANTS.CELL_SIZE / 2;
+        } while (this.maze.isPointBlocked(pos) || this.isPointOccupied(pos));
+        return pos;
     }
 
     update() {
         // TODO: think about best order
-        this.time = Date.now()
-        this.updatePlayers()
-        this.updatePowerups()
-        this.updateCaptures()
-        this.updateMaze()
+        this.time = Date.now();
+        this.updatePlayers();
+        this.updatePowerups();
+        this.updateCaptures();
+        this.updateMaze();
     }
 
-    exportState(id : string) {
+    exportState(id: string) {
         // TODO: make custom packet for each player
-        let me = this.getPlayer(id) || this.getDefaultPlayer()
+        let me = this.getPlayer(id) || this.getDefaultPlayer();
         return {
             time: this.time,
             me: me,
             others: this.exportPlayers(me),
             powerups: this.exportPowerups(me),
-            maze: this.maze.exportMaze(me)
-        }
+            maze: this.maze.exportMaze(me),
+        };
     }
 }

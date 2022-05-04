@@ -4,3 +4,4 @@ dist
 *.out
 .vscode
 .env
+network.json*

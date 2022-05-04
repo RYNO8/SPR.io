@@ -3,7 +3,7 @@
 export let PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
 
 // networking
-export let SERVER_BOT_UPDATE_RATE: number = 40
+export let SERVER_BOT_UPDATE_RATE: number = 1000 / 4
 export let SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
 export let SERVER_TICK_RATE: number = 40 // duration between each packet send
 export let RENDER_DELAY: number = 60
@@ -47,7 +47,7 @@ export let PLAYER_ENEMY_COLOUR: string = "#DB423D" // red
 export let PLAYER_TEAMMATE_COLOUR: string = "#60ACBC" // blue // NOTE: this is also your colour, since you are your own teammate
 
 // bots
-export let BOTS_MAX: number = 5
+export let BOTS_MAX: number = 1;
 export let BOT_SPAWN_RATE: number = 1//0.3 / 1000
 // assuming all names pass the utilities.validName() check
 export const BOT_NAMES = [
