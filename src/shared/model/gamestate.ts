@@ -7,6 +7,7 @@ import { Position } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
 import { findBotDirection } from "../ai/util"
 import { randChoice, randRange } from "../utilities"
+import { randomBytes } from "crypto"
 
 export class ClientGameState {
     public time: number = 0
@@ -126,8 +127,7 @@ export class ServerGameState {
             numBots += <any>this.players[id].isBot
         }
         if (Math.random() <= CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE && numBots < CONSTANTS.BOTS_MAX) {
-            // TODO: better ID
-            let newID = Math.random().toString()
+            let newID = randomBytes(20).toString("hex")
             this.playerJoin(newID)
             this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true)
         }
@@ -142,8 +142,7 @@ export class ServerGameState {
 
     updatePlayers() {
         for (let id in this.players) {
-            this.players[id].progress()
-            this.players[id].centroid = this.maze.clamp(this.players[id].centroid)
+            this.players[id].progress(this.maze)
         }
     }
 
@@ -276,7 +275,6 @@ export class ServerGameState {
     }
 
     exportState(id : string) {
-        // TODO: make custom packet for each player
         let me = this.getPlayer(id) || this.getDefaultPlayer()
         return {
             time: this.time,

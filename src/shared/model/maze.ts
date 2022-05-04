@@ -1,7 +1,7 @@
 import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
-import { Obstacle } from "./obstacle"
-import { Position } from "./position"
+import { makeSquareObstacle, Obstacle } from "./obstacle"
+import { Position, add, DIRECTIONS_4 } from "./position"
 
 function randDirection() {
     let i = Math.floor(Math.random() * 4)
@@ -11,7 +11,7 @@ function randDirection() {
 }
 
 export class Maze {
-    public maze: Obstacle[][] = []
+    public maze: Obstacle[][][] = []
 
     constructor() {
         this.randMazeGen()
@@ -57,14 +57,10 @@ export class Maze {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 if (Math.random() <= CONSTANTS.MAZE_DENSITY) {
-                    this.maze[row][col] = new Obstacle([
-                        new Position(row * CONSTANTS.CELL_SIZE, col * CONSTANTS.CELL_SIZE),
-                        new Position((row + 1) * CONSTANTS.CELL_SIZE, col * CONSTANTS.CELL_SIZE),
-                        new Position((row + 1) * CONSTANTS.CELL_SIZE, (col + 1) * CONSTANTS.CELL_SIZE),
-                        new Position(row * CONSTANTS.CELL_SIZE, (col + 1) * CONSTANTS.CELL_SIZE),
-                    ])
+                //if (row == 2 && col == 2) {
+                    this.maze[row][col] = [makeSquareObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
                 } else {
-                    this.maze[row][col] = null
+                    this.maze[row][col] = []
                 }
             }
         }
@@ -171,71 +167,62 @@ export class Maze {
         }
     }*/
 
-    isValidCell(mazeX: number, mazeY: number) {
-        return 0 <= mazeX && mazeX < CONSTANTS.NUM_CELLS && 0 <= mazeY && mazeY < CONSTANTS.NUM_CELLS
+    isValidCell(mazePos: Position) {
+        return (
+            Number.isInteger(mazePos.x) && 0 <= mazePos.x && mazePos.x < CONSTANTS.NUM_CELLS && 
+            Number.isInteger(mazePos.y) && 0 <= mazePos.y && mazePos.y < CONSTANTS.NUM_CELLS
+        )
     }
 
-    getCell(mazeX: number, mazeY: number) {
-        return !this.isValidCell(mazeX, mazeY) || this.maze[mazeX][mazeY] != null
+    getCell(mazePos: Position) {
+        if (this.isValidCell(mazePos)) {
+            return this.maze[mazePos.x][mazePos.y]
+        } else {
+            return []
+        }
     }
 
     isPointBlocked(pos: Position) {
-        return this.getCell(Math.floor(pos.x / CONSTANTS.CELL_SIZE), Math.floor(pos.y / CONSTANTS.CELL_SIZE))
+        let mazePos = pos.scale(1 / CONSTANTS.CELL_SIZE).floor()
+        let obstacles = this.getCell(mazePos)
+        for (let i = 0; i < obstacles.length; i++) {
+            if (obstacles[i].covers(pos)) {
+                return true
+            }
+        }
+        return false
     }
 
-    clamp(pos: Position) {
-        // TODO
-        let x = pos.x
-        let y = pos.y
-        let mazeX = Math.floor(x / CONSTANTS.CELL_SIZE)
-        let mazeY = Math.floor(y / CONSTANTS.CELL_SIZE)
+    rayTrace(startPos: Position, dirVec: Position): [number, Position] {
+        let best: [number, Position, Position] = [1, startPos, dirVec]
 
-        let leftBound = mazeX * CONSTANTS.CELL_SIZE + CONSTANTS.PLAYER_RADIUS
-        let rightBound = (mazeX + 1) * CONSTANTS.CELL_SIZE - CONSTANTS.PLAYER_RADIUS
-        let topBound = mazeY * CONSTANTS.CELL_SIZE + CONSTANTS.PLAYER_RADIUS
-        let bottomBound = (mazeY + 1) * CONSTANTS.CELL_SIZE - CONSTANTS.PLAYER_RADIUS
-
-        // edges
-        if (this.getCell(mazeX - 1, mazeY)) {
-            x = Math.max(x, leftBound)
-        }
-        if (this.getCell(mazeX + 1, mazeY)) {
-            x = Math.min(x, rightBound)
-        }
-        if (this.getCell(mazeX, mazeY - 1)) {
-            y = Math.max(y, topBound)
-        }
-        if (this.getCell(mazeX, mazeY + 1)) {
-            y = Math.min(y, bottomBound)
+        let mazePos = startPos.scale(1 / CONSTANTS.CELL_SIZE).floor()
+        for (let rep = 0; rep < 2; rep++) {
+            best[0] = 1
+            let oldBest: [number, Position, Position] = best
+            for (let i = 0; i < 4; i++) {
+                let obstacles = this.getCell(add(mazePos, DIRECTIONS_4[i]))
+                for (let i = 0; i < obstacles.length; i++) {
+                    let intersection = obstacles[i].rayTrace(oldBest[1], oldBest[2])
+                    if (intersection[0] < best[0]) {
+                        best = intersection
+                    }
+                }
+            }
         }
 
-        // corners
-        if (this.getCell(mazeX - 1, mazeY + 1) && x <= leftBound && y >= bottomBound) {
-            if (leftBound - x < y - bottomBound) x = leftBound
-            else y = bottomBound
-        }
-        if (this.getCell(mazeX + 1, mazeY + 1) && x >= rightBound && y >= bottomBound) {
-            if (x - rightBound < y - bottomBound) x = rightBound
-            else y = bottomBound
-        }
-        if (this.getCell(mazeX - 1, mazeY - 1) && x <= leftBound && y <= topBound) {
-            if (leftBound - x < topBound - y) x = leftBound
-            else y = topBound
-        }
-        if (this.getCell(mazeX + 1, mazeY - 1) && x >= rightBound && y <= topBound) {
-            if (x - rightBound < topBound - y) x = rightBound
-            else y = topBound
-        }
-
-        return new Position(x, y)
+        return [best[0], add(best[1], best[2])]
     }
 
     exportMaze(me: Player) {
         let output: Obstacle[] = []
+        // TODO: dont look through everything
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                if (this.maze[row][col] && this.maze[row][col].isVisible(me)) {
-                    output.push(this.maze[row][col])
+                for (let i = 0; i < this.maze[row][col].length; i++) {
+                    if (this.maze[row][col][i].isVisible(me)) {
+                        output.push(this.maze[row][col][i].exportObstacle())
+                    }
                 }
             }
         }

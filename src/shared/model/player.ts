@@ -1,6 +1,7 @@
 import * as CONSTANTS from "./../constants"
 import { GameObject } from "./game_object"
-import { Position, add } from "./position"
+import { Position, add, sub, DIRECTIONS_4 } from "./position"
+import { Maze } from "./maze"
 
 export class Player extends GameObject {
     public id: string
@@ -55,11 +56,22 @@ export class Player extends GameObject {
     }
 
     
-    progress() {
+    progress(maze: Maze) {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
-        // TODO: abstract
-        this.centroid.x += Math.cos(this.direction) * distance
-        this.centroid.y += Math.sin(this.direction) * distance
+        let dirVec = new Position(Math.cos(this.direction), Math.sin(this.direction)).scale(distance)
+        /*let bestLambda = 0
+        let best = null
+        
+        for (let i = 0; i < 4; i++) {
+            let intersection = maze.rayTrace(add(this.centroid, DIRECTIONS_4[i].scale(CONSTANTS.PLAYER_RADIUS)), dirVec)
+            if (intersection[0] > bestLambda && intersection[0] < 1) {
+                bestLambda = intersection[0]
+                best = sub(intersection[1], DIRECTIONS_4[i].scale(CONSTANTS.PLAYER_RADIUS))
+            }
+        }
+        if (best) this.centroid = best
+        else this.centroid = add(this.centroid, dirVec)*/
+        this.centroid = maze.rayTrace(this.centroid, dirVec)[1]
     }
 
     getColour(me: Player) {

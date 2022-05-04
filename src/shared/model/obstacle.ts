@@ -1,8 +1,9 @@
 import { GameObject } from "./game_object"
-import { Position, add, pointLineDist } from "./position"
+import { Position, add, sub, lineLineIntersection } from "./position"
 
 export class Obstacle extends GameObject {
     public points: Position[] = []
+    public dirs: Position[] = []
 
     constructor(points: Position[]) {
         //console.assert(points.length >= 3)
@@ -12,18 +13,45 @@ export class Obstacle extends GameObject {
         
         // assuming points are in (clockwise?) order
         this.points = points
+        for (let i = 0; i < points.length; i++) {
+            let j = (i + 1) % points.length
+            this.dirs.push(sub(points[j], points[i]))
+        }
     }
 
     static deserialise(obstacle: Obstacle) {
         return new Obstacle(obstacle.points.map(Position.deserialise))
     }
 
-    clamp(p: Position) {
-        for (let i = 0; i < this.points.length; i++) {
-            let j = (i + 1) % this.points.length
-            console.log(pointLineDist(p, this.points[i], this.points[j]))
-        }
-        console.log(".")
-        return p
+    // TODO: find if pos is within region
+    covers(pos: Position) {
+        return false
     }
+
+    // TODO
+    rayTrace(startPos: Position, dirVec: Position): [number, Position, Position] {
+        let best: [number, Position, Position] = [1, startPos, dirVec]
+        for (let i = 0; i < this.points.length; i++) {
+            let intersection = lineLineIntersection(startPos, dirVec, this.points[i], this.dirs[i])
+            if (intersection[0] < best[0]) {
+                best = intersection
+            }
+        }
+        return best
+    }
+
+    exportObstacle() {
+        let output = new Obstacle(this.points)
+        output.dirs = []
+        return output
+    }
+}
+
+export function makeSquareObstacle(topLeft: Position, width: number, height: number) {
+    return new Obstacle([
+        add(topLeft, new Position(-1, -1)),
+        add(topLeft, new Position(-1, height + 2)),
+        add(topLeft, new Position(width + 2, height + 2)),
+        add(topLeft, new Position(width + 2, -1))
+    ])
 }
