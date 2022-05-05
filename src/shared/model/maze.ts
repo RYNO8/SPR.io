@@ -1,7 +1,8 @@
 import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
 import { makeSquareObstacle, makeTriangleObstacle, Obstacle } from "./obstacle"
-import { Position, add, DIRECTIONS_4, DIRECTIONS_8 } from "./position"
+import { Position, add, DIRECTIONS_4, DIRECTIONS_8, findAvg, isEqual } from "./position"
+import { randChoice, randRange } from "../utilities"
 
 export class Maze {
     public maze: Obstacle[][][] = []
@@ -136,56 +137,88 @@ export class Maze {
         }
     }*/
 
-    cellAutomataMazeGen() {
-        // https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
-        let INITIAL_CHANCE = 0.45
-        let NUM_STEPS = 3
-        let DEATH_LIMIT = 2
-        let BIRTH_LIMIT = 4
+    getComponent(pos: Position, seen: boolean[][]) {
+        let allPos: Position[] = []
+        let queue: Position[] = []
+        queue.push(pos)
 
+        while (queue.length > 0) {
+            let curr = queue[0]
+            allPos.push(curr)
+            queue.shift()
+
+            for (let i = 0; i < 4; i++) {
+                let neighbour = add(curr, DIRECTIONS_4[i])
+                if (!this.isCellBlocked(neighbour) && !seen[neighbour.x][neighbour.y]) {
+                    seen[neighbour.x][neighbour.y] = true
+                    queue.push(neighbour)
+                }
+            }
+        }
+        return allPos
+    }
+
+    digTunnel(start: Position, end: Position) {
+        this.maze[start.x][start.y] = []
+        while (!isEqual(start, end)) {
+            if (start.x > end.x && Math.random() < 0.5) start.x--
+            else if (start.y > end.y && Math.random() < 0.5) start.y--
+            else if (start.x < end.x && Math.random() < 0.5) start.x++
+            else if (start.y < end.y && Math.random() < 0.5) start.y++
+            this.maze[start.x][start.y] = []
+        }
+    }
+
+    joinComponents() {
+        let seen: boolean[][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
+            seen[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                if (Math.random() <= INITIAL_CHANCE) {
-                    this.maze[row][col] = [makeSquareObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-                } else {
-                    this.maze[row][col] = []
-                }
+                seen[row][col] = false
             }
         }
 
-        
-        for (let rep = 0; rep < NUM_STEPS; rep++) {
-            let newMaze: Obstacle[][][] = []
-            for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-                newMaze[row] = []
-                for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                    let pos = new Position(row, col)
-                    let numAlive = 0
-                    for (let i = 0; i < 8; i++) {
-                        if (this.isValidCell(add(pos, DIRECTIONS_8[i])) && this.isCellBlocked(add(pos, DIRECTIONS_8[i]))) {
-                            numAlive++
-                        }
-                    }
+        let allCentroids: Position[] = []
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                let pos = new Position(row, col)
+                if (this.isCellBlocked(pos) || seen[pos.x][pos.y]) continue
 
-                    if (this.isCellBlocked(pos)) {
-                        if (numAlive <= DEATH_LIMIT) {
-                            newMaze[row][col] = [makeSquareObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-                        } else {
-                            newMaze[row][col] = []
-                        }
-                    } else {
-                        if (numAlive <= BIRTH_LIMIT) {
-                            newMaze[row][col] = [makeSquareObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-                        } else {
-                            newMaze[row][col] = []
-                        }
-                    }
-                }
+                let allPos = this.getComponent(pos, seen)
+                let centroid = findAvg(allPos).floor()
+                allCentroids.push(centroid)
             }
-            this.maze = newMaze
         }
 
+        /*for (let i = 0; i < allCentroids.length; i++) {
+            // NOTE: this does not ensure all components are connected
+            // it may even connect a component to itself
+            // hopefully larger components grow bigger, since there is a larger chance it is cut by a tunnel
+            this.digTunnel(allCentroids[i], randChoice(allCentroids))
+        }*/
+
+        console.log(allCentroids)
+
+        let parents: number[] = []
+        for (let i = 0; i < allCentroids.length; i++) parents[i] = i
+        function getParent(node: number) {
+            if (parents[node] != node) parents[node] = getParent(parents[node])
+            return parents[node]
+        }
+
+        for (let numEdges = 0; numEdges < allCentroids.length - 1; ) {
+            let i = randRange(0, allCentroids.length - 1)
+            let j = randRange(0, allCentroids.length - 1)
+            if (getParent(i) != getParent(j)) {
+                parents[getParent(i)] = getParent(j)
+                this.digTunnel(allCentroids[i], allCentroids[j])
+                numEdges++
+            }
+        }
+    }
+    
+
+    applyMazeSmoothing() {
         let newMaze: Obstacle[][][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             newMaze[row] = []
@@ -212,6 +245,62 @@ export class Maze {
             }
         }
         this.maze = newMaze
+    }
+
+    cellAutomataStep() {
+        let DEATH_LIMIT = 2
+        let BIRTH_LIMIT = 4
+
+        let newMaze: Obstacle[][][] = []
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            newMaze[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                let pos = new Position(row, col)
+                let numAlive = 0
+                for (let i = 0; i < 8; i++) {
+                    if (this.isValidCell(add(pos, DIRECTIONS_8[i])) && this.isCellBlocked(add(pos, DIRECTIONS_8[i]))) {
+                        numAlive++
+                    }
+                }
+
+                if (this.isCellBlocked(pos)) {
+                    if (numAlive <= DEATH_LIMIT) {
+                        newMaze[row][col] = [makeSquareObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
+                    } else {
+                        newMaze[row][col] = []
+                    }
+                } else {
+                    if (numAlive <= BIRTH_LIMIT) {
+                        newMaze[row][col] = [makeSquareObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
+                    } else {
+                        newMaze[row][col] = []
+                    }
+                }
+            }
+        }
+        this.maze = newMaze
+    }
+
+    cellAutomataMazeGen() {
+        // https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
+        let INITIAL_CHANCE = 0.45
+        let NUM_STEPS = 3
+
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.maze[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                if (Math.random() <= INITIAL_CHANCE) {
+                    this.maze[row][col] = [makeSquareObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
+                } else {
+                    this.maze[row][col] = []
+                }
+            }
+        }
+
+        for (let rep = 0; rep < NUM_STEPS; rep++) this.cellAutomataStep()
+        this.joinComponents()
+        //this.cellAutomataStep()
+        this.applyMazeSmoothing()
     }
 
     isValidCell(mazePos: Position) {

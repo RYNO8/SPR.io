@@ -1,5 +1,5 @@
 import { GameObject } from "./game_object"
-import { Position, add, sub, lineLineIntersection } from "./position"
+import { Position, add, sub, findAvg, lineLineIntersection } from "./position"
 
 export class Obstacle extends GameObject {
     public points: Position[] = []
@@ -7,11 +7,9 @@ export class Obstacle extends GameObject {
 
     constructor(points: Position[]) {
         //console.assert(points.length >= 3)
-        super(points.reduce(function(p1: Position, p2: Position) {
-            return add(p1, p2)
-        }).scale(1 / points.length))
+        super(findAvg(points))
         
-        // assuming points are in (clockwise?) order
+        // assuming points are in anticlockwise? order
         this.points = points
         for (let i = 0; i < points.length; i++) {
             let j = (i + 1) % points.length
@@ -23,12 +21,17 @@ export class Obstacle extends GameObject {
         return new Obstacle(obstacle.points.map(Position.deserialise))
     }
 
-    // TODO: find if pos is within region
     covers(pos: Position) {
-        return false
+        let inside = false
+        for (let i = 0; i < this.points.length; i++) {
+            let j = (i + 1) % this.points.length
+            if ((this.points[i].y > pos.y) != (this.points[j].y > pos.y) && pos.x < (pos.y - this.points[i].y) * this.dirs[i].x / this.dirs[i].y + this.points[i].x) {
+                inside = !inside
+            }
+        }
+        return inside
     }
 
-    // TODO
     rayTrace(startPos: Position, dirVec: Position): [number, Position, Position] {
         let best: [number, Position, Position] = [1, startPos, dirVec]
         for (let i = 0; i < this.points.length; i++) {
@@ -50,25 +53,69 @@ export class Obstacle extends GameObject {
 export function makeSquareObstacle(topLeft: Position, width: number, height: number) {
     return new Obstacle([
         add(topLeft, new Position(-1, -1)),
-        add(topLeft, new Position(-1, height + 2)),
-        add(topLeft, new Position(width + 2, height + 2)),
-        add(topLeft, new Position(width + 2, -1))
+        add(topLeft, new Position(width + 1, -1)),
+        add(topLeft, new Position(width + 1, height + 1)),
+        add(topLeft, new Position(-1, height + 1)),
     ])
 }
 
 export function makeTriangleObstacle(topLeft: Position, width: number, height: number, isRight: boolean, isBottom: boolean) {
-    let points: Position[] = []
-    if (!isRight || !isBottom) {
-        points.push(add(topLeft, new Position(1, 1)))
+    /*if (!isRight && !isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(-1, -1)),
+            add(topLeft, new Position(width + 3, -1)),
+            add(topLeft, new Position(-1, height + 3)),
+        ])
+    } else if (!isRight && isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(-1, height + 1)),
+            add(topLeft, new Position(width + 3, height + 1)),
+            add(topLeft, new Position(-1, -3)),
+        ])
+    } else if (isRight && !isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(width + 1, -1)),
+            add(topLeft, new Position(-3, -1)),
+            add(topLeft, new Position(width + 1, height + 3)),
+        ])
+    } else if (isRight && isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(width + 1, height + 1)),
+            add(topLeft, new Position(width + 1, -3)),
+            add(topLeft, new Position(-3, height + 1)),
+        ])
+    }*/
+    if (!isRight && !isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(-1, -1)),
+            add(topLeft, new Position(width + 1, -1)),
+            add(topLeft, new Position(width + 1, 0)),
+            add(topLeft, new Position(0, height + 1)),
+            add(topLeft, new Position(-1, height + 1))
+        ])
+    } else if (!isRight && isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(-1, height + 1)),
+            add(topLeft, new Position(width + 1, height + 1)),
+            add(topLeft, new Position(width + 1, height)),
+            add(topLeft, new Position(0, -1)),
+            add(topLeft, new Position(-1, -1)),
+        ])
+    } else if (isRight && !isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(width + 1, -1)),
+            add(topLeft, new Position(-1, -1)),
+            add(topLeft, new Position(-1, 0)),
+            add(topLeft, new Position(width, height + 1)),
+            add(topLeft, new Position(width + 1, height + 1)),
+        ])
+    } else if (isRight && isBottom) {
+        return new Obstacle([
+            add(topLeft, new Position(width + 1, height + 1)),
+            add(topLeft, new Position(width + 1, -1)),
+            add(topLeft, new Position(width, -1)),
+            add(topLeft, new Position(-1, height)),
+            add(topLeft, new Position(-1, height + 1)),
+        ])
     }
-    if (!isRight || isBottom) {
-        points.push(add(topLeft, new Position(1, height - 2)))
-    }
-    if (isRight || isBottom) {
-        points.push(add(topLeft, new Position(width - 2, height - 2)))
-    }
-    if (isRight || !isBottom) {
-        points.push(add(topLeft, new Position(width - 2, 1)))
-    }
-    return new Obstacle(points)
 }

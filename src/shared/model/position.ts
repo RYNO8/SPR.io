@@ -71,6 +71,12 @@ export function isEqual(a: Position, b: Position) {
     return sub(a, b).quadrance() <= CONSTANTS.EPSILON
 }
 
+export function findAvg(posArr: Position[]) {
+    return posArr.reduce(function(p1: Position, p2: Position) {
+        return add(p1, p2)
+    }).scale(1 / posArr.length)
+}
+
 export function dotProd(a: Position, b: Position) {
     return a.x * b.x + a.y * b.y
 }
@@ -101,9 +107,6 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
     let numerator = skewProd(sub(startPos2, startPos1), dir2)
     let denominator = skewProd(dir1, dir2)
 
-    let lambda = numerator / denominator
-    let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
-
     if (Math.abs(denominator) < CONSTANTS.EPSILON) {        
         if (Math.abs(numerator) < CONSTANTS.EPSILON) {
             // lines are parallel and intersecting
@@ -113,7 +116,8 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
             return [Infinity, null, null]
         }
     } else {
-        
+        let lambda = numerator / denominator
+        let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
         
         if (0 <= lambda && lambda <= 1 && -CONSTANTS.EPSILON <= mu && mu <= 1 + CONSTANTS.EPSILON) {
             // lines are intersecting on segment

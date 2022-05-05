@@ -33,7 +33,7 @@ export let CANVAS_FONT: string = "20px serif"
 export let INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
 export let LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
 export let NAME_PLACEHOLDER: string = "Placeholder"
-export let EPSILON: number = 5e-4
+export let EPSILON: number = 5e-3 //5e-4
 
 // player
 export let PLAYER_RADIUS: number = 35
