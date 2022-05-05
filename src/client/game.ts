@@ -14,18 +14,10 @@ TODO
  - changing labyrinth
  - teleports?
  - collaboration in labyrinth?
- - integrate box2d and canvas: https://www.youtube.com/watch?v=FrMExe93O1U
  - ads
- - maze generation remove dead ends
- - changing map
  - aestetic styling
  - https://x-c3ll.github.io/posts/javascript-antidebugging/
- - remove server code from client js
-
-- if using cellular autonoma, find "centres" of each room
- - find "relative neighbourhood graph" or similar, where dist = manahattan or euclidean?
- - prioritise x or y arbitarily, carve out "L shape"
- - rerun cellular autonoma
+ - bug! map walls can be entered
 
 THINK ABOUT
  - powerup to gain (temporary?) wider field of view

@@ -2,7 +2,7 @@ import { GameObject } from "../model/game_object";
 import { Player } from "../model/player";
 import { Powerup } from "../model/powerup";
 import { Maze } from "../model/maze";
-import { ServerGameState } from "../model/gamestate";
+import { ServerGameState } from "../model/server_gamestate";
 
 const headTowards = (me: Player, them: GameObject) => {
     return Math.atan2(them.centroid.y - me.centroid.y, them.centroid.x - me.centroid.x);

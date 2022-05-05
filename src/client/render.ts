@@ -1,5 +1,5 @@
 import { socket } from "./networking"
-import { ClientGameState } from "../shared/model/gamestate"
+import { ClientGameState } from "../shared/model/client_gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 import { direction } from "./playerInput"

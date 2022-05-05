@@ -40,7 +40,7 @@ export function onResize() {
 }
 
 export function initStatusMsg() {
-    socket.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function() {
+    socket.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function() {
         let alert = document.getElementById("alert")
         alert.style.visibility = "visible" // "hidden"
         alert.style.borderColor = "#1D7755" // green
@@ -50,7 +50,7 @@ export function initStatusMsg() {
         document.documentElement.style.opacity = "1";
     })
 
-    socket.on(CONSTANTS.ENDPOINT_CLIENT_DISCONNECT, function() {
+    socket.on(CONSTANTS.Endpoint.CLIENT_DISCONNECT, function() {
         let alert = document.getElementById("alert")
         alert.style.visibility = "visible"
         alert.style.borderColor = "#DB423D" // red
@@ -59,7 +59,7 @@ export function initStatusMsg() {
 }
 
 export function updateLeaderboard() {
-    socket.on(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, function(bestPlayers: [string, number][]) {
+    socket.on(CONSTANTS.Endpoint.UPDATE_LEADERBOARD, function(bestPlayers: [string, number][]) {
         let table = document.querySelector("#leaderboard > table > tbody")
         table.innerHTML = ""
         for (let i in bestPlayers) {
@@ -83,7 +83,7 @@ export function updateLeaderboard() {
 }
 
 export function toMainMenu() {
-    socket.emit(CONSTANTS.ENDPOINT_RESET)
+    socket.emit(CONSTANTS.Endpoint.RESET)
     nameInput.placeholder = localStorage.getItem("name")
     menu.classList.remove("slide-out")
     menu.classList.add("slide-in")
@@ -97,5 +97,5 @@ export function startGame() {
     // TODO: fun name ganerator?
     let name: string = nameInput.value || localStorage.getItem("name")
     localStorage.setItem("name", name)
-    socket.emit(CONSTANTS.ENDPOINT_GAME_INIT, name)
+    socket.emit(CONSTANTS.Endpoint.GAME_INIT, name)
 }

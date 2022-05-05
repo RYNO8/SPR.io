@@ -356,9 +356,20 @@ export class Maze {
 
     exportMaze(me: Player) {
         let output: Obstacle[] = []
-        // TODO: dont look through everything
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+        let rowLeft = 0
+        let rowRight = CONSTANTS.NUM_CELLS - 1
+        let colLeft = 0
+        let colRight = CONSTANTS.NUM_CELLS - 1
+
+        if (me) {
+            rowLeft = Math.max(rowLeft, Math.floor((me.centroid.x - CONSTANTS.VISIBLE_WIDTH / 2 - CONSTANTS.VISIBLE_BUFFER) / CONSTANTS.CELL_SIZE))
+            rowRight = Math.min(rowRight, Math.ceil((me.centroid.x + CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER) / CONSTANTS.CELL_SIZE))
+            colLeft = Math.max(colLeft, Math.floor((me.centroid.y - CONSTANTS.VISIBLE_HEIGHT / 2 - CONSTANTS.VISIBLE_BUFFER) / CONSTANTS.CELL_SIZE))
+            colRight = Math.min(colRight, Math.ceil((me.centroid.y + CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER) / CONSTANTS.CELL_SIZE))
+        }
+
+        for (let row = rowLeft; row <= rowRight; row++) {
+            for (let col = colLeft; col <= colRight; col++) {
                 for (let i = 0; i < this.maze[row][col].length; i++) {
                     if (this.maze[row][col][i].isVisible(me)) {
                         output.push(this.maze[row][col][i].exportObstacle())

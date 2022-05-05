@@ -8,10 +8,10 @@ function handleInput(x: number, y: number) {
     y -= window.innerHeight / 2
 
     direction = Math.atan2(y, x)
-    socket.emit(CONSTANTS.ENDPOINT_UPDATE_DIRECTION, direction)
+    socket.emit(CONSTANTS.Endpoint.UPDATE_DIRECTION, direction)
 
     //const dist = Math.sqrt(x * x + y * y)
-    //socket.emit(CONSTANTS.ENDPOINT_UPDATE_SPEED, dir)
+    //socket.emit(CONSTANTS.Endpoint.UPDATE_SPEED, dir)
 }
 
 function onMouseInput(e: any) {

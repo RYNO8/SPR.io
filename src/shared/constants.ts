@@ -10,7 +10,6 @@ export let RENDER_DELAY: number = 60
 export let SAMPLE_SIZE: number = 6
 
 // socketio "endpoints"
-// TODO: enum, might break the bot
 export enum Endpoint {
     CLIENT_CONNECT = "connect",
     CLIENT_DISCONNECT = "disconnect",
@@ -82,5 +81,5 @@ export let CELL_SIZE: number = 180 // there is a grid line every this many pixel
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export let MAZE_DENSITY: number = 0.1 // must be between 0 and 1 inclusive
 export let MAZE_CHANGE_RATE: number = 0 //0.1 / 1000
-export let MAZE_WALL_SMOOTHNESS: number = 1 // must be between 0 and 1 inclusive, buggy if != 1
+export let MAZE_WALL_SMOOTHNESS: number = 1 // must be between 0 and 1 inclusive
 export let MAZE_OVERLAP: number = 1
