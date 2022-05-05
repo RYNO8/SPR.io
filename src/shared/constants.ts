@@ -65,7 +65,7 @@ export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 3600 //6300
+export let MAP_SIZE: number = 6300
 export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"

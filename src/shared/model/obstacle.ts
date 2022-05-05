@@ -55,3 +55,20 @@ export function makeSquareObstacle(topLeft: Position, width: number, height: num
         add(topLeft, new Position(width + 2, -1))
     ])
 }
+
+export function makeTriangleObstacle(topLeft: Position, width: number, height: number, isRight: boolean, isBottom: boolean) {
+    let points: Position[] = []
+    if (!isRight || !isBottom) {
+        points.push(add(topLeft, new Position(1, 1)))
+    }
+    if (!isRight || isBottom) {
+        points.push(add(topLeft, new Position(1, height - 2)))
+    }
+    if (isRight || isBottom) {
+        points.push(add(topLeft, new Position(width - 2, height - 2)))
+    }
+    if (isRight || !isBottom) {
+        points.push(add(topLeft, new Position(width - 2, 1)))
+    }
+    return new Obstacle(points)
+}

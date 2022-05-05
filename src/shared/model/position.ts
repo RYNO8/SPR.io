@@ -44,6 +44,7 @@ export let DIRECTIONS_4 = [
     new Position(-1, 0),
     new Position(0, 1),
     new Position(0, -1),
+    new Position(0, 0)
 ]
 export let DIRECTIONS_8 = [
     new Position(1, 0),
@@ -54,6 +55,7 @@ export let DIRECTIONS_8 = [
     new Position(1, -1),
     new Position(-1, 1),
     new Position(-1, -1),
+    new Position(0, 0)
 ]
 
 export function add(a: Position, b: Position) {
@@ -99,6 +101,9 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
     let numerator = skewProd(sub(startPos2, startPos1), dir2)
     let denominator = skewProd(dir1, dir2)
 
+    let lambda = numerator / denominator
+    let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
+
     if (Math.abs(denominator) < CONSTANTS.EPSILON) {        
         if (Math.abs(numerator) < CONSTANTS.EPSILON) {
             // lines are parallel and intersecting
@@ -108,8 +113,8 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
             return [Infinity, null, null]
         }
     } else {
-        let lambda = numerator / denominator
-        let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
+        
+        
         if (0 <= lambda && lambda <= 1 && -CONSTANTS.EPSILON <= mu && mu <= 1 + CONSTANTS.EPSILON) {
             // lines are intersecting on segment
             lambda -= 0.2
