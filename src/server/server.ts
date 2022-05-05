@@ -35,37 +35,37 @@ httpServer.listen(CONSTANTS.PORT, function() {
 
 const io = new Server(httpServer)
 
-io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
+io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
     console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
 
     gamestate.playerJoin(socket.id)
-    socket.on(CONSTANTS.ENDPOINT_GAME_INIT, function(name: string) {
+    socket.on(CONSTANTS.Endpoint.GAME_INIT, function(name: string) {
         if (!(socket.id in gamestate.players) && validName(name)) {
             console.log(new Date().toLocaleTimeString(), socket.id, "Game init")
             gamestate.playerEnter(socket.id, name, false)
         }
     })
 
-    socket.on(CONSTANTS.ENDPOINT_SERVER_DISCONNECT, function() {
+    socket.on(CONSTANTS.Endpoint.SERVER_DISCONNECT, function() {
         console.log(new Date().toLocaleTimeString(), socket.id, "Client disconnected!")
         gamestate.playerLeave(socket.id)
     })
 
-    socket.on(CONSTANTS.ENDPOINT_RESET, function() {
+    socket.on(CONSTANTS.Endpoint.RESET, function() {
         gamestate.playerJoin(socket.id)
     })
 
-    socket.on(CONSTANTS.ENDPOINT_UPDATE_DIRECTION, function(direction: number) {
+    socket.on(CONSTANTS.Endpoint.UPDATE_DIRECTION, function(direction: number) {
         gamestate.setPlayerDirection(socket.id, direction)
     })
 
-    socket.on(CONSTANTS.ENDPOINT_UPDATE_SPEED, function(speed: number) {
+    socket.on(CONSTANTS.Endpoint.UPDATE_SPEED, function(speed: number) {
         gamestate.players[socket.id].centroid.x = speed
     })
 
     setInterval(
         function() {
-            socket.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState(socket.id))
+            socket.emit(CONSTANTS.Endpoint.UPDATE_GAME_STATE, gamestate.exportState(socket.id))
         },
         CONSTANTS.SERVER_TICK_RATE
     )
@@ -73,7 +73,7 @@ io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
 
 setInterval(
     function() {
-        io.emit(CONSTANTS.ENDPOINT_UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
+        io.emit(CONSTANTS.Endpoint.UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
     },
     CONSTANTS.LEADERBOARD_UPDATE_RATE
 )

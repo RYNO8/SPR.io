@@ -28,7 +28,7 @@ function serverTime() {
     return Date.now() + timeDiff.getAvg() - CONSTANTS.RENDER_DELAY
 }
 
-socket.on(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, function(jsonstate: any) {
+socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(jsonstate: any) {
     let newGamestate: ClientGameState = new ClientGameState(
         jsonstate.time,
         jsonstate.me,

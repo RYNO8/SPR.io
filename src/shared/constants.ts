@@ -11,18 +11,21 @@ export let SAMPLE_SIZE: number = 6
 
 // socketio "endpoints"
 // TODO: enum, might break the bot
-export let ENDPOINT_CLIENT_CONNECT: string = "connect"
-export let ENDPOINT_CLIENT_DISCONNECT: string = "disconnect"
-export let ENDPOINT_SERVER_CONNECT: string = "connection"
-export let ENDPOINT_SERVER_DISCONNECT: string = "disconnect"
-export let ENDPOINT_UPDATE_DIRECTION: string = "update_direction"
-export let ENDPOINT_UPDATE_SPEED: string = "update_speed"
-export let ENDPOINT_REQUEST_GAME_STATE: string = "request_game_state"
-export let ENDPOINT_UPDATE_GAME_STATE: string = "update_game"
-export let ENDPOINT_UPDATE_LEADERBOARD: string = "update_leaderboard"
-export let ENDPOINT_RESET: string = "reset"
-export let ENDPOINT_GAME_INIT: string = "game_init"
-export let ENDPOINT_GAME_OVER: string = "game_over"
+export enum Endpoint {
+    CLIENT_CONNECT = "connect",
+    CLIENT_DISCONNECT = "disconnect",
+    SERVER_CONNECT = "connection",
+    SERVER_DISCONNECT = "disconnect",
+    UPDATE_DIRECTION = "update_direction",
+    UPDATE_SPEED = "update_speed",
+    REQUEST_GAME_STATE = "request_game_state",
+    UPDATE_GAME_STATE = "update_game",
+    UPDATE_LEADERBOARD = "update_leaderboard",
+    RESET = "reset",
+    GAME_INIT = "game_init",
+    GAME_OVER = "game_over",
+}
+
 
 // misc
 export let NUM_TEAMS: number = 3
@@ -33,7 +36,7 @@ export let CANVAS_FONT: string = "20px serif"
 export let INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
 export let LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
 export let NAME_PLACEHOLDER: string = "Placeholder"
-export let EPSILON: number = 5e-3 //5e-4
+export let EPSILON: number = 0 //5e-4
 
 // player
 export let PLAYER_RADIUS: number = 35
@@ -79,4 +82,5 @@ export let CELL_SIZE: number = 180 // there is a grid line every this many pixel
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export let MAZE_DENSITY: number = 0.1 // must be between 0 and 1 inclusive
 export let MAZE_CHANGE_RATE: number = 0 //0.1 / 1000
-export let MAZE_WALL_SMOOTHNESS: number = 1 // must be between 0 and 1 inclusive
+export let MAZE_WALL_SMOOTHNESS: number = 1 // must be between 0 and 1 inclusive, buggy if != 1
+export let MAZE_OVERLAP: number = 1

@@ -1,3 +1,4 @@
+import * as CONSTANTS from "../constants"
 import { GameObject } from "./game_object"
 import { Position, add, sub, findAvg, lineLineIntersection } from "./position"
 
@@ -52,70 +53,45 @@ export class Obstacle extends GameObject {
 
 export function makeSquareObstacle(topLeft: Position, width: number, height: number) {
     return new Obstacle([
-        add(topLeft, new Position(-1, -1)),
-        add(topLeft, new Position(width + 1, -1)),
-        add(topLeft, new Position(width + 1, height + 1)),
-        add(topLeft, new Position(-1, height + 1)),
+        add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
+        add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
+        add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP)),
+        add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP)),
     ])
 }
 
 export function makeTriangleObstacle(topLeft: Position, width: number, height: number, isRight: boolean, isBottom: boolean) {
-    /*if (!isRight && !isBottom) {
-        return new Obstacle([
-            add(topLeft, new Position(-1, -1)),
-            add(topLeft, new Position(width + 3, -1)),
-            add(topLeft, new Position(-1, height + 3)),
-        ])
-    } else if (!isRight && isBottom) {
-        return new Obstacle([
-            add(topLeft, new Position(-1, height + 1)),
-            add(topLeft, new Position(width + 3, height + 1)),
-            add(topLeft, new Position(-1, -3)),
-        ])
-    } else if (isRight && !isBottom) {
-        return new Obstacle([
-            add(topLeft, new Position(width + 1, -1)),
-            add(topLeft, new Position(-3, -1)),
-            add(topLeft, new Position(width + 1, height + 3)),
-        ])
-    } else if (isRight && isBottom) {
-        return new Obstacle([
-            add(topLeft, new Position(width + 1, height + 1)),
-            add(topLeft, new Position(width + 1, -3)),
-            add(topLeft, new Position(-3, height + 1)),
-        ])
-    }*/
     if (!isRight && !isBottom) {
         return new Obstacle([
-            add(topLeft, new Position(-1, -1)),
-            add(topLeft, new Position(width + 1, -1)),
-            add(topLeft, new Position(width + 1, 0)),
-            add(topLeft, new Position(0, height + 1)),
-            add(topLeft, new Position(-1, height + 1))
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, 0)),
+            add(topLeft, new Position(0, height + CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP))
         ])
     } else if (!isRight && isBottom) {
         return new Obstacle([
-            add(topLeft, new Position(-1, height + 1)),
-            add(topLeft, new Position(width + 1, height + 1)),
-            add(topLeft, new Position(width + 1, height)),
-            add(topLeft, new Position(0, -1)),
-            add(topLeft, new Position(-1, -1)),
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, height)),
+            add(topLeft, new Position(0, -CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
         ])
     } else if (isRight && !isBottom) {
         return new Obstacle([
-            add(topLeft, new Position(width + 1, -1)),
-            add(topLeft, new Position(-1, -1)),
-            add(topLeft, new Position(-1, 0)),
-            add(topLeft, new Position(width, height + 1)),
-            add(topLeft, new Position(width + 1, height + 1)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, 0)),
+            add(topLeft, new Position(width, height + CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP)),
         ])
     } else if (isRight && isBottom) {
         return new Obstacle([
-            add(topLeft, new Position(width + 1, height + 1)),
-            add(topLeft, new Position(width + 1, -1)),
-            add(topLeft, new Position(width, -1)),
-            add(topLeft, new Position(-1, height)),
-            add(topLeft, new Position(-1, height + 1)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(width + CONSTANTS.MAZE_OVERLAP, -CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(width, -CONSTANTS.MAZE_OVERLAP)),
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, height)),
+            add(topLeft, new Position(-CONSTANTS.MAZE_OVERLAP, height + CONSTANTS.MAZE_OVERLAP)),
         ])
     }
 }

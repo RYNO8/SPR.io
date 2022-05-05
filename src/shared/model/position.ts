@@ -107,8 +107,8 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
     let numerator = skewProd(sub(startPos2, startPos1), dir2)
     let denominator = skewProd(dir1, dir2)
 
-    if (Math.abs(denominator) < CONSTANTS.EPSILON) {        
-        if (Math.abs(numerator) < CONSTANTS.EPSILON) {
+    if (Math.abs(denominator) <= CONSTANTS.EPSILON) {        
+        if (Math.abs(numerator) <= CONSTANTS.EPSILON) {
             // lines are parallel and intersecting
             return [0, startPos1, new Position(0, 0)]
         } else {

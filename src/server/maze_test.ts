@@ -30,16 +30,16 @@ httpServer.listen(CONSTANTS.PORT, function() {
 
 const io = new Server(httpServer)
 
-io.on(CONSTANTS.ENDPOINT_CLIENT_CONNECT, function(socket: any) {
+io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
     console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
 
     gamestate.playerJoin(socket.id)
-    socket.on(CONSTANTS.ENDPOINT_GAME_INIT, function(name: string) {
+    socket.on(CONSTANTS.Endpoint.GAME_INIT, function(name: string) {
         gamestate = new ServerGameState()
     })
     setInterval(
         function() {
-            socket.emit(CONSTANTS.ENDPOINT_UPDATE_GAME_STATE, gamestate.exportState(socket.id))
+            socket.emit(CONSTANTS.Endpoint.UPDATE_GAME_STATE, gamestate.exportState(socket.id))
         },
         CONSTANTS.SERVER_TICK_RATE
     )
