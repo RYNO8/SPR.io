@@ -2,7 +2,7 @@ import { GameObject } from "./game_object"
 import { Player } from "./player"
 import { Powerup } from "./powerup"
 import { Maze } from "./maze"
-import { Position } from "./position"
+import { add, DIRECTIONS_4, DIRECTIONS_8, Position } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
 import { findBotDirection } from "../ai/util"
 import { randChoice, randRange } from "../utilities"
@@ -116,17 +116,28 @@ export class ServerGameState {
     }
 
     updateCaptures() {
-        // TODO: O(n^2) yikes
-        // https://news.ycombinator.com/item?id=13266692
-        // At first I tried checking every creature for collisions against everything else, but unsurprisingly that was too slow (N^2). To reduce the checks I put each creature in a grid cell based on their position, then check for collisions only against creatures in the same or adjacent cells.
-        // I think overlapping grids would be even more efficient, or perhaps to do these checks on GPU.
-        // Use a quadtree or similar structure for your broadphase detection, it will help right off the bat.
         let attacker: { [id: string]: string } = {}
+        let posHash: { [id: number]: string[] } = {}
+        for (let id in this.players) {
+            let hash = this.players[id].centroid.toMazePos().hash()
+            if (hash in posHash) {
+                posHash[hash].push(id)
+            } else {
+                posHash[hash] = [id]
+            }
+        }
+
         for (let id1 in this.players) {
-            for (let id2 in this.players) {
-                if (this.players[id2].hasCapture(this.players[id1])) {
-                    this.players[id2].increment()
-                    attacker[id1] = id2
+            for (let i = 0; i <= 8; i++) {
+                let pos = add(this.players[id1].centroid.toMazePos(), DIRECTIONS_8[i])
+                if (pos.hash() in posHash) {
+                    for (let i in posHash[pos.hash()]) {
+                        let id2 = posHash[pos.hash()][i]
+                        if (this.players[id2].hasCapture(this.players[id1])) {
+                            this.players[id2].increment()
+                            attacker[id1] = id2
+                        }
+                    }
                 }
             }
         }

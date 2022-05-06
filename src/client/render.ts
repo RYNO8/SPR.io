@@ -121,7 +121,7 @@ export function render() {
         renderPlayer(gamestate.others[i], gamestate.others[i].getColour(gamestate.me))
     }
     if (gamestate.me) {
-        renderPlayer(gamestate.me, CONSTANTS.PLAYER_TEAMMATE_COLOUR)
+        renderPlayer(gamestate.me, gamestate.me.getColour(gamestate.me))
     }
 
     // Rerun this render function on the next frame
@@ -182,10 +182,14 @@ function renderMap() {
     }
 }
 
+function drawInset(inset: number, strokeStyle: string) {
+    context.strokeStyle = strokeStyle
+    context.lineWidth = 2 * CONSTANTS.MAP_SIZE
+    context.strokeRect(-CONSTANTS.MAP_SIZE + inset, -CONSTANTS.MAP_SIZE + inset, 3 * CONSTANTS.MAP_SIZE - 2 * inset, 3 * CONSTANTS.MAP_SIZE - 2 * inset)
+}
+
 function renderMaze(maze: Obstacle[]) {
-    context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
-    context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
-    context.strokeRect(CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH)
+    drawInset(2 * CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_SHADOW_COLOUR)
 
     context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     for (let i in maze) {
@@ -211,9 +215,7 @@ function renderMaze(maze: Obstacle[]) {
         context.fill()
     }
 
-    context.strokeStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-    context.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
-    context.strokeRect(-CONSTANTS.MAP_SHADOW_WIDTH, -CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH)
+    drawInset(CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_UNREACHABLE_COLOUR)
 }
 
 function renderPowerup(powerup: Powerup) {

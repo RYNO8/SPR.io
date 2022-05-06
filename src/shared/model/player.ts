@@ -61,7 +61,7 @@ export class Player extends GameObject {
         let dirVec = new Position(Math.cos(this.direction), Math.sin(this.direction)).scale(distance)
 
         let best: [number, Position] = [Infinity, null]
-        for (let i = 0; i < 4; i++) {
+        for (let i = 4; i <= 4; i++) {
             let dir = DIRECTIONS_4[i].scale(CONSTANTS.PLAYER_RADIUS)
             let intersection = maze.rayTrace(add(this.centroid, dir), dirVec)
             intersection[1] = sub(intersection[1], dir)
@@ -82,9 +82,9 @@ export class Player extends GameObject {
         else {
             return CONSTANTS.PLAYER_TEAMMATE_COLOUR
         }*/
-        if (me.team == 0) {
+        if (this.team == 0) {
             return CONSTANTS.PLAYER_PREY_COLOUR
-        } else if (me.team == 1) {
+        } else if (this.team == 1) {
             return CONSTANTS.PLAYER_ENEMY_COLOUR
         } else {
             return CONSTANTS.PLAYER_TEAMMATE_COLOUR

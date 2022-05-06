@@ -232,8 +232,7 @@ export class Maze {
     }
 
     isPointBlocked(pos: Position) {
-        let mazePos = pos.scale(1 / CONSTANTS.CELL_SIZE).floor()
-        let obstacles = this.getObstacles(mazePos)
+        let obstacles = this.getObstacles(pos.toMazePos())
         for (let i = 0; i < obstacles.length; i++) {
             if (obstacles[i].covers(pos)) {
                 return true
@@ -244,10 +243,8 @@ export class Maze {
 
     rayTraceHelper(startPos: Position, dirVec: Position): [number, Position, Position] {
         let best: [number, Position, Position] = [1, startPos, dirVec]
-
-        let mazePos = startPos.scale(1 / CONSTANTS.CELL_SIZE).floor()
         for (let i = 0; i <= 8; i++) {
-            let obstacles = this.getObstacles(add(mazePos, DIRECTIONS_8[i]))
+            let obstacles = this.getObstacles(add(startPos.toMazePos(), DIRECTIONS_8[i]))
             for (let i = 0; i < obstacles.length; i++) {
                 let intersection = obstacles[i].rayTrace(startPos, dirVec)
                 if (intersection[0] < best[0]) {

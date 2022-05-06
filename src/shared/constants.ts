@@ -35,7 +35,7 @@ export let CANVAS_FONT: string = "20px serif"
 export let INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
 export let LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
 export let NAME_PLACEHOLDER: string = "Placeholder"
-export let EPSILON: number = 10 //5e-4
+export let EPSILON: number = 5e-4
 
 // player
 export let PLAYER_RADIUS: number = 35
@@ -67,14 +67,14 @@ export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 6300
+export let MAP_SIZE: number = 3600 //6300
 export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_STYLE: string = "dots" // or "none" or "grid"
 export let MAP_SHADOW_COLOUR = "lightgrey"
-export let MAP_SHADOW_WIDTH = 4 // >= 2
+export let MAP_SHADOW_WIDTH = 10
 
 // maze
 export let CELL_SIZE: number = 180 // there is a grid line every this many pixels
@@ -82,4 +82,4 @@ export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export let MAZE_DENSITY: number = 0.1 // must be between 0 and 1 inclusive
 export let MAZE_CHANGE_RATE: number = 0 //0.1 / 1000
 export let MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
-export let MAZE_OVERLAP: number = 1
+export let MAZE_OVERLAP: number = 10

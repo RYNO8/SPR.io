@@ -45,7 +45,16 @@ export class Position {
     ceil() {
         return new Position(Math.ceil(this.x), Math.ceil(this.y))
     }
+
+    toMazePos() {
+        return this.scale(1 / CONSTANTS.CELL_SIZE).floor()
+    }
+
+    hash() {
+        return this.x + CONSTANTS.NUM_CELLS * this.y
+    }
 }
+
 export let DIRECTIONS_4 = [
     new Position(1, 0),
     new Position(-1, 0),
@@ -53,6 +62,7 @@ export let DIRECTIONS_4 = [
     new Position(0, -1),
     new Position(0, 0)
 ]
+
 export let DIRECTIONS_8 = [
     new Position(1, 0),
     new Position(-1, 0),
@@ -121,10 +131,10 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
     } else if (!Number.isFinite(lambda)) {
         // lines are parallel and non intersecting
         return [Infinity, null, null]
-    } else if (0 <= lambda && lambda <= 1 && 0 <= mu && mu <= 1) {
+    } else if (0 <= lambda && lambda <= 1 && -CONSTANTS.EPSILON <= mu && mu <= 1 + CONSTANTS.EPSILON) {
         // lines are intersecting on segment
         //console.log(mu)
-        lambda -= 0.2
+        lambda -= 0.1
         let endPos1 = add(startPos1, dir1.scale(lambda))
         let slide = proj(dir1, dir2).scale((1 - lambda) * CONSTANTS.MAZE_WALL_SMOOTHNESS)
         return [lambda, endPos1, slide]
