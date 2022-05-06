@@ -1,6 +1,4 @@
 import * as CONSTANTS from "../constants"
-import { quadrance } from "../utilities"
-
 export class Position {
     public x: number
     public y: number
@@ -74,6 +72,13 @@ export let DIRECTIONS_8 = [
     new Position(-1, -1),
     new Position(0, 0)
 ]
+
+export let ALL_POS: Position[] = []
+for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+    for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+        ALL_POS.push(new Position(row, col))
+    }
+}
 
 export function add(a: Position, b: Position) {
     return new Position(a.x + b.x, a.y + b.y)

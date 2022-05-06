@@ -2,7 +2,7 @@ import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
 import { makeSquareObstacle, makeTriangleObstacle, Obstacle } from "./obstacle"
 import { Position, add, DIRECTIONS_4, DIRECTIONS_8, findAvg, isEqual } from "./position"
-import { randChoice, randRange } from "../utilities"
+import { randRange } from "../utilities"
 
 export class Maze {
     public maze: boolean[][] = []

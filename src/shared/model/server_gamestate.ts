@@ -2,7 +2,7 @@ import { GameObject } from "./game_object"
 import { Player } from "./player"
 import { Powerup } from "./powerup"
 import { Maze } from "./maze"
-import { add, DIRECTIONS_4, DIRECTIONS_8, Position } from "./position"
+import { add, DIRECTIONS_8, Position } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
 import { findBotDirection } from "../ai/util"
 import { randChoice, randRange } from "../utilities"
