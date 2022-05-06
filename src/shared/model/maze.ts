@@ -5,37 +5,15 @@ import { Position, add, DIRECTIONS_4, DIRECTIONS_8, findAvg, isEqual } from "./p
 import { randChoice, randRange } from "../utilities"
 
 export class Maze {
-    public maze: Obstacle[][][] = []
+    public maze: boolean[][] = []
+    public ornaments: Obstacle[][][] = []
 
     constructor() {
+        this.clearMaze()
+        this.clearOrnaments()
+
         //this.basicMazeGen()
         //this.randMazeGen()
-
-        // TODO
-        /*for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = false
-            }
-        }
-        this.dfsMazeGen(0, 0)*/
-
-        /*for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = true
-            }
-        }
-        this.randwalkMazeGen()*/
-
-        /*for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                this.maze[row][col] = true
-            }
-        }
-        this.drunkardwalkMazeGen()*/
-
         this.cellAutomataMazeGen()
 
         // https://en.wikipedia.org/wiki/Gabriel_graph
@@ -47,15 +25,30 @@ export class Maze {
         // https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
     }
 
-    basicMazeGen() {
+    clearMaze() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                this.maze[row][col] = false
+            }
+        }
+    }
+
+    clearOrnaments() {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            this.ornaments[row] = []
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+                this.ornaments[row][col] = []
+            }
+        }
+    }
+
+    basicMazeGen() {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 if (row == 2 && col == 2) {
-                    //this.maze[row][col] = [makeSquareObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-                    this.maze[row][col] = [makeTriangleObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, false, false)]
-                } else {
-                    this.maze[row][col] = []
+                    //this.maze[row][col] = true
+                    this.ornaments[row][col] = [makeTriangleObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, false, false)]
                 }
             }
         }
@@ -63,79 +56,17 @@ export class Maze {
 
     randMazeGen() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 if (Math.random() <= CONSTANTS.MAZE_DENSITY) {
                     if (Math.random() <= 0.5) {
-                        this.maze[row][col] = [makeSquareObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
+                        this.maze[row][col] = true
                     } else {
-                        this.maze[row][col] = [makeTriangleObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, false, false)]
+                        this.ornaments[row][col] = [makeTriangleObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, false, false)]
                     }
-                } else {
-                    this.maze[row][col] = []
                 }
             }
         }
     }
-
-    /*dfsMazeGen(row: number, col: number) {
-        this.maze[row][col] = false
-
-        for (let rep = 0; rep < 10; rep++) {
-            let [dRow, dCol] = randDirection()
-            if (0 <= row + 2 * dRow && row + 2 * dRow < CONSTANTS.NUM_CELLS && 0 <= col + 2 * dCol && col + 2 * dCol <= CONSTANTS.NUM_CELLS && this.maze[row + 2 * dRow][col + 2 * dCol]) {
-                this.maze[row + dRow][col + dCol] = false
-                this.dfsMazeGen(row + 2 * dRow, col + 2 * dCol)
-            }
-        }
-    }
-
-    randwalkMazeGen() {
-        // these constants are specific to CONSTANTS.NUM_CELLS == 20
-        // TODO: test if these constants scale linearly with NUM_CELLS
-        // tested using https://cdpn.io/abdolsa/fullembedgrid/zEKdop?animations=run&type=embed
-        let NUM_TUNNELS = 140
-        let MAX_LENGTH = 7
-
-        let mazeX = Math.floor(CONSTANTS.NUM_CELLS / 2)
-        let mazeY = Math.floor(CONSTANTS.NUM_CELLS / 2)
-        let dx = 1
-        let dy = 0
-        for (let rep = 0; rep < NUM_TUNNELS; rep++) {
-            if (Math.random() < 0.5) {
-                [dx, dy] = [-dy, dx]
-            } else {
-                [dx, dy] = [dy, -dx]
-            }
-
-            let length = Math.floor(Math.random() * MAX_LENGTH)
-            for (let i = 0; i < length && this.isValidCell(mazeX + dx, mazeY + dy); i++) {
-                this.maze[mazeX][mazeY] = false
-                mazeX += dx
-                mazeY += dy
-            }
-            this.maze[mazeX][mazeY] = false
-        }
-    }
-
-    drunkardwalkMazeGen() {
-        let NUM_STEPS = CONSTANTS.NUM_CELLS * CONSTANTS.NUM_CELLS
-
-        let mazeX = Math.floor(CONSTANTS.NUM_CELLS / 2)
-        let mazeY = Math.floor(CONSTANTS.NUM_CELLS / 2)
-        let seen: [number, number][] = []
-        for (let rep = 0; rep < NUM_STEPS; rep++) {
-            let [dx, dy] = randDirection()
-            if (this.isValidCell(mazeX + dx, mazeY + dy) && this.maze[mazeX + dx][mazeY + dy]) {
-                mazeX += dx
-                mazeY += dy
-                this.maze[mazeX][mazeY] = false
-                seen.push([mazeX, mazeY])
-            } else {
-                [mazeX, mazeY] = seen[Math.floor(Math.random() * seen.length)]
-            }
-        }
-    }*/
 
     getComponent(pos: Position, seen: boolean[][]) {
         let allPos: Position[] = []
@@ -159,13 +90,13 @@ export class Maze {
     }
 
     digTunnel(start: Position, end: Position) {
-        this.maze[start.x][start.y] = []
+        this.maze[start.x][start.y] = false
         while (!isEqual(start, end)) {
             if (start.x > end.x && Math.random() < 0.5) start.x--
             else if (start.y > end.y && Math.random() < 0.5) start.y--
             else if (start.x < end.x && Math.random() < 0.5) start.x++
             else if (start.y < end.y && Math.random() < 0.5) start.y++
-            this.maze[start.x][start.y] = []
+            this.maze[start.x][start.y] = false
         }
     }
 
@@ -190,19 +121,12 @@ export class Maze {
             }
         }
 
-        /*for (let i = 0; i < allCentroids.length; i++) {
-            // NOTE: this does not ensure all components are connected
-            // it may even connect a component to itself
-            // hopefully larger components grow bigger, since there is a larger chance it is cut by a tunnel
-            this.digTunnel(allCentroids[i], randChoice(allCentroids))
-        }*/
-
-        console.log(allCentroids)
-
         let parents: number[] = []
         for (let i = 0; i < allCentroids.length; i++) parents[i] = i
         function getParent(node: number) {
-            if (parents[node] != node) parents[node] = getParent(parents[node])
+            if (parents[node] != node) {
+                parents[node] = getParent(parents[node])
+            }
             return parents[node]
         }
 
@@ -219,9 +143,7 @@ export class Maze {
     
 
     applyMazeSmoothing() {
-        let newMaze: Obstacle[][][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            newMaze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 let pos = new Position(row, col)
                 let numAlive = 0
@@ -238,20 +160,17 @@ export class Maze {
                 ) {
                     let isRight = this.isCellBlocked(add(pos, new Position(1, 0)))
                     let isBottom = this.isCellBlocked(add(pos, new Position(0, 1)))
-                    newMaze[row][col] = [makeTriangleObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, isRight, isBottom)]
-                } else {
-                    newMaze[row][col] = this.maze[row][col]
+                    this.ornaments[row][col] = [makeTriangleObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, isRight, isBottom)]
                 }
             }
         }
-        this.maze = newMaze
     }
 
     cellAutomataStep() {
         let DEATH_LIMIT = 2
         let BIRTH_LIMIT = 4
 
-        let newMaze: Obstacle[][][] = []
+        let newMaze: boolean[][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             newMaze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
@@ -264,17 +183,9 @@ export class Maze {
                 }
 
                 if (this.isCellBlocked(pos)) {
-                    if (numAlive <= DEATH_LIMIT) {
-                        newMaze[row][col] = [makeSquareObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-                    } else {
-                        newMaze[row][col] = []
-                    }
+                    newMaze[row][col] = numAlive <= DEATH_LIMIT
                 } else {
-                    if (numAlive <= BIRTH_LIMIT) {
-                        newMaze[row][col] = [makeSquareObstacle(pos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-                    } else {
-                        newMaze[row][col] = []
-                    }
+                    newMaze[row][col] = numAlive <= BIRTH_LIMIT
                 }
             }
         }
@@ -287,13 +198,8 @@ export class Maze {
         let NUM_STEPS = 3
 
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            this.maze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
-                if (Math.random() <= INITIAL_CHANCE) {
-                    this.maze[row][col] = [makeSquareObstacle(new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-                } else {
-                    this.maze[row][col] = []
-                }
+                this.maze[row][col] = Math.random() <= INITIAL_CHANCE
             }
         }
 
@@ -310,21 +216,24 @@ export class Maze {
         )
     }
 
-    getCell(mazePos: Position) {
-        if (this.isValidCell(mazePos)) {
-            return this.maze[mazePos.x][mazePos.y]
-        } else {
-            return [makeSquareObstacle(mazePos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)]
-        }
+    isCellBlocked(mazePos: Position) {
+        return !this.isValidCell(mazePos) || this.maze[mazePos.x][mazePos.y]
     }
 
-    isCellBlocked(mazePos: Position) {
-        return !this.isValidCell(mazePos) || this.maze[mazePos.x][mazePos.y].length > 0
+    getObstacles(mazePos: Position) {
+        let obstacles: Obstacle[] = []
+        if (this.isCellBlocked(mazePos)) {
+            obstacles.push(makeSquareObstacle(mazePos.scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE))
+        }
+        if (this.isValidCell(mazePos)) {
+            obstacles = obstacles.concat(this.ornaments[mazePos.x][mazePos.y])
+        }
+        return obstacles
     }
 
     isPointBlocked(pos: Position) {
         let mazePos = pos.scale(1 / CONSTANTS.CELL_SIZE).floor()
-        let obstacles = this.getCell(mazePos)
+        let obstacles = this.getObstacles(mazePos)
         for (let i = 0; i < obstacles.length; i++) {
             if (obstacles[i].covers(pos)) {
                 return true
@@ -333,25 +242,27 @@ export class Maze {
         return false
     }
 
-    rayTrace(startPos: Position, dirVec: Position): [number, Position] {
+    rayTraceHelper(startPos: Position, dirVec: Position): [number, Position, Position] {
         let best: [number, Position, Position] = [1, startPos, dirVec]
 
         let mazePos = startPos.scale(1 / CONSTANTS.CELL_SIZE).floor()
-        for (let rep = 0; rep < 2; rep++) {
-            best[0] = 1
-            let oldBest: [number, Position, Position] = best
-            for (let i = 0; i < 5; i++) {
-                let obstacles = this.getCell(add(mazePos, DIRECTIONS_4[i]))
-                for (let i = 0; i < obstacles.length; i++) {
-                    let intersection = obstacles[i].rayTrace(oldBest[1], oldBest[2])
-                    if (intersection[0] < best[0]) {
-                        best = intersection
-                    }
+        for (let i = 0; i <= 8; i++) {
+            let obstacles = this.getObstacles(add(mazePos, DIRECTIONS_8[i]))
+            for (let i = 0; i < obstacles.length; i++) {
+                let intersection = obstacles[i].rayTrace(startPos, dirVec)
+                if (intersection[0] < best[0]) {
+                    best = intersection
                 }
             }
         }
 
-        return [best[0], add(best[1], best[2])]
+        return best
+    }
+
+    rayTrace(startPos: Position, dirVec: Position): [number, Position] {
+        let intersection1 = this.rayTraceHelper(startPos, dirVec)
+        let intersection2 = this.rayTraceHelper(intersection1[1], intersection1[2])
+        return [intersection1[0], add(intersection2[1], intersection2[2])]
     }
 
     exportMaze(me: Player) {
@@ -370,9 +281,10 @@ export class Maze {
 
         for (let row = rowLeft; row <= rowRight; row++) {
             for (let col = colLeft; col <= colRight; col++) {
-                for (let i = 0; i < this.maze[row][col].length; i++) {
-                    if (this.maze[row][col][i].isVisible(me)) {
-                        output.push(this.maze[row][col][i].exportObstacle())
+                let obstacles = this.getObstacles(new Position(row, col))
+                for (let i = 0; i < obstacles.length; i++) {
+                    if (obstacles[i].isVisible(me)) {
+                        output.push(obstacles[i].exportObstacle())
                     }
                 }
             }

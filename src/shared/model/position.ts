@@ -31,6 +31,13 @@ export class Position {
         return new Position(lambda * this.x, lambda * this.y)
     }
 
+    rotate(theta: number) {
+        return new Position(
+            this.x*Math.cos(theta) - this.y*Math.sin(theta),
+            this.x*Math.sin(theta) + this.y*Math.cos(theta)
+        )
+    }
+
     floor() {
         return new Position(Math.floor(this.x), Math.floor(this.y))
     }
@@ -104,30 +111,25 @@ export function pointLineDist(pos0: Position, pos1: Position, pos2: Position) {
 export function lineLineIntersection(startPos1: Position, dir1: Position, startPos2: Position, dir2: Position): [number, Position, Position] {
     // startPos1 + lambda * dir1 == startPos2 + t * dir2
     // lambda * skewProd(dir1, dir2) == skewProd(startPos2 - startPos1, dir2)
-    let numerator = skewProd(sub(startPos2, startPos1), dir2)
     let denominator = skewProd(dir1, dir2)
-
-    if (Math.abs(denominator) <= CONSTANTS.EPSILON) {        
-        if (Math.abs(numerator) <= CONSTANTS.EPSILON) {
-            // lines are parallel and intersecting
-            return [0, startPos1, new Position(0, 0)]
-        } else {
-            // lines are parallel and non intersecting
-            return [Infinity, null, null]
-        }
+    let lambda = skewProd(sub(startPos2, startPos1), dir2) / denominator
+    let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
+    //console.log(mu)
+    if (Number.isNaN(lambda)) {
+        // lines are parallel and intersecting
+        return [0, startPos1, new Position(0, 0)]
+    } else if (!Number.isFinite(lambda)) {
+        // lines are parallel and non intersecting
+        return [Infinity, null, null]
+    } else if (0 <= lambda && lambda <= 1 && 0 <= mu && mu <= 1) {
+        // lines are intersecting on segment
+        //console.log(mu)
+        lambda -= 0.2
+        let endPos1 = add(startPos1, dir1.scale(lambda))
+        let slide = proj(dir1, dir2).scale((1 - lambda) * CONSTANTS.MAZE_WALL_SMOOTHNESS)
+        return [lambda, endPos1, slide]
     } else {
-        let lambda = numerator / denominator
-        let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
-        
-        if (0 <= lambda && lambda <= 1 && -CONSTANTS.EPSILON <= mu && mu <= 1 + CONSTANTS.EPSILON) {
-            // lines are intersecting on segment
-            lambda -= 0.2
-            let endPos1 = add(startPos1, dir1.scale(lambda))
-            let slide = proj(dir1, dir2).scale((1 - lambda) * CONSTANTS.MAZE_WALL_SMOOTHNESS)
-            return [lambda, endPos1, slide]
-        } else {
-            // lines are intersecting outside segment
-            return [Infinity, null, null]
-        }
+        // lines are intersecting outside segment
+        return [Infinity, null, null]
     }
 }
