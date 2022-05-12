@@ -6,7 +6,20 @@ const gameoverMenu = document.getElementById("gameover-menu")
 const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
 const nameInput = <HTMLInputElement> document.getElementById("name")
 
+
+export function initMainMenu() {
+    menu.classList.remove("slide-out")
+    menu.classList.add("slide-in")
+    gameoverMenu.classList.remove("slide-in")
+    gameoverMenu.classList.add("slide-out")
+
+    socket.emit(CONSTANTS.Endpoint.RESET)
+    nameInput.placeholder = localStorage.getItem("name")
+}
+
 export function initGameoverMenu(name: string, score: number) {
+    menu.classList.remove("slide-in")
+    menu.classList.add("slide-out")
     gameoverMenu.classList.remove("slide-out")
     gameoverMenu.classList.add("slide-in")
     document.getElementById("gameover-title").innerText = "GAME OVER!"
@@ -15,8 +28,11 @@ export function initGameoverMenu(name: string, score: number) {
 }
 
 export function initDisconnectedMenu(name: string, score: number) {
+    menu.classList.remove("slide-in")
+    menu.classList.add("slide-out")
     gameoverMenu.classList.remove("slide-out")
     gameoverMenu.classList.add("slide-in")
+    
     document.getElementById("gameover-title").innerText = "DISCONNECTED!"
     document.getElementById("eaten-by").innerText = name
     document.getElementById("score").innerText = score.toString()
@@ -82,15 +98,6 @@ export function updateLeaderboard() {
     })
 }
 
-export function toMainMenu() {
-    socket.emit(CONSTANTS.Endpoint.RESET)
-    nameInput.placeholder = localStorage.getItem("name")
-    menu.classList.remove("slide-out")
-    menu.classList.add("slide-in")
-
-    gameoverMenu.classList.remove("slide-in")
-    gameoverMenu.classList.add("slide-out")
-}
 
 
 export function startGame() {

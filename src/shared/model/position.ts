@@ -49,7 +49,7 @@ export class Position {
     }
 
     hash() {
-        return this.x + CONSTANTS.NUM_CELLS * this.y
+        return this.x + Math.PI * this.y
     }
 }
 
@@ -132,6 +132,7 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
     //console.log(mu)
     if (Number.isNaN(lambda)) {
         // lines are parallel and intersecting
+        console.log("AAAAAAAAAAAAAA A")
         return [0, startPos1, new Position(0, 0)]
     } else if (!Number.isFinite(lambda)) {
         // lines are parallel and non intersecting

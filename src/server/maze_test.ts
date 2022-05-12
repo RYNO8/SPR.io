@@ -32,7 +32,6 @@ const io = new Server(httpServer)
 io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
     console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
 
-    gamestate.playerJoin(socket.id)
     socket.on(CONSTANTS.Endpoint.GAME_INIT, function(name: string) {
         gamestate = new ServerGameState()
     })
@@ -40,6 +39,6 @@ io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
         function() {
             socket.emit(CONSTANTS.Endpoint.UPDATE_GAME_STATE, gamestate.exportState(socket.id))
         },
-        CONSTANTS.SERVER_TICK_RATE
+        200
     )
 })

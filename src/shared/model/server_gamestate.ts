@@ -2,10 +2,10 @@ import { GameObject } from "./game_object"
 import { Player } from "./player"
 import { Powerup } from "./powerup"
 import { Maze } from "./maze"
-import { add, DIRECTIONS_8, Position } from "./position"
+import { add, DIRECTIONS_8, Position, sub } from "./position"
 import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
 import { findBotDirection } from "../ai/util"
-import { randChoice, randRange } from "../utilities"
+import { isString, randChance, randChoice, randRange } from "../utilities"
 import { randomBytes } from "crypto"
 
 export class ServerGameState {
@@ -13,7 +13,8 @@ export class ServerGameState {
     public players: { [id: string]: Player } = {}
     public powerups: Powerup[] = []
     public maze: Maze
-    public me: { [id: string]: string } = {}
+    public me: { [id: string]: string | Player } = {}
+    public attackerName: { [id: string]: string } = {}
 
     constructor() {
         this.time = Date.now()
@@ -27,7 +28,7 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     setPlayerDirection(id: string, newDirection: number) {
-        if (id in this.players && newDirection != NaN) {
+        if (id in this.players && !Number.isNaN(newDirection)) {
             this.players[id].direction = newDirection
         }
     }
@@ -43,7 +44,7 @@ export class ServerGameState {
     // get player with max score, break ties arbitarily
     getDefaultPlayer() {
         if (this.getPlayers().length == 0) {
-            return null
+            return new Player(new Position(0, 0), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
         }
         return this.getPlayers().reduce(function(p1: Player, p2: Player) {
             return (p1.score > p2.score) ? p1 : p2
@@ -54,39 +55,46 @@ export class ServerGameState {
         return Object.values(this.players)
     }
 
-    playerJoin(id: string) {
-        if (id in this.players) {
-            delete this.players[id]
-        }
-        if (this.getPlayers().length == 0) {
-            this.me[id] = null
-        } else {
-            this.me[id] = this.getDefaultPlayer().id
-        }
-    }
-
     playerEnter(id: string, name: string, isBot: boolean) {
         this.players[id] = new Player(this.getSpawnCentroid(), id, name, isBot)
         this.me[id] = id
-    }
-
-    playerExit(id: string, attackerID: string) {
-        if (this.players[id].isBot) {
-            this.playerLeave(id)
-        } else {
-            if (id in this.players) {
-                delete this.players[id]
-            }
-            this.me[id] = attackerID
+        if (id in this.attackerName) {
+            delete this.attackerName[id]
         }
     }
 
-    playerLeave(id: string) {
+    doCapture(id: string, attacker: string | Player) {
+        this.me[id] = attacker
+        if (isString(attacker)) {
+            this.players[attacker].increment()
+            this.attackerName[id] = this.players[attacker].name
+        } else {
+            this.attackerName[id] = attacker.name
+        }
+        for (let otherID in this.me) {
+            if (isString(this.me[otherID]) && this.me[otherID] == id) {
+                console.log(otherID, this.me[otherID])
+                this.me[otherID] = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+            }
+        }
+        
+
+        if (this.players[id].isBot) {
+            this.playerExit(id)
+        } else if (id in this.players) {
+            delete this.players[id]
+        }
+    }
+
+    playerExit(id: string) {
         if (id in this.players) {
             delete this.players[id]
         }
         if (id in this.me) {
             delete this.me[id]
+        }
+        if (id in this.attackerName) {
+            delete this.attackerName[id]
         }
     }
 
@@ -95,9 +103,8 @@ export class ServerGameState {
         for (let id in this.players) {
             numBots += <any>this.players[id].isBot
         }
-        if (Math.random() <= CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE && numBots < CONSTANTS.BOTS_MAX) {
+        if (randChance(CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE) && numBots < CONSTANTS.BOTS_MAX) {
             let newID = randomBytes(20).toString("hex")
-            this.playerJoin(newID)
             this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true)
         }
 
@@ -115,8 +122,26 @@ export class ServerGameState {
         }
     }
 
+    findCapture(id1: string, posHash: { [id: number]: string[] }) {
+        let attackerDist = Infinity
+        let attacker: string = null
+        for (let i = 0; i <= 8; i++) {
+            let hash = add(this.players[id1].centroid.toMazePos(), DIRECTIONS_8[i]).hash()
+            if (hash in posHash) {
+                for (let i in posHash[hash]) {
+                    let id2 = posHash[hash][i]
+                    let currDist = sub(this.players[id1].centroid, this.players[id2].centroid).quadrance()
+                    if (this.players[id2].hasCapture(this.players[id1]) && currDist < attackerDist) {
+                        attackerDist = currDist
+                        attacker = id2
+                    }
+                }
+            }
+        }
+        return attacker
+    }
+
     updateCaptures() {
-        let attacker: { [id: string]: string } = {}
         let posHash: { [id: number]: string[] } = {}
         for (let id in this.players) {
             let hash = this.players[id].centroid.toMazePos().hash()
@@ -127,30 +152,23 @@ export class ServerGameState {
             }
         }
 
+        let newAttackers: { [id: string]: string } = {}
         for (let id1 in this.players) {
-            for (let i = 0; i <= 8; i++) {
-                let pos = add(this.players[id1].centroid.toMazePos(), DIRECTIONS_8[i])
-                if (pos.hash() in posHash) {
-                    for (let i in posHash[pos.hash()]) {
-                        let id2 = posHash[pos.hash()][i]
-                        if (this.players[id2].hasCapture(this.players[id1])) {
-                            this.players[id2].increment()
-                            attacker[id1] = id2
-                        }
-                    }
-                }
+            let attacker = this.findCapture(id1, posHash)
+            if (attacker) {
+                newAttackers[id1] = attacker
             }
         }
 
-        for (let id in attacker) {
-            this.playerExit(id, attacker[id])
+        for (let id in newAttackers) {
+            this.doCapture(id, newAttackers[id])
         }
     }
 
     exportPlayers(me: Player) {
         let others: Player[] = []
         for (let id in this.players) {
-            if (!me || (id != me.id && me.isVisible(this.players[id]))) {
+            if (id != me.id && me.canSee(this.players[id])) {
                 others.push(this.players[id])
             }
         }
@@ -189,14 +207,14 @@ export class ServerGameState {
         }
         this.powerups = remainingPowerups
 
-        if (this.powerups.length < CONSTANTS.POWERUP_MAX && Math.random() <= CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
+        if (this.powerups.length < CONSTANTS.POWERUP_MAX && randChance(CONSTANTS.POWERUP_RATE * CONSTANTS.SERVER_UPDATE_RATE)) {
             this.powerups.push(new Powerup(this.getSpawnCentroid()))
         }
     }
 
     exportPowerups(me: Player) {
         return this.powerups.filter(function(powerup: Powerup) {
-            return !me || me.isVisible(powerup)
+            return me.canSee(powerup)
         })
     }
 
@@ -205,17 +223,16 @@ export class ServerGameState {
     /////////////////////////////////////////////////////////////////
 
     updateMaze() {
-        // TODO
-        /*if (Math.random() <= CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE) {
-            let x: number
-            let y: number
-            do {
-               [x, y] = this.getSpawnPos()
-               x = Math.floor(x / CONSTANTS.CELL_SIZE)
-               y = Math.floor(y / CONSTANTS.CELL_SIZE)
-            } while (this.maze.maze[x][y] == (Math.random() <= CONSTANTS.MAZE_DENSITY))
-            this.maze.maze[x][y] = !this.maze.maze[x][y]
-        }*/
+        if (randChance(CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE)) {
+            this.maze.update()
+            
+            for (let id in this.players) {
+                if (this.maze.isPointBlocked(this.players[id].centroid)) {
+                    let attacker = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+                    this.doCapture(id, attacker)
+                }
+            }
+        }
     }
 
     /////////////////////////////////////////////////////////////////
@@ -247,16 +264,25 @@ export class ServerGameState {
     update() {
         // TODO: think about best order
         this.time = Date.now()
+        this.updateMaze()
+        // TODO: kill all players and powerups in walls
         this.updatePlayers()
         this.updatePowerups()
         this.updateCaptures()
-        this.updateMaze()
     }
 
     exportState(id : string) {
-        let me = this.getPlayer(id) || this.getDefaultPlayer()
+        if (!(id in this.me)) {
+            var me = this.getDefaultPlayer()
+        } else if (isString(this.me[id])) {
+            var me = this.players[<string>this.me[id]]
+        } else {
+            var me: Player = <Player>this.me[id]
+        }
+
         return {
             time: this.time,
+            attackerName: this.attackerName[id],
             me: me,
             others: this.exportPlayers(me),
             powerups: this.exportPowerups(me),

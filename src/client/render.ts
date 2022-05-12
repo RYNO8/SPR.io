@@ -9,9 +9,9 @@ import { RollingAvg } from "../shared/utilities"
 import { Obstacle } from "../shared/model/obstacle"
 
 let targetStates: ClientGameState[] = []
-let gamestate = new ClientGameState(0, null, [], [], [])
-let isInGame = false
+let gamestate = new ClientGameState(Date.now(), null, null, [], [], [])
 let score: number = 0
+let isInGame: boolean = false
 let framerateSamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 1)
 let timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 let latencySamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
@@ -31,6 +31,7 @@ function serverTime() {
 socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(jsonstate: any) {
     let newGamestate: ClientGameState = new ClientGameState(
         jsonstate.time,
+        jsonstate.attackerName,
         jsonstate.me,
         jsonstate.others,
         jsonstate.powerups,
@@ -74,32 +75,44 @@ export function render() {
 
     renderUnreachable()
 
-    if (!socket.id) {
-        if (isInGame) {
-            // disconnected
-            initDisconnectedMenu("Your bad internet connection", score)
-            isInGame = false
-            score = 0
-        }
-    } else if (gamestate.me && gamestate.me.id != socket.id) {
-        if (isInGame) {
-            initGameoverMenu(gamestate.me.name, score)
-            isInGame = false
-            score = 0
-        }
-    } else if (gamestate.me) {
+    if (isInGame && !socket.id) {
+        // disconnected
+        initDisconnectedMenu("Your bad internet connection", score)
+        isInGame = false
+        score = 0
+        requestAnimationFrame(render)
+        return
+    } else if (isInGame && gamestate.attackerName) {
+        // died
+        initGameoverMenu(gamestate.attackerName, score)
+        isInGame = false
+        score = 0
+        requestAnimationFrame(render)
+        return
+    } else if (!gamestate.me) {
+        // stuff hasnt initialised yet, wait some more
+        isInGame = false
+        score = 0
+        requestAnimationFrame(render)
+        return
+    } else if (!gamestate.me.isVisible) {
+        // nobody in the map OR looking at wall
+        isInGame = false
+        score = 0
+    } else if (gamestate.me.id == socket.id) {
+        // nothing bad happened yet!
         menu.classList.remove("slide-in")
         menu.classList.add("slide-out")
         gameoverMenu.classList.remove("slide-in")
         gameoverMenu.classList.add("slide-out")
 
-        isInGame = true
         console.assert(gamestate.me.score >= score)
+        isInGame = true
         score = gamestate.me.score
         gamestate.me.direction = direction
     }
 
-    if (gamestate.me) {
+    if (true) {
         let size: number = Math.max(canvas.width / CONSTANTS.VISIBLE_WIDTH, canvas.height / CONSTANTS.VISIBLE_HEIGHT)
         context.translate(canvas.width / 2, canvas.height / 2)
         context.scale(size, size)
@@ -120,7 +133,7 @@ export function render() {
     for (let i in gamestate.others) {
         renderPlayer(gamestate.others[i], gamestate.others[i].getColour(gamestate.me))
     }
-    if (gamestate.me) {
+    if (gamestate.me.isVisible) {
         renderPlayer(gamestate.me, gamestate.me.getColour(gamestate.me))
     }
 
@@ -141,18 +154,6 @@ function renderBackround() {
     context.fillStyle = CONSTANTS.MAP_BACKGROUND_COLOUR
     context.fillRect(0, 0, CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE)
 }
-
-// TODO
-/*function renderShadow(maze : [number, number][]) {
-    context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
-    context.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
-    context.strokeRect(CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SHADOW_WIDTH / 2, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SIZE - CONSTANTS.MAP_SHADOW_WIDTH)
-
-    context.fillStyle = CONSTANTS.MAP_SHADOW_COLOUR
-    for (let i in maze) {
-        context.fillRect(maze[i][0] - CONSTANTS.MAP_SHADOW_WIDTH, maze[i][1] - CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.CELL_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.CELL_SIZE + 2 * CONSTANTS.MAP_SHADOW_WIDTH)
-    }
-}*/
 
 function renderMap() {
     if (CONSTANTS.MAP_STYLE == "grid") {
@@ -191,27 +192,44 @@ function drawInset(inset: number, strokeStyle: string) {
 function renderMaze(maze: Obstacle[]) {
     drawInset(2 * CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_SHADOW_COLOUR)
 
-    context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-    for (let i in maze) {
+    
+    let existingMaze = maze.filter(function(val : Obstacle) {
+        return val.time <= serverTime()
+    })
+    let newMaze = maze.filter(function(val : Obstacle) {
+        return val.time > serverTime()
+    })
+    for (let i in existingMaze) {
         context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
         context.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
         context.beginPath()
-        for (let j in maze[i].points) {
-            context.lineTo(maze[i].points[j].x, maze[i].points[j].y)
+        for (let j in existingMaze[i].points) {
+            context.lineTo(existingMaze[i].points[j].x, existingMaze[i].points[j].y)
         }
-        context.lineTo(maze[i].points[0].x, maze[i].points[0].y)
-        context.lineTo(maze[i].points[1].x, maze[i].points[1].y)
+        context.lineTo(existingMaze[i].points[0].x, existingMaze[i].points[0].y)
+        context.lineTo(existingMaze[i].points[1].x, existingMaze[i].points[1].y)
         context.stroke()
     }
-    for (let i in maze) {
+    for (let i in existingMaze) {
         context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
         context.beginPath()
-        for (let j in maze[i].points) {
-            context.lineTo(maze[i].points[j].x, maze[i].points[j].y)
+        for (let j in existingMaze[i].points) {
+            context.lineTo(existingMaze[i].points[j].x, existingMaze[i].points[j].y)
         }
         // TODO: handle 0 width gaps
-        context.lineTo(maze[i].points[0].x, maze[i].points[0].y)
-        context.lineTo(maze[i].points[1].x, maze[i].points[1].y)
+        context.lineTo(existingMaze[i].points[0].x, existingMaze[i].points[0].y)
+        context.lineTo(existingMaze[i].points[1].x, existingMaze[i].points[1].y)
+        context.fill()
+    }
+    for (let i in newMaze) {
+        context.fillStyle = CONSTANTS.MAP_WARNING_COLOUR
+        context.beginPath()
+        for (let j in newMaze[i].points) {
+            context.lineTo(newMaze[i].points[j].x, newMaze[i].points[j].y)
+        }
+        // TODO: handle 0 width gaps
+        context.lineTo(newMaze[i].points[0].x, newMaze[i].points[0].y)
+        context.lineTo(newMaze[i].points[1].x, newMaze[i].points[1].y)
         context.fill()
     }
 

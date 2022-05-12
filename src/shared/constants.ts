@@ -60,26 +60,33 @@ export const BOT_NAMES = [
 ]
 
 // powerup
-export let POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
+export let POWERUP_RATE: number = 0 //0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
 export let POWERUP_MAX: number = 100
 export let POWERUP_DURATION: number = 5 * 1000
 export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 3600 //6300
+export let MAP_SIZE: number = 1800 //7200
+export let MAP_LINE_WIDTH: number = 2
+export let MAP_SHADOW_WIDTH = 10
+export let MAP_STYLE: string = "dots" // or "none" or "grid"
 export let MAP_LINE_COLOUR: string = "black"
 export let MAP_BACKGROUND_COLOUR: string = "white"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"
-export let MAP_LINE_WIDTH: number = 2
-export let MAP_STYLE: string = "dots" // or "none" or "grid"
 export let MAP_SHADOW_COLOUR = "lightgrey"
-export let MAP_SHADOW_WIDTH = 10
+export let MAP_WARNING_COLOUR = "rgba(255, 0, 0, 0.7)"
 
 // maze
 export let CELL_SIZE: number = 180 // there is a grid line every this many pixels
 export let NUM_CELLS: number = MAP_SIZE / CELL_SIZE
-export let MAZE_DENSITY: number = 0.1 // must be between 0 and 1 inclusive
-export let MAZE_CHANGE_RATE: number = 0 //0.1 / 1000
+export let MAZE_CHANGE_RATE: number = 2.5 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
 export let MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
-export let MAZE_OVERLAP: number = 10
+export let MAZE_OVERLAP: number = 15
+export let MAZE_CHANGE_DELAY: number = 2000
+export let MAZE_NAME: string = "the Labyrinth."
+// magic values for cellular autonoma (dont change!)
+export let MAZE_DENSITY: number = 0.48 // must be between 0 and 1 inclusive, what percentage of the maze is walls
+export let CA_DEATH_LIMIT = 2
+export let CA_BIRTH_LIMIT = 4
+export let CA_NUM_STEPS = 3

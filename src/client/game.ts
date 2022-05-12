@@ -14,10 +14,8 @@ TODO
  - changing labyrinth
  - teleports?
  - collaboration in labyrinth?
- - ads
  - aestetic styling
  - https://x-c3ll.github.io/posts/javascript-antidebugging/
- - bug! map walls can be entered
 
 THINK ABOUT
  - powerup to gain (temporary?) wider field of view
@@ -28,7 +26,7 @@ THINK ABOUT
 import { debounce } from "throttle-debounce"
 import { startCapturingInput } from "./playerInput"
 import { render } from "./render"
-import { onResize, initStatusMsg, updateLeaderboard, toMainMenu, startGame } from "./events"
+import { onResize, initStatusMsg, updateLeaderboard, initMainMenu, startGame } from "./events"
 import * as CONSTANTS from "../shared/constants"
 
 startCapturingInput()
@@ -43,8 +41,8 @@ initStatusMsg()
 updateLeaderboard()
 
 localStorage.setItem("name", localStorage.getItem("name") || CONSTANTS.NAME_PLACEHOLDER)
-toMainMenu()
-document.getElementById("back-button").onclick = toMainMenu
+initMainMenu()
+document.getElementById("back-button").onclick = initMainMenu
 
 document.getElementById("play-button").onclick = startGame
 document.getElementById("play-button-2").onclick = startGame

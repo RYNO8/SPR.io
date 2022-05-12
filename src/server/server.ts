@@ -38,7 +38,6 @@ const io = new Server(httpServer)
 io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
     console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
 
-    gamestate.playerJoin(socket.id)
     socket.on(CONSTANTS.Endpoint.GAME_INIT, function(name: string) {
         if (!(socket.id in gamestate.players) && validName(name)) {
             console.log(new Date().toLocaleTimeString(), socket.id, "Game init")
@@ -48,11 +47,11 @@ io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
 
     socket.on(CONSTANTS.Endpoint.SERVER_DISCONNECT, function() {
         console.log(new Date().toLocaleTimeString(), socket.id, "Client disconnected!")
-        gamestate.playerLeave(socket.id)
+        gamestate.playerExit(socket.id)
     })
 
     socket.on(CONSTANTS.Endpoint.RESET, function() {
-        gamestate.playerJoin(socket.id)
+        gamestate.playerExit(socket.id)
     })
 
     socket.on(CONSTANTS.Endpoint.UPDATE_DIRECTION, function(direction: number) {

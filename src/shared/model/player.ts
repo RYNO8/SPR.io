@@ -2,6 +2,7 @@ import * as CONSTANTS from "./../constants"
 import { GameObject } from "./game_object"
 import { Position, add, DIRECTIONS_4 } from "./position"
 import { Maze } from "./maze"
+import { randRange } from "../utilities"
 
 export class Player extends GameObject {
     public id: string
@@ -9,6 +10,7 @@ export class Player extends GameObject {
     public team: number
     public score: number
     public isBot: boolean
+    public isVisible: boolean = true
 
     public direction: number
     public hasPowerup: number
@@ -19,9 +21,12 @@ export class Player extends GameObject {
         this.id = id
         this.name = name
         this.isBot = isBot
-
+        if (id == CONSTANTS.MAZE_NAME && name == CONSTANTS.MAZE_NAME) {
+            this.isVisible = false
+        }
+        
         // TODO: something better than random, try balancing teams
-        this.team = Math.floor(Math.random() * CONSTANTS.NUM_TEAMS)
+        this.team = randRange(0, CONSTANTS.NUM_TEAMS - 1)
         this.score = 0
         this.direction = Math.random() * 2 * Math.PI
         this.hasPowerup = 0
@@ -104,5 +109,12 @@ export class Player extends GameObject {
         } else {
             this.direction += (newPlayer.direction - this.direction) * delta
         }
+    }
+
+    canSee(o: GameObject) {
+        return (
+            Math.abs(o.centroid.x - this.centroid.x) <= CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER && 
+            Math.abs(o.centroid.y - this.centroid.y) <= CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
+        )
     }
 }
