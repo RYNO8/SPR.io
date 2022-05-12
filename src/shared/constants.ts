@@ -1,8 +1,7 @@
 // NOTE: all times are in milliseconds, all distances are in pixels
 
-export let PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
-
 // networking
+export let PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
 export let SERVER_BOT_UPDATE_RATE: number = 40
 export let SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
 export let SERVER_TICK_RATE: number = 40 // duration between each packet send
@@ -33,9 +32,13 @@ export let VISIBLE_HEIGHT: number = 1500
 export let VISIBLE_BUFFER: number = 200 // >= 0
 export let CANVAS_FONT: string = "20px serif"
 export let INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
-export let LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
 export let NAME_PLACEHOLDER: string = "Placeholder"
 export let EPSILON: number = 5e-4
+
+
+// leaderboard
+export let LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
+export let LEADERBOARD_LEN: number = 5
 
 // player
 export let PLAYER_RADIUS: number = 35

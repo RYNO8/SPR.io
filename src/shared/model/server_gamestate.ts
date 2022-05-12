@@ -9,16 +9,29 @@ import { isString, randChance, randChoice, randRange } from "../utilities"
 import { randomBytes } from "crypto"
 
 export class ServerGameState {
+    // time that this gamestate represents
     public time: number = 0
+    // dictionary of ID's and corresponding players
     public players: { [id: string]: Player } = {}
+    // array of powerup objects
     public powerups: Powerup[] = []
+    // maze object
     public maze: Maze
+    // dictionary of ID's, and who each player is watching
+    // if string, you are watching the player with that ID
+    // if Player, you are watching a stationary position (invisible player)
+    //      used when labyrinth captured you or labyrinth captured the player that captured you
     public me: { [id: string]: string | Player } = {}
+    // when you are captured, attackerName[ID] is the display name of your attacker
+    // NOTE: this is MAZE_NAME when captured by labyrinth
     public attackerName: { [id: string]: string } = {}
 
     constructor() {
         this.time = Date.now()
         this.maze = new Maze()
+
+        // regularly update this gamestate and bots
+        // NOTE: different update rates
         setInterval(() => this.update(), CONSTANTS.SERVER_UPDATE_RATE)
         setInterval(() => this.updateBots(), CONSTANTS.SERVER_BOT_UPDATE_RATE)
     }
@@ -27,34 +40,33 @@ export class ServerGameState {
     //////////////////////////// PLAYER ////////////////////////////
     /////////////////////////////////////////////////////////////////
 
+    // set player direction from socketio input
+    // NOTE: nothing happens when id is invalid or direction is invalid type
     setPlayerDirection(id: string, newDirection: number) {
         if (id in this.players && !Number.isNaN(newDirection)) {
             this.players[id].direction = newDirection
         }
     }
 
-    getPlayer(id: string) {
-        if (id in this.players) {
-            return this.players[id]
-        } else {
-            return null
-        }
-    }
-
     // get player with max score, break ties arbitarily
+    // if no players are present, returns dummy player to map center
+    // => on an empty map, spectators look at map center
     getDefaultPlayer() {
         if (this.getPlayers().length == 0) {
-            return new Player(new Position(0, 0), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+            return new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
         }
         return this.getPlayers().reduce(function(p1: Player, p2: Player) {
             return (p1.score > p2.score) ? p1 : p2
         })
     }
 
+    // get all players as an array
+    // NOTE: id information are not lost since they are member variables of Player object
     getPlayers(): Player[] {
         return Object.values(this.players)
     }
 
+    // player has entered the maze and is not spectating any more
     playerEnter(id: string, name: string, isBot: boolean) {
         this.players[id] = new Player(this.getSpawnCentroid(), id, name, isBot)
         this.me[id] = id
@@ -63,6 +75,8 @@ export class ServerGameState {
         }
     }
 
+    // "id" has been captured by "attacker"
+    // increment attacker, set attackerName, change me's for players that were observing you, you now exit
     doCapture(id: string, attacker: string | Player) {
         this.me[id] = attacker
         if (isString(attacker)) {
@@ -86,6 +100,7 @@ export class ServerGameState {
         }
     }
 
+    // exit the maze and spectating the person who captured you
     playerExit(id: string) {
         if (id in this.players) {
             delete this.players[id]
@@ -98,6 +113,7 @@ export class ServerGameState {
         }
     }
 
+    // add bots if necessary, set bot directions
     updateBots() {
         let numBots = 0
         for (let id in this.players) {
@@ -116,12 +132,14 @@ export class ServerGameState {
         }
     }
 
+    // move all players (and bots) in their directions and apply colllisions
     updatePlayers() {
         for (let id in this.players) {
             this.players[id].progress(this.maze)
         }
     }
 
+    // find closest attacker in candidates
     findCapture(id1: string, posHash: { [id: number]: string[] }) {
         let attackerDist = Infinity
         let attacker: string = null
@@ -141,6 +159,8 @@ export class ServerGameState {
         return attacker
     }
 
+    // check captures between all unordered pairs of distinct players
+    // optimised by computing mazePos of each player, and only test players with possible nearby attackers
     updateCaptures() {
         let posHash: { [id: number]: string[] } = {}
         for (let id in this.players) {
@@ -165,6 +185,8 @@ export class ServerGameState {
         }
     }
 
+    // export all players visible to me, sorted by increasing score (render layers)
+    // TODO: optimise, how to precomp?
     exportPlayers(me: Player) {
         let others: Player[] = []
         for (let id in this.players) {
@@ -181,7 +203,7 @@ export class ServerGameState {
     //////////////////////////// POWERUP ////////////////////////////
     /////////////////////////////////////////////////////////////////
 
-    
+    // whether a player at this position can gain a powerup
     isPointOccupied(v: Position) {
         for (let i in this.powerups) {
             if (this.powerups[i].canAttack(new GameObject(v))) {
@@ -191,6 +213,7 @@ export class ServerGameState {
         return false
     }
 
+    // give powerups to players, add powerups if necessary
     updatePowerups() {
         let remainingPowerups: Powerup[] = []
         for (let i in this.powerups) {
@@ -212,6 +235,8 @@ export class ServerGameState {
         }
     }
 
+    // export all powerups visible to me
+    // TODO: optimise, how to precomp?
     exportPowerups(me: Player) {
         return this.powerups.filter(function(powerup: Powerup) {
             return me.canSee(powerup)
@@ -222,6 +247,7 @@ export class ServerGameState {
     ///////////////////////////// MAZE //////////////////////////////
     /////////////////////////////////////////////////////////////////
 
+    // change maze if necessary, remove players in walls
     updateMaze() {
         if (randChance(CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE)) {
             this.maze.update()
@@ -239,10 +265,13 @@ export class ServerGameState {
     ////////////////////////// LEADERBOARD //////////////////////////
     /////////////////////////////////////////////////////////////////
 
+    // NOTE: called at different rate from the other updates
+    // export top players in sorted order as tuple of (name, score)
+    // NOTE: if 2 players have the same score, they wont have the same rank (ties broken arbitarily?)
     exportLeaderboard() {
         let sortedPlayers: Player[] = this.getPlayers().sort(function(p1: Player, p2: Player) {
             return p2.score - p1.score
-        })
+        }).slice(CONSTANTS.LEADERBOARD_LEN - 1)
         return sortedPlayers.map(function(p: Player) {
             return [p.name, p.score]
         })
@@ -252,6 +281,9 @@ export class ServerGameState {
     ///////////////////////////// GAME //////////////////////////////
     /////////////////////////////////////////////////////////////////
 
+    // find a random position in the center of a cell, which isnt occupied and isnt in a wall
+    // NOTE: may take arbitarily long (or infinitely long if no position is available)
+    // i.e. maze has been populated by powerups
     getSpawnCentroid() {
         let pos = new Position(0, 0)
         do {
@@ -261,6 +293,7 @@ export class ServerGameState {
         return pos
     }
 
+    // update all aspects of gamestate
     update() {
         // TODO: think about best order
         this.time = Date.now()
@@ -271,6 +304,7 @@ export class ServerGameState {
         this.updateCaptures()
     }
 
+    // export everything required for clientside rendering
     exportState(id : string) {
         if (!(id in this.me)) {
             var me = this.getDefaultPlayer()

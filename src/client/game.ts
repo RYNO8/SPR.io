@@ -1,21 +1,26 @@
 /*
+BUGS
+ - glitch into wall corners (increase MAZE_OVERLAP?)
+ - when maze wall spawns, you get stuck inside if you are on the edge
+
 TODO
- - https://app.brandmark.io/v3/
- - https://diariesofanessexgirl.com/twilight-sunset-color-palette/
- - https://diariesofanessexgirl.com/sunset-surfing-color-palette/
- - http://colormind.io/
-    green: #1D7755
-    blue: #60ACBC
-    white: #FCF5EF
-    orange: #F0A879
-    red: #DB423D
-    greengrey: #AEB495
- - rush mode: 1 player gets powerup, can capture any player
- - changing labyrinth
+ - rooms
+ - game modes
+ - colour coded gates
  - teleports?
- - collaboration in labyrinth?
- - aestetic styling
+ - style
+    - https://app.brandmark.io/v3/
+    - https://diariesofanessexgirl.com/twilight-sunset-color-palette/
+    - https://diariesofanessexgirl.com/sunset-surfing-color-palette/
+    - http://colormind.io/
+        green: #1D7755
+        blue: #60ACBC
+        white: #FCF5EF
+        orange: #F0A879
+        red: #DB423D
+        greengrey: #AEB495
  - https://x-c3ll.github.io/posts/javascript-antidebugging/
+ - SEO
 
 THINK ABOUT
  - powerup to gain (temporary?) wider field of view
