@@ -56,7 +56,7 @@ export class ServerGameState {
             return new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
         }
         return this.getPlayers().reduce(function(p1: Player, p2: Player) {
-            return (p1.score > p2.score) ? p1 : p2
+            return (p1.score >= p2.score) ? p1 : p2
         })
     }
 

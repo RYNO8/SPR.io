@@ -266,7 +266,8 @@ function renderPlayer(player: Player, colour: string) {
     context.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
     context.fill()
     context.stroke()*/
-    context.drawImage(ducc, -138, -96)
+    //context.drawImage(ducc, -138, -96)
+    context.fillRect(0, -2, 50, 2)
 
     context.rotate(-player.direction)
     context.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR

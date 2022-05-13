@@ -365,12 +365,13 @@ export class Maze {
     }
 
     // determine whether position is blocked by an obstacle
-    // TODO: check neighbouring cells too?
     isPointBlocked(pos: Position) {
-        let obstacles = this.getObstacles(pos.toMazePos())
-        for (let i = 0; i < obstacles.length; i++) {
-            if (obstacles[i].covers(pos)) {
-                return true
+        for (let dirI = 0; dirI <= 8; dirI++) {
+            let obstacles = this.getObstacles(add(pos, DIRECTIONS_8[dirI]).toMazePos())
+            for (let i = 0; i < obstacles.length; i++) {
+                if (obstacles[i].covers(pos)) {
+                    return true
+                }
             }
         }
         return false
@@ -380,11 +381,12 @@ export class Maze {
     // find intersections and return reflected ray
     rayTraceHelper(startPos: Position, dirVec: Position): [number, Position, Position] {
         let best: [number, Position, Position] = [1, startPos, dirVec]
-        for (let i = 0; i <= 8; i++) {
-            let obstacles = this.getObstacles(add(startPos.toMazePos(), DIRECTIONS_8[i]))
+        for (let dirI = 0; dirI <= 8; dirI++) {
+            let obstacles = this.getObstacles(add(startPos.toMazePos(), DIRECTIONS_8[dirI]))
             for (let i = 0; i < obstacles.length; i++) {
                 let intersection = obstacles[i].rayTrace(startPos, dirVec)
-                if (intersection[0] < best[0]) {
+                if (intersection[0] <= best[0]) {
+                    //if (best[0] <= 0.02) intersection[2] = new Position(0, 0)
                     best = intersection
                 }
             }
@@ -395,10 +397,25 @@ export class Maze {
 
     // ray trace to get skimming, ray trace again to ensure skimming does not collide with walls
     // NOTE: assuming skimming cannot happen more than once
-    rayTrace(startPos: Position, dirVec: Position): [number, Position] {
-        let intersection1 = this.rayTraceHelper(startPos, dirVec)
-        let intersection2 = this.rayTraceHelper(intersection1[1], intersection1[2])
-        return [intersection1[0], add(intersection2[1], intersection2[2])]
+    rayTrace(startPos: Position, dirVec: Position): Position {
+        let intersection = [startPos, dirVec]
+        for (let rep = 0; rep < 2; ++rep) {
+            let traced = this.rayTraceHelper(intersection[0], intersection[1])
+            if (this.isPointBlocked(add(traced[1], traced[2]))) {
+                console.log(rep, traced[0], traced[1], add(traced[1], traced[2]), this.isPointBlocked(traced[1]))
+            }
+            intersection[0] = traced[1]
+            intersection[1] = traced[2]
+        }
+        if (!this.isPointBlocked(add(intersection[0], intersection[1]))) {
+            return add(intersection[0], intersection[1])
+        } else if (!this.isPointBlocked(intersection[0])) {
+            console.log("ohno")
+            return intersection[0]
+        } else {
+            console.log("ohno ohno")
+            return startPos
+        }
     }
 
     // given "me", export all visible obstalces

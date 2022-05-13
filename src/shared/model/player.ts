@@ -64,19 +64,7 @@ export class Player extends GameObject {
     progress(maze: Maze) {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
         let dirVec = new Position(Math.cos(this.direction), Math.sin(this.direction)).scale(distance)
-
-        /*let best: [number, Position] = [Infinity, null]
-        for (let i = 0; i <= 4; i++) {
-            let dir = DIRECTIONS_4[i].scale(CONSTANTS.PLAYER_RADIUS)
-            let intersection = maze.rayTrace(add(this.centroid, dir), dirVec)
-            intersection[1] = sub(intersection[1], dir)
-            if (intersection[0] < best[0]) {
-                best = intersection
-            }
-        }
-        this.centroid = best[1]*/
-
-        this.centroid = maze.rayTrace(this.centroid, dirVec)[1]
+        this.centroid = maze.rayTrace(this.centroid, dirVec)
     }
 
     getColour(me: Player) {

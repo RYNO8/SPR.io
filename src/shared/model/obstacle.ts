@@ -41,7 +41,8 @@ export class Obstacle extends GameObject {
         if (this.time <= Date.now()) {
             for (let i = 0; i < this.points.length; i++) {
                 let intersection = lineLineIntersection(startPos, dirVec, this.points[i], this.dirs[i])
-                if (intersection[0] < best[0]) {
+                if (intersection[0] <= best[0]) {
+                    if (best[0] <= 0.02) intersection[2] = new Position(0, 0)
                     best = intersection
                 }
             }

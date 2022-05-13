@@ -132,15 +132,15 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
     //console.log(mu)
     if (Number.isNaN(lambda)) {
         // lines are parallel and intersecting
-        console.log("AAAAAAAAAAAAAA A")
-        return [0, startPos1, new Position(0, 0)]
+        console.log("AAAAAAAAAAAAAA")
+        return [-Infinity, startPos1, proj(dir1, dir2).scale(CONSTANTS.MAZE_WALL_SMOOTHNESS)]
     } else if (!Number.isFinite(lambda)) {
         // lines are parallel and non intersecting
         return [Infinity, null, null]
-    } else if (0 <= lambda && lambda <= 1 && -CONSTANTS.EPSILON <= mu && mu <= 1 + CONSTANTS.EPSILON) {
+    } else if (0 <= lambda && lambda <= 1 && 0 <= mu && mu <= 1) {
         // lines are intersecting on segment
-        //console.log(mu)
-        lambda -= 0.1
+        lambda -= 1 / 100
+        lambda = Math.floor(lambda * 100) / 100
         let endPos1 = add(startPos1, dir1.scale(lambda))
         let slide = proj(dir1, dir2).scale((1 - lambda) * CONSTANTS.MAZE_WALL_SMOOTHNESS)
         return [lambda, endPos1, slide]

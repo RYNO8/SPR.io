@@ -1,7 +1,8 @@
 /*
 BUGS
+ - disable zoom
  - glitch into wall corners (increase MAZE_OVERLAP?)
- - when maze wall spawns, you get stuck inside if you are on the edge
+ - when maze wall spawns, you get stuck inside if you are on the edge (check wall collisions on each player update)
 
 TODO
  - rooms
