@@ -27,6 +27,12 @@ app.get("/game", (req: any, res: any) => {
 app.get("/css/style.css", (req: any, res: any) => {
     res.sendFile(path.resolve("./dist/client/css/style.css"))
 })
+app.get("/img/ducc.svg", (req: any, res: any) => {
+    res.sendFile(path.resolve("./dist/client/img/ducc.svg"))
+})
+app.get("/js/jquery.ripples.js", (req: any, res: any) => {
+    res.sendFile(path.resolve("./dist/client/js/jquery.ripples.js"))
+})
 
 const httpServer = createServer(app)
 httpServer.listen(CONSTANTS.PORT, function() {

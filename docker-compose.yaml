@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+        spr.io:
+                image: "${COMPOSE_PROJECT_NAME}"
+                volumes:
+                        - "/etc/timezone:/etc/timezone:ro"
+                        - "/etc/localtime:/etc/localtime:ro"
+                        - "${HOST_VOLUME}:${CONTAINER_VOLUME}"
+                ports:
+                        - "${APP_HOST_PORT}:${APP_CONTAINER_PORT}"
+                build: .
+                container_name: "${COMPOSE_PROJECT_NAME}"

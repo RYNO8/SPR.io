@@ -7,13 +7,14 @@
         "clean": "rimraf dist/*",
         "tsc": "tsc",
         "assets_windows": "copy /y src\\client\\index.html dist\\client && xcopy /e /i /y src\\client\\css dist\\client\\css && xcopy /e /i /y src\\client\\img dist\\client\\img",
-        "assets": "cp -R src/client/index.html src/client/css src/client/img dist/client",
+        "assets": "cp -R src/client/index.html src/client/css src/client/img src/client/js dist/client",
         "parcel": "parcel build src/client/game.ts -d dist/client",
         "build": "npm-run-all clean tsc assets parcel",
         "start": "node dist/server/server.js",
         "dev": "nodemon --watch src -e ts --exec npm-run-all build start",
         "start_maze": "node dist/server/maze_test.js",
-        "maze": "nodemon --watch src -e ts --exec npm-run-all build start_maze"
+        "maze": "nodemon --watch src -e ts --exec npm-run-all build start_maze",
+	"prod": "npm-run-all build start"
     },
     "author": "Ryno",
     "license": "MIT",
@@ -21,7 +22,6 @@
         "@types/dotenv": "^8.2.0",
         "dotenv": "^16.0.0",
         "express": "^4.17.3",
-        "phaser": "^3.16.2",
         "socket.io": "^3.1.2",
         "socket.io-client": "^4.4.1",
         "socket.io-server": "^1.0.0-b",
@@ -36,7 +36,6 @@
         "nodemon": "^1.19.4",
         "npm-run-all": "^4.1.5",
         "parcel-bundler": "^1.12.5",
-        "phaser3-docs": "github:photonstorm/phaser3-docs",
         "rimraf": "^2.7.1",
         "typescript": "^3.9.10"
     }

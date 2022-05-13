@@ -16,6 +16,9 @@ let framerateSamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 1)
 let timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 let latencySamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 
+let ducc = new Image()
+ducc.src = "/img/ducc.svg"
+
 const debug1 = document.getElementById("debug-1")
 const debug2 = document.getElementById("debug-2")
 const debug3 = document.getElementById("debug-3")
@@ -199,7 +202,7 @@ function renderMaze(maze: Obstacle[]) {
     let newMaze = maze.filter(function(val : Obstacle) {
         return val.time > serverTime()
     })
-    for (let i in existingMaze) {
+    /*for (let i in existingMaze) {
         context.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
         context.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
         context.beginPath()
@@ -209,7 +212,7 @@ function renderMaze(maze: Obstacle[]) {
         context.lineTo(existingMaze[i].points[0].x, existingMaze[i].points[0].y)
         context.lineTo(existingMaze[i].points[1].x, existingMaze[i].points[1].y)
         context.stroke()
-    }
+    }*/
     for (let i in existingMaze) {
         context.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
         context.beginPath()
@@ -258,11 +261,12 @@ function renderPlayer(player: Player, colour: string) {
     context.strokeStyle = colour
     context.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
 
-    context.beginPath()
+    /*context.beginPath()
     let innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
     context.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
     context.fill()
-    context.stroke()
+    context.stroke()*/
+    context.drawImage(ducc, -138, -96)
 
     context.rotate(-player.direction)
     context.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
@@ -272,3 +276,4 @@ function renderPlayer(player: Player, colour: string) {
 
     context.restore()
 }
+
