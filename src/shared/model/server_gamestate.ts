@@ -271,7 +271,7 @@ export class ServerGameState {
     exportLeaderboard() {
         let sortedPlayers: Player[] = this.getPlayers().sort(function(p1: Player, p2: Player) {
             return p2.score - p1.score
-        }).slice(CONSTANTS.LEADERBOARD_LEN - 1)
+        }).slice(0, CONSTANTS.LEADERBOARD_LEN)
         return sortedPlayers.map(function(p: Player) {
             return [p.name, p.score]
         })

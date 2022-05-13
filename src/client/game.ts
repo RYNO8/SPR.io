@@ -34,6 +34,16 @@ import { render } from "./render"
 import { onResize, initStatusMsg, updateLeaderboard, initMainMenu, startGame } from "./events"
 import * as CONSTANTS from "../shared/constants"
 
+window.addEventListener("scroll", preventMotion, false);
+window.addEventListener("touchmove", preventMotion, false);
+window.addEventListener("touchstart", preventMotion, false);
+
+function preventMotion(event: any) {
+    window.scrollTo(0, 0);
+    event.preventDefault();
+    event.stopPropagation();
+}
+
 startCapturingInput()
 
 requestAnimationFrame(render)

@@ -2,10 +2,11 @@
 
 // networking
 export let PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
+export let CLIENT_SEND_RATE: number = 40
 export let SERVER_BOT_UPDATE_RATE: number = 40
 export let SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
 export let SERVER_TICK_RATE: number = 40 // duration between each packet send
-export let RENDER_DELAY: number = 60
+export let RENDER_DELAY: number = 60 //100
 export let SAMPLE_SIZE: number = 6
 
 // socketio "endpoints"
@@ -70,7 +71,7 @@ export let POWERUP_RADIUS = 14
 export let POWERUP_COLOUR = "purple"
 
 // map
-export let MAP_SIZE: number = 1800 //7200
+export let MAP_SIZE: number = 7200
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_SHADOW_WIDTH = 10
 export let MAP_STYLE: string = "dots" // or "none" or "grid"
@@ -88,7 +89,7 @@ export let MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusi
 export let MAZE_OVERLAP: number = 15
 export let MAZE_CHANGE_DELAY: number = 2000
 export let MAZE_NAME: string = "the Labyrinth."
-// magic values for cellular autonoma (dont change!)
+// magic values for cellular automata (dont change!)
 export let MAZE_DENSITY: number = 0.48 // must be between 0 and 1 inclusive, what percentage of the maze is walls
 export let CA_DEATH_LIMIT = 2
 export let CA_BIRTH_LIMIT = 4

@@ -32,6 +32,7 @@ export class Maze {
         // https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
     }
 
+    // populate maze with false, populate mazeTime with 0
     clearMaze() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.maze[row] = []
@@ -43,6 +44,7 @@ export class Maze {
         }
     }
 
+    // populate ornaments with []
     clearOrnaments() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.ornaments[row] = []
@@ -52,6 +54,7 @@ export class Maze {
         }
     }
 
+    // for testing, put a single triangle near top left
     basicMazeGen() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
@@ -63,6 +66,7 @@ export class Maze {
         }
     }
 
+    // populate noise randomly with true/false according to MAZE_DENSITY
     randNoiseGen() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             this.noise[row] = []
@@ -72,6 +76,8 @@ export class Maze {
         }
     }
 
+    // pos is starting point of bfs, seen indicates whether cell is accounted for already
+    // returns all "reachable" positions in no particular order
     getComponent(pos: Position, seen: boolean[][]) {
         let allPos: Position[] = []
         let queue: Position[] = []
@@ -93,6 +99,8 @@ export class Maze {
         return allPos
     }
 
+    // remove walls on a path from "start" to "end"
+    // current implementation is such that the path is random and roughly linear, but never heading away from the target
     digTunnel(start: Position, end: Position) {
         this.maze[start.x][start.y] = false
         while (!isEqual(start, end)) {
@@ -109,6 +117,7 @@ export class Maze {
         }
     }
 
+    // find average of points in each component
     getAllCentroids() {
         let seen: boolean[][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
@@ -132,6 +141,7 @@ export class Maze {
         return allCentroids
     }
 
+    // join components into a random subtree (biased?) using randomised krushals
     joinComponentsRandom(allCentroids: Position[]) {
         let parents: number[] = []
         for (let i = 0; i < allCentroids.length; i++) parents[i] = i
@@ -154,6 +164,7 @@ export class Maze {
         }
     }
 
+    // join components into an MST
     joinComponentsKruskals(allCentroids: Position[]) {
         let parents: number[] = []
         for (let i = 0; i < allCentroids.length; i++) parents[i] = i
@@ -184,8 +195,8 @@ export class Maze {
         }
     }
 
+    // https://en.wikipedia.org/wiki/Gabriel_graph
     joinComponentsGabriel(allCentroids: Position[]) {
-        // https://en.wikipedia.org/wiki/Gabriel_graph
         for (let i = 0; i < allCentroids.length; i++) {
             for (let j = 0; j < i; j++) {
                 let mid = findAvg([allCentroids[i], allCentroids[j]])
@@ -207,8 +218,8 @@ export class Maze {
         }
     }
 
+    // https://en.wikipedia.org/wiki/Relative_neighborhood_graph
     joinComponentsRNG(allCentroids: Position[]) {
-        // https://en.wikipedia.org/wiki/Relative_neighborhood_graph
         for (let i = 0; i < allCentroids.length; i++) {
             for (let j = 0; j < i; j++) {
                 let smallestDist = sub(allCentroids[i], allCentroids[j]).quadrance()
@@ -229,6 +240,8 @@ export class Maze {
     }
     
 
+    // at "pos", populate ornaments with triangles to reduce number of sharp square corners
+    // erases previous ornaments
     applyMazeSmoothing(pos: Position) {
         if (!this.isValidCell(pos)) return
 
@@ -259,6 +272,8 @@ export class Maze {
         }
     }
 
+    // performs cellular automata where decision is based on number of alive 8 neighbours
+    // "maze" changed inplace
     cellAutomataStep() {
         let newMaze: boolean[][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
@@ -282,14 +297,17 @@ export class Maze {
         this.maze = newMaze
     }
 
+    // https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
     cellAutomataMazeGen() {
-        // https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
         this.maze = this.noise
 
         for (let rep = 0; rep < CONSTANTS.CA_NUM_STEPS; rep++) this.cellAutomataStep()
         this.joinComponentsGabriel(this.getAllCentroids())
     }
 
+    // find new maze state if current state is complete
+    // apply a random change to maze that transitions it towards new maze state
+    // apply maze smoothing (optimised)
     update() {
         while (this.todo.length == 0) {
             let pos: Position = new Position(0, 0)
@@ -319,6 +337,7 @@ export class Maze {
         }
     }
 
+    // determine if "mazePos" has integer coordinates within the maze bounding box
     isValidCell(mazePos: Position) {
         return (
             Number.isInteger(mazePos.x) && 0 <= mazePos.x && mazePos.x < CONSTANTS.NUM_CELLS && 
@@ -326,10 +345,13 @@ export class Maze {
         )
     }
 
+    // determine if "mazePos" is outside maze bounding box (implicitly all walls)
+    // or if it a explicit wall
     isCellBlocked(mazePos: Position) {
         return !this.isValidCell(mazePos) || this.maze[mazePos.x][mazePos.y]
     }
 
+    // export array of obstacles at this "mazePos"
     getObstacles(mazePos: Position) {
         let obstacles: Obstacle[] = []
         if (this.isCellBlocked(mazePos)) {
@@ -342,6 +364,8 @@ export class Maze {
         return obstacles
     }
 
+    // determine whether position is blocked by an obstacle
+    // TODO: check neighbouring cells too?
     isPointBlocked(pos: Position) {
         let obstacles = this.getObstacles(pos.toMazePos())
         for (let i = 0; i < obstacles.length; i++) {
@@ -352,6 +376,8 @@ export class Maze {
         return false
     }
 
+    // ray from "startPos" to "startPos + dirVec"
+    // find intersections and return reflected ray
     rayTraceHelper(startPos: Position, dirVec: Position): [number, Position, Position] {
         let best: [number, Position, Position] = [1, startPos, dirVec]
         for (let i = 0; i <= 8; i++) {
@@ -367,12 +393,15 @@ export class Maze {
         return best
     }
 
+    // ray trace to get skimming, ray trace again to ensure skimming does not collide with walls
+    // NOTE: assuming skimming cannot happen more than once
     rayTrace(startPos: Position, dirVec: Position): [number, Position] {
         let intersection1 = this.rayTraceHelper(startPos, dirVec)
         let intersection2 = this.rayTraceHelper(intersection1[1], intersection1[2])
         return [intersection1[0], add(intersection2[1], intersection2[2])]
     }
 
+    // given "me", export all visible obstalces
     exportMaze(me: Player) {
         let output: Obstacle[] = []
         let visibleSize = new Position(
