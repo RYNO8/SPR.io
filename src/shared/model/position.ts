@@ -29,6 +29,10 @@ export class Position {
         return new Position(lambda * this.x, lambda * this.y)
     }
 
+    stretch(o: Position) {
+        return new Position(this.x * o.x, this.y * o.y)
+    }
+
     rotate(theta: number) {
         return new Position(
             this.x*Math.cos(theta) - this.y*Math.sin(theta),
@@ -44,6 +48,10 @@ export class Position {
         return new Position(Math.ceil(this.x), Math.ceil(this.y))
     }
 
+    round() {
+        return new Position(Math.round(this.x), Math.round(this.y))
+    }
+    
     toMazePos() {
         return this.scale(1 / CONSTANTS.CELL_SIZE).floor()
     }

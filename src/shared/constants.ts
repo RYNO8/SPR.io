@@ -74,12 +74,21 @@ export let POWERUP_COLOUR = "purple"
 export let MAP_SIZE: number = 7200
 export let MAP_LINE_WIDTH: number = 2
 export let MAP_SHADOW_WIDTH = 10
-export let MAP_STYLE: string = "dots" // or "none" or "grid"
+export let MAP_STYLE: string = "none" // or "none" or "grid"
 export let MAP_LINE_COLOUR: string = "black"
-export let MAP_BACKGROUND_COLOUR: string = "white"
+export let MAP_BACKGROUND_COLOUR: string = "ggba(0, 0, 0, 0)"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"
 export let MAP_SHADOW_COLOUR = "lightgrey"
 export let MAP_WARNING_COLOUR = "rgba(255, 0, 0, 0.7)"
+
+// ripple effects
+export let RIPPLE_WIDTH = 300 // TODO: optimise aspect ratio for average screen size
+export let RIPPLE_HEIGHT = 300
+export let RIPPLE_DAMPENING = 4 // the lower the number, the more the dampening
+export let RIPPLE_PEN_COLOUR = 127 // integer between 0 and 255 inclusive
+export let RIPPLE_PLAYER_SIZE = 0.015
+export let RIPPLE_BUBBLE_SIZE = 0.005
+export let RIPPLE_SPEED = 0.32
 
 // maze
 export let CELL_SIZE: number = 180 // there is a grid line every this many pixels

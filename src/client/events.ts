@@ -3,7 +3,8 @@ import * as CONSTANTS from "./../shared/constants"
 
 const menu = document.getElementById("menu")
 const gameoverMenu = document.getElementById("gameover-menu")
-const canvas = <HTMLCanvasElement> document.getElementById("game-canvas")
+const canvasMain = <HTMLCanvasElement> document.getElementById("canvas-main")
+const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
 const nameInput = <HTMLInputElement> document.getElementById("name")
 
 
@@ -44,15 +45,19 @@ export function onResize() {
     const dpr = window.devicePixelRatio || 1
 
     // set the CSS dimensions of the canvas to fill the screen (using CSS pixels)
-    canvas.style.width = `${window.innerWidth}px`
-    canvas.style.height = `${window.innerHeight}px`
+    canvasMain.style.width = `${window.innerWidth}px`
+    canvasMain.style.height = `${window.innerHeight}px`
+    canvasFX.style.width = `${window.innerWidth}px`
+    canvasFX.style.height = `${window.innerHeight}px`
 
     // set the dimensions of the coordinate system used by the canvas - https://stackoverflow.com/a/2588404/5583289
     // (doesn't affect the actual size on screen I think)
     // because this is larger than the size on screen (when dpr > 1), it'll get scaled back down to normal
     // (while retaining the sharpness of all the physical pixels within each CSS pixel)
-    canvas.width = window.innerWidth * dpr
-    canvas.height = window.innerHeight * dpr
+    canvasMain.width = window.innerWidth * dpr
+    canvasMain.height = window.innerHeight * dpr
+    canvasFX.width = CONSTANTS.RIPPLE_WIDTH * dpr
+    canvasFX.height = CONSTANTS.RIPPLE_HEIGHT * dpr
 }
 
 export function initStatusMsg() {

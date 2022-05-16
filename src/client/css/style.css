@@ -16,6 +16,7 @@ body {
 }
 
 .overlay {
+    z-index: 100;
     position: absolute;
     box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.15);
     background-color: #e8f3ee;
@@ -53,8 +54,12 @@ body {
     100% { opacity: 0; -webkit-transform: translateY(-200%); }
 }
 
-#game-canvas {
+#canvas-main {
+    position: absolute;
+}
 
+#canvas-fx {
+    
 }
 
 #leaderboard {

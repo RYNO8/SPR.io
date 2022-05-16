@@ -11,8 +11,6 @@ TODO
  - teleports?
  - style
     - https://app.brandmark.io/v3/
-    - https://diariesofanessexgirl.com/twilight-sunset-color-palette/
-    - https://diariesofanessexgirl.com/sunset-surfing-color-palette/
     - http://colormind.io/
         green: #1D7755
         blue: #60ACBC
