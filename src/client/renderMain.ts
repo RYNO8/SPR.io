@@ -8,7 +8,7 @@ const canvasMain = <HTMLCanvasElement> document.getElementById("canvas-main")
 const ctxMain: CanvasRenderingContext2D = canvasMain.getContext("2d")
 
 export function renderMain(gamestate: ClientGameState) {
-    let size: number = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
+    let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
     ctxMain.translate(canvasMain.width / 2, canvasMain.height / 2)
     ctxMain.scale(size, size)
     ctxMain.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)

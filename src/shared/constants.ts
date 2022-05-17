@@ -7,7 +7,7 @@ export let SERVER_BOT_UPDATE_RATE: number = 40
 export let SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
 export let SERVER_TICK_RATE: number = 40 // duration between each packet send
 export let RENDER_DELAY: number = 60 //100
-export let SAMPLE_SIZE: number = 6
+export let SAMPLE_SIZE: number = 20 //6
 
 // socketio "endpoints"
 export enum Endpoint {
@@ -76,19 +76,19 @@ export let MAP_LINE_WIDTH: number = 2
 export let MAP_SHADOW_WIDTH = 10
 export let MAP_STYLE: string = "none" // or "none" or "grid"
 export let MAP_LINE_COLOUR: string = "black"
-export let MAP_BACKGROUND_COLOUR: string = "ggba(0, 0, 0, 0)"
 export let MAP_UNREACHABLE_COLOUR: string = "grey"
 export let MAP_SHADOW_COLOUR = "lightgrey"
 export let MAP_WARNING_COLOUR = "rgba(255, 0, 0, 0.7)"
 
 // ripple effects
-export let RIPPLE_WIDTH = 300 // TODO: optimise aspect ratio for average screen size
-export let RIPPLE_HEIGHT = 300
-export let RIPPLE_DAMPENING = 4 // the lower the number, the more the dampening
-export let RIPPLE_PEN_COLOUR = 127 // integer between 0 and 255 inclusive
-export let RIPPLE_PLAYER_SIZE = 0.015
+export let RIPPLE_WIDTH = 480 //384 //480
+export let RIPPLE_HEIGHT = 270 //216 //270
+export let RIPPLE_DAMPENING = 0.98 // scalar between 0 and 1 inclusive
+export let RIPPLE_PEN_COLOUR = 255 // integer between 0 and 255 inclusive
+export let RIPPLE_PLAYER_SIZE = 0.018
 export let RIPPLE_BUBBLE_SIZE = 0.005
-export let RIPPLE_SPEED = 0.32
+export let RIPPLE_SPEED = 0.25
+export let RIPPLE_REDRAW_DIST = 10
 
 // maze
 export let CELL_SIZE: number = 180 // there is a grid line every this many pixels

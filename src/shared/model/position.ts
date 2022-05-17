@@ -52,6 +52,10 @@ export class Position {
         return new Position(Math.round(this.x), Math.round(this.y))
     }
     
+    mod(m: number) {
+        return new Position(this.x % m, this.y % m)
+    }
+    
     toMazePos() {
         return this.scale(1 / CONSTANTS.CELL_SIZE).floor()
     }

@@ -1,21 +1,20 @@
 import { socket } from "./networking"
 import { ClientGameState } from "../shared/model/client_gamestate"
 import * as CONSTANTS from "../shared/constants"
-import { Player } from "../shared/model/player"
 import { direction } from "./playerInput"
 import { initGameoverMenu, initDisconnectedMenu } from "./events"
 import { RollingAvg } from "../shared/utilities"
 import { renderUnreachable, renderMain } from "./renderMain"
 import { renderFX } from "./renderFX"
-import { Position, sub } from "../shared/model/position"
 
 let targetStates: ClientGameState[] = []
 let gamestate = new ClientGameState(Date.now(), null, null, [], [], [])
-let prevMe: Player = new Player(new Position(0, 0), null, null, false)
+let score = 0
 let isInGame: boolean = false
 let framerateSamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 1)
 let timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
-let latencySamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
+let latencySamplesMain = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
+let latencySamplesFX = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 
 let ducc = new Image()
 ducc.src = "/img/ducc.svg"
@@ -23,6 +22,7 @@ ducc.src = "/img/ducc.svg"
 const debug1 = document.getElementById("debug-1")
 const debug2 = document.getElementById("debug-2")
 const debug3 = document.getElementById("debug-3")
+const debug4 = document.getElementById("debug-4")
 const menu = document.getElementById("menu")
 const gameoverMenu = document.getElementById("gameover-menu")
 
@@ -41,7 +41,7 @@ socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(jsonstate: any) {
     )
 
     timeDiff.update(newGamestate.time - Date.now())
-    latencySamples.update(Date.now())
+    latencySamplesMain.update(Date.now())
     //if (!targetStates.isEmpty()) console.log(targetStates.front().time - newGamestate.time)
     targetStates.push(newGamestate)
 })
@@ -64,9 +64,10 @@ function updateGamestate() {
 }
 
 export function render() {
-    debug1.innerText = latencySamples.getDiff().toString()
+    debug1.innerText = latencySamplesMain.getDiff().toString()
     debug2.innerText = timeDiff.getAvg().toString()
     debug3.innerText = framerateSamples.getDiff().toString()
+    debug4.innerText = latencySamplesFX.getDiff().toString()
 
     updateGamestate()
 
@@ -74,28 +75,28 @@ export function render() {
     
     if (isInGame && !socket.id) {
         // disconnected
-        initDisconnectedMenu("Your bad internet connection", prevMe.score)
+        initDisconnectedMenu("Your bad internet connection", score)
         isInGame = false
-        prevMe.score = 0
+        score = 0
         requestAnimationFrame(render)
         return
     } else if (isInGame && gamestate.attackerName) {
         // died
-        initGameoverMenu(gamestate.attackerName, prevMe.score)
+        initGameoverMenu(gamestate.attackerName, score)
         isInGame = false
-        prevMe.score = 0
+        score = 0
         requestAnimationFrame(render)
         return
     } else if (!gamestate.me) {
         // stuff hasnt initialised yet, wait some more
         isInGame = false
-        prevMe.score = 0
+        score = 0
         requestAnimationFrame(render)
         return
     } else if (!gamestate.me.isVisible) {
         // nobody in the map OR looking at wall
         isInGame = false
-        prevMe.score = 0
+        score = 0
     } else if (gamestate.me.id == socket.id) {
         // nothing bad happened yet!
         menu.classList.remove("slide-in")
@@ -103,12 +104,12 @@ export function render() {
         gameoverMenu.classList.remove("slide-in")
         gameoverMenu.classList.add("slide-out")
 
-        console.assert(gamestate.me.score >= prevMe.score)
+        console.assert(gamestate.me.score >= score)
         isInGame = true
         gamestate.me.direction = direction
+        score = gamestate.me.score
 
-        renderFX(gamestate, sub(gamestate.me.centroid.scale(CONSTANTS.RIPPLE_SPEED).round(), prevMe.centroid.scale(CONSTANTS.RIPPLE_SPEED).round()))
-        prevMe = gamestate.me
+        renderFX(gamestate)
     }
 
     renderMain(gamestate)
