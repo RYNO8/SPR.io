@@ -56,8 +56,8 @@ export function onResize() {
     // (while retaining the sharpness of all the physical pixels within each CSS pixel)
     canvasMain.width = window.innerWidth * dpr
     canvasMain.height = window.innerHeight * dpr
-    canvasFX.width = CONSTANTS.RIPPLE_WIDTH * dpr
-    canvasFX.height = CONSTANTS.RIPPLE_HEIGHT * dpr
+    canvasFX.width = CONSTANTS.RIPPLE_WIDTH
+    canvasFX.height = CONSTANTS.RIPPLE_HEIGHT
 }
 
 export function initStatusMsg() {

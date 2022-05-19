@@ -104,16 +104,14 @@ export function render() {
         gameoverMenu.classList.remove("slide-in")
         gameoverMenu.classList.add("slide-out")
 
-        console.assert(gamestate.me.score >= score)
+        //console.assert(gamestate.me.score >= score)
         isInGame = true
         gamestate.me.direction = direction
         score = gamestate.me.score
-
-        renderFX(gamestate)
     }
 
+    renderFX(gamestate)
     renderMain(gamestate)
-    //console.log("main", Date.now() - start)
 
     // Rerun this render function on the next frame
     requestAnimationFrame(render)

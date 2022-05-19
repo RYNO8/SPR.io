@@ -24,6 +24,10 @@ export class Position {
     manhattanDist() {
         return Math.abs(this.x) + Math.abs(this.y)
     }
+
+    chebyshevDist() {
+        return Math.max(Math.abs(this.x), Math.abs(this.y))
+    }
     
     scale(lambda: number) {
         return new Position(lambda * this.x, lambda * this.y)
@@ -38,6 +42,10 @@ export class Position {
             this.x*Math.cos(theta) - this.y*Math.sin(theta),
             this.x*Math.sin(theta) + this.y*Math.cos(theta)
         )
+    }
+
+    normalise() {
+        return this.scale(1 / this.euclideanDist())
     }
 
     floor() {

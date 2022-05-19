@@ -14,7 +14,9 @@ export function renderMain(gamestate: ClientGameState) {
     ctxMain.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)
 
     renderMap()
+    ctxMain.globalAlpha = 0.5
     renderMaze(gamestate.maze, gamestate.time)
+    ctxMain.globalAlpha = 1
     for (let i in gamestate.powerups) {
         renderPowerup(gamestate.powerups[i])
     }

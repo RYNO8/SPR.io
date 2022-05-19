@@ -1,5 +1,5 @@
 import * as CONSTANTS from "../shared/constants"
-import { Position, add, sub } from "../shared/model/position"
+import { Position, add, sub, DIRECTIONS_8 } from "../shared/model/position"
 import { ClientGameState } from "../shared/model/client_gamestate"
 import { Obstacle } from "../shared/model/obstacle"
 
@@ -10,44 +10,59 @@ const ctxFX: CanvasRenderingContext2D = canvasFX.getContext("2d")
 let buffer1: number[][] = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(0))
 let buffer2: number[][] = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(0))
 let lookPos = new Position(0, 0)
-
+let canPlace: boolean[][]
 
 function toRipplePos(pos: Position) {
     let scaleW = CONSTANTS.RIPPLE_WIDTH / window.innerWidth
     let scaleH = CONSTANTS.RIPPLE_HEIGHT / window.innerHeight
-    return new Position(pos.x * scaleW, pos.y * scaleH)
+    let size = Math.max(window.innerWidth / CONSTANTS.VISIBLE_WIDTH, window.innerHeight / CONSTANTS.VISIBLE_HEIGHT)
+    //return new Position(pos.x * scaleW * size * CONSTANTS.RIPPLE_SPEED, pos.y * scaleH * size * CONSTANTS.RIPPLE_SPEED)
+    return new Position(pos.x * scaleW * size, pos.y * scaleH * size)
+}
+
+
+function fromRipplePos(ripplePos: Position) {
+    let scaleW = CONSTANTS.RIPPLE_WIDTH / window.innerWidth
+    let scaleH = CONSTANTS.RIPPLE_HEIGHT / window.innerHeight
+    let size = Math.max(window.innerWidth / CONSTANTS.VISIBLE_WIDTH, window.innerHeight / CONSTANTS.VISIBLE_HEIGHT)
+    return new Position(ripplePos.x / scaleW / size, ripplePos.y / scaleH / size)
 }
 
 export function renderFX(gamestate: ClientGameState) {
+    canPlace = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(true))
+    for (let i in gamestate.maze) {
+        if (gamestate.maze[i].time < gamestate.time) {
+            addObstacle(gamestate.maze[i])
+        }
+    }
+
     let oldLookPos = lookPos
     let rippleMe = toRipplePos(gamestate.me.centroid)
-    lookPos = rippleMe.scale(1 / CONSTANTS.RIPPLE_REDRAW_DIST).round().scale(CONSTANTS.RIPPLE_REDRAW_DIST)
-    let shift = sub(lookPos, oldLookPos)
-    let lookPosTweeked = add(lookPos, sub(rippleMe, rippleMe.round()))
+    let cameraPos = rippleMe.mod(CONSTANTS.RIPPLE_REDRAW_DIST)
+    lookPos = sub(rippleMe.scale(1 / CONSTANTS.RIPPLE_REDRAW_DIST).floor().scale(CONSTANTS.RIPPLE_REDRAW_DIST), center)
     
+    let shift = sub(lookPos, oldLookPos)
     if (shift.x != 0 || shift.y != 0) {
         buffer1 = shiftBuffer(buffer1, shift)
         buffer2 = shiftBuffer(buffer2, shift)
     }
 
     for (let i in gamestate.others) {
+        let rippleOther = toRipplePos(gamestate.others[i].centroid)
         makeDisturbance(
-            sub(toRipplePos(gamestate.others[i].centroid), lookPosTweeked),
+            rippleOther,
             CONSTANTS.RIPPLE_PLAYER_SIZE
         )
     }
-    makeDisturbance(
-        sub(rippleMe, lookPosTweeked),
-        CONSTANTS.RIPPLE_PLAYER_SIZE
-    )
 
-    for (let i in gamestate.maze) {
-        if (gamestate.maze[i].time < gamestate.time) {
-            addObstacle(gamestate.maze[i])
-        }
+    if (gamestate.me.isVisible) {
+        makeDisturbance(
+            rippleMe,
+            CONSTANTS.RIPPLE_PLAYER_SIZE
+        )
     }
-    rippleStep()
-    rippleRender(sub(rippleMe, lookPos))
+
+    rippleRender(cameraPos)
 }
 
 function inGrid(x: number, y: number) {
@@ -55,21 +70,26 @@ function inGrid(x: number, y: number) {
 }
 
 function addObstacle(obstacle: Obstacle) {
-    // TODO: set values in buffer2 to 0 when inside obstacle
-    for (let i = 0; i < obstacle.points.length; ++i) {
+    for (let i = 0; i < obstacle.interiorPoints.length; ++i) {
+        let u = obstacle.interiorPoints[i]
+        let v = obstacle.interiorPoints[(i + 1) % obstacle.interiorPoints.length]
+        u = sub(toRipplePos(u), lookPos)
+        v = sub(toRipplePos(v), lookPos)
 
+        let stepSize = 1 / sub(v, u).euclideanDist()
+        for (let lambda = 0; lambda <= 1; lambda += stepSize) {
+            let pos = add(u.scale(lambda), v.scale(1 - lambda)).floor()
+            if (inGrid(pos.x, pos.y)) {
+                canPlace[pos.x][pos.y] = false
+            }
+        }
     }
 }
 
+
 function shiftBuffer(buffer: number[][], shift: Position) {
     let bufferOut = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(0))
-    /*for (let x = 1; x < CONSTANTS.RIPPLE_WIDTH - 1; ++x) {
-        for (let y = 1; y < CONSTANTS.RIPPLE_HEIGHT - 1; ++y) {
-            if (inGrid(x + shift.x, y + shift.y)) {
-                bufferOut[x][y] = buffer[x + shift.x][y + shift.y]
-            }
-        }
-    }*/
+    
     let xL = 1 + Math.max(0, -shift.x)
     let xR = CONSTANTS.RIPPLE_WIDTH - 1 + Math.min(0, -shift.x)
     let yL = 1 + Math.max(0, -shift.y)
@@ -89,19 +109,19 @@ function makeDisturbance(pos: Position, percentSize: number) {
 
     let scaleW = CONSTANTS.RIPPLE_WIDTH / window.innerWidth
     let scaleH = CONSTANTS.RIPPLE_HEIGHT / window.innerHeight
-    pos = add(center, pos)
+    pos = sub(pos, lookPos)
 
-    let sizeW = Math.round(size * scaleW)
-    let sizeH = Math.round(size * scaleH)
+    let sizeW = 1.1 * Math.round(size * scaleW)
+    let sizeH = 1.1 * Math.round(size * scaleH)
 
     for (let dx = Math.floor(pos.x - sizeW); dx <= Math.ceil(pos.x + sizeW); ++dx) {
         for (let dy = Math.floor(pos.y - sizeH); dy <= Math.ceil(pos.y + sizeH); ++dy) {
-            if (inGrid(dx, dy)) {
+            if (inGrid(dx, dy) && canPlace[dx][dy]) {
                 /*if (new Position((dx - pos.x) / scaleW, (dy - pos.y) / scaleH).quadrance() <= size * size) {
                     buffer1[dx][dy] = CONSTANTS.RIPPLE_PEN_COLOUR
                 }*/
                 let shade = size * size / (new Position((dx - pos.x) / scaleW, (dy - pos.y) / scaleH).quadrance())
-                if (shade >= 1) {
+                if (shade >= CONSTANTS.RIPPLE_GRADIENT_SIZE) {
                     buffer1[dx][dy] = Math.floor(CONSTANTS.RIPPLE_PEN_COLOUR * Math.min(1, shade))
                 }
             }
@@ -109,38 +129,47 @@ function makeDisturbance(pos: Position, percentSize: number) {
     }
 }
 
-function rippleStep() {
-    for (let x = 1; x < CONSTANTS.RIPPLE_WIDTH - 1; ++x) {
-        for (let y = 1; y < CONSTANTS.RIPPLE_HEIGHT - 1; ++y) {
-            //if (isObstacle(new Position(x, y))) continue;
-            buffer2[x][y] = (buffer1[x - 1][y] + buffer1[x + 1][y] + buffer1[x][y - 1] + buffer1[x][y + 1]) / 2 - buffer2[x][y]
-            buffer2[x][y] = Math.floor(buffer2[x][y] * CONSTANTS.RIPPLE_DAMPENING)
-            //buffer2[x][y] = Math.max(0, Math.min(255, buffer2[x][y]))
+function rippleRender(pos: Position) {
+    let img = new ImageData(CONSTANTS.RIPPLE_WIDTH, CONSTANTS.RIPPLE_HEIGHT)
+
+    for (let x = 0; x < CONSTANTS.RIPPLE_WIDTH; ++x) {
+        for (let y = 0; y < CONSTANTS.RIPPLE_HEIGHT; ++y) {
+            let index = (x + y * CONSTANTS.RIPPLE_WIDTH) * 4
+            if (!inGrid(x, y)) {
+                // TODO: make this water colour
+                img.data[index + 0] = 0
+                img.data[index + 1] = 0
+                img.data[index + 2] = 255
+                img.data[index + 3] = 255
+            } else if (!canPlace[x][y]) {
+                buffer2[x][y] = Math.floor(buffer2[x][y] * CONSTANTS.RIPPLE_DAMPENING)
+
+                // TODO: make this border or water colour
+                img.data[index + 0] = 0
+                img.data[index + 1] = 0
+                img.data[index + 2] = 255
+                img.data[index + 3] = 255
+            } else {
+                buffer2[x][y] = ((buffer1[x - 1][y] + buffer1[x + 1][y] + buffer1[x][y - 1] + buffer1[x][y + 1]) >> 1) - buffer2[x][y]
+                buffer2[x][y] = Math.floor(buffer2[x][y] * CONSTANTS.RIPPLE_DAMPENING)
+                //buffer2[x][y] = Math.max(0, Math.min(255, buffer2[x][y]))
+
+                let val = buffer2[x][y] //Math.max(0, Math.min(255, buffer2[x][y]))
+                img.data[index + 0] = val
+                img.data[index + 1] = val
+                img.data[index + 2] = 255
+                img.data[index + 3] = 255
+            }
         }
     }
 
     let temp = buffer2
     buffer2 = buffer1
     buffer1 = temp
-}
-
-function rippleRender(pos: Position) {
-    let img = new ImageData(CONSTANTS.RIPPLE_WIDTH, CONSTANTS.RIPPLE_HEIGHT)
-    for (let x = 0; x < CONSTANTS.RIPPLE_WIDTH; ++x) {
-        for (let y = 0; y < CONSTANTS.RIPPLE_HEIGHT; ++y) {
-            let index = (y * CONSTANTS.RIPPLE_WIDTH + x) * 4
-            let val = Math.max(0, Math.min(255, buffer2[x][y]))
-            img.data[index + 0] = val
-            img.data[index + 1] = val
-            img.data[index + 2] = 255
-            img.data[index + 3] = 255
-        }
-    }
 
     ctxFX.fillStyle = "blue"
     ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_WIDTH, CONSTANTS.RIPPLE_HEIGHT)
-    //ctxFX.clearRect(0, 0, CONSTANTS.RIPPLE_WIDTH, CONSTANTS.RIPPLE_HEIGHT)
-    ctxFX.putImageData(img, Math.round(-pos.x), Math.round(-pos.y))
+    ctxFX.putImageData(img, -pos.x, -pos.y)
 }
 
 /*let t = 0

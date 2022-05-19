@@ -64,7 +64,7 @@ export const BOT_NAMES = [
 ]
 
 // powerup
-export let POWERUP_RATE: number = 0 //0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
+export let POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
 export let POWERUP_MAX: number = 100
 export let POWERUP_DURATION: number = 5 * 1000
 export let POWERUP_RADIUS = 14
@@ -83,12 +83,12 @@ export let MAP_WARNING_COLOUR = "rgba(255, 0, 0, 0.7)"
 // ripple effects
 export let RIPPLE_WIDTH = 480 //384 //480
 export let RIPPLE_HEIGHT = 270 //216 //270
-export let RIPPLE_DAMPENING = 0.98 // scalar between 0 and 1 inclusive
+export let RIPPLE_DAMPENING = 0.99 // scalar between 0 and 1 inclusive
 export let RIPPLE_PEN_COLOUR = 255 // integer between 0 and 255 inclusive
-export let RIPPLE_PLAYER_SIZE = 0.018
+export let RIPPLE_PLAYER_SIZE = 0.015
 export let RIPPLE_BUBBLE_SIZE = 0.005
-export let RIPPLE_SPEED = 0.25
-export let RIPPLE_REDRAW_DIST = 10
+export let RIPPLE_GRADIENT_SIZE = 1 //0.5
+export let RIPPLE_REDRAW_DIST = 5
 
 // maze
 export let CELL_SIZE: number = 180 // there is a grid line every this many pixels

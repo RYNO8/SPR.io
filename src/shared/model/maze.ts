@@ -59,8 +59,8 @@ export class Maze {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
                 if (row == 2 && col == 2) {
-                    //this.maze[row][col] = true
-                    this.ornaments[row][col] = [makeTriangleObstacle(Date.now(), new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, false, false)]
+                    this.maze[row][col] = true
+                    //this.ornaments[row][col] = [makeTriangleObstacle(Date.now(), new Position(row, col).scale(CONSTANTS.CELL_SIZE), CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, false, false)]
                 }
             }
         }
@@ -402,7 +402,7 @@ export class Maze {
         for (let rep = 0; rep < 2; ++rep) {
             let traced = this.rayTraceHelper(intersection[0], intersection[1])
             if (this.isPointBlocked(add(traced[1], traced[2]))) {
-                console.log(rep, traced[0], traced[1], add(traced[1], traced[2]), this.isPointBlocked(traced[1]))
+                //console.log(rep, traced[0], traced[1], add(traced[1], traced[2]), this.isPointBlocked(traced[1]))
             }
             intersection[0] = traced[1]
             intersection[1] = traced[2]
@@ -410,10 +410,10 @@ export class Maze {
         if (!this.isPointBlocked(add(intersection[0], intersection[1]))) {
             return add(intersection[0], intersection[1])
         } else if (!this.isPointBlocked(intersection[0])) {
-            console.log("ohno")
+            //console.log("ohno")
             return intersection[0]
         } else {
-            console.log("ohno ohno")
+            //console.log("ohno ohno")
             return startPos
         }
     }
