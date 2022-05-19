@@ -3,33 +3,29 @@ import { Position, add, sub, DIRECTIONS_8 } from "../shared/model/position"
 import { ClientGameState } from "../shared/model/client_gamestate"
 import { Obstacle } from "../shared/model/obstacle"
 
-let center = new Position(CONSTANTS.RIPPLE_WIDTH / 2, CONSTANTS.RIPPLE_HEIGHT / 2)
+let center = new Position(CONSTANTS.RIPPLE_TRUE_WIDTH / 2 + CONSTANTS.RIPPLE_BORDER_SIZE, CONSTANTS.RIPPLE_TRUE_HEIGHT / 2 + CONSTANTS.RIPPLE_BORDER_SIZE)
 const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
 const ctxFX: CanvasRenderingContext2D = canvasFX.getContext("2d")
 
-let buffer1: number[][] = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(0))
-let buffer2: number[][] = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(0))
+function genBuffer(fillVal: any) {
+    return Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(fillVal))
+}
+
+let buffer1: number[][] = genBuffer(0)
+let buffer2: number[][] = genBuffer(0)
 let lookPos = new Position(0, 0)
 let canPlace: boolean[][]
 
 function toRipplePos(pos: Position) {
-    let scaleW = CONSTANTS.RIPPLE_WIDTH / window.innerWidth
-    let scaleH = CONSTANTS.RIPPLE_HEIGHT / window.innerHeight
+    let scaleW = CONSTANTS.RIPPLE_TRUE_WIDTH / window.innerWidth
+    let scaleH = CONSTANTS.RIPPLE_TRUE_HEIGHT / window.innerHeight
     let size = Math.max(window.innerWidth / CONSTANTS.VISIBLE_WIDTH, window.innerHeight / CONSTANTS.VISIBLE_HEIGHT)
     //return new Position(pos.x * scaleW * size * CONSTANTS.RIPPLE_SPEED, pos.y * scaleH * size * CONSTANTS.RIPPLE_SPEED)
     return new Position(pos.x * scaleW * size, pos.y * scaleH * size)
 }
 
-
-function fromRipplePos(ripplePos: Position) {
-    let scaleW = CONSTANTS.RIPPLE_WIDTH / window.innerWidth
-    let scaleH = CONSTANTS.RIPPLE_HEIGHT / window.innerHeight
-    let size = Math.max(window.innerWidth / CONSTANTS.VISIBLE_WIDTH, window.innerHeight / CONSTANTS.VISIBLE_HEIGHT)
-    return new Position(ripplePos.x / scaleW / size, ripplePos.y / scaleH / size)
-}
-
 export function renderFX(gamestate: ClientGameState) {
-    canPlace = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(true))
+    canPlace = genBuffer(true)
     for (let i in gamestate.maze) {
         if (gamestate.maze[i].time < gamestate.time) {
             addObstacle(gamestate.maze[i])
@@ -38,8 +34,8 @@ export function renderFX(gamestate: ClientGameState) {
 
     let oldLookPos = lookPos
     let rippleMe = toRipplePos(gamestate.me.centroid)
-    let cameraPos = rippleMe.mod(CONSTANTS.RIPPLE_REDRAW_DIST)
-    lookPos = sub(rippleMe.scale(1 / CONSTANTS.RIPPLE_REDRAW_DIST).floor().scale(CONSTANTS.RIPPLE_REDRAW_DIST), center)
+    let cameraPos = add(rippleMe.mod(CONSTANTS.RIPPLE_REDRAW_DIST), center)
+    lookPos = sub(rippleMe, cameraPos)
     
     let shift = sub(lookPos, oldLookPos)
     if (shift.x != 0 || shift.y != 0) {
@@ -88,7 +84,7 @@ function addObstacle(obstacle: Obstacle) {
 
 
 function shiftBuffer(buffer: number[][], shift: Position) {
-    let bufferOut = Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(0))
+    let bufferOut = genBuffer(0)
     
     let xL = 1 + Math.max(0, -shift.x)
     let xR = CONSTANTS.RIPPLE_WIDTH - 1 + Math.min(0, -shift.x)
@@ -107,8 +103,8 @@ function makeDisturbance(pos: Position, percentSize: number) {
     // pen stroke size
     let size = percentSize * Math.min(window.innerWidth, window.innerHeight)
 
-    let scaleW = CONSTANTS.RIPPLE_WIDTH / window.innerWidth
-    let scaleH = CONSTANTS.RIPPLE_HEIGHT / window.innerHeight
+    let scaleW = CONSTANTS.RIPPLE_TRUE_WIDTH / window.innerWidth
+    let scaleH = CONSTANTS.RIPPLE_TRUE_HEIGHT / window.innerHeight
     pos = sub(pos, lookPos)
 
     let sizeW = 1.1 * Math.round(size * scaleW)
@@ -129,12 +125,14 @@ function makeDisturbance(pos: Position, percentSize: number) {
     }
 }
 
+// https://dev.to/victorqribeiro/water-ripple-effect-using-canvas-2l19
+// https://jasonjhayes.azurewebsites.net/WebDev/WaterRipple/
 function rippleRender(pos: Position) {
     let img = new ImageData(CONSTANTS.RIPPLE_WIDTH, CONSTANTS.RIPPLE_HEIGHT)
 
     for (let x = 0; x < CONSTANTS.RIPPLE_WIDTH; ++x) {
         for (let y = 0; y < CONSTANTS.RIPPLE_HEIGHT; ++y) {
-            let index = (x + y * CONSTANTS.RIPPLE_WIDTH) * 4
+            let index = (x + y * (CONSTANTS.RIPPLE_WIDTH)) * 4
             if (!inGrid(x, y)) {
                 // TODO: make this water colour
                 img.data[index + 0] = 0
@@ -142,14 +140,14 @@ function rippleRender(pos: Position) {
                 img.data[index + 2] = 255
                 img.data[index + 3] = 255
             } else if (!canPlace[x][y]) {
-                buffer2[x][y] = Math.floor(buffer2[x][y] * CONSTANTS.RIPPLE_DAMPENING)
-
                 // TODO: make this border or water colour
                 img.data[index + 0] = 0
                 img.data[index + 1] = 0
                 img.data[index + 2] = 255
                 img.data[index + 3] = 255
             } else {
+                
+
                 buffer2[x][y] = ((buffer1[x - 1][y] + buffer1[x + 1][y] + buffer1[x][y - 1] + buffer1[x][y + 1]) >> 1) - buffer2[x][y]
                 buffer2[x][y] = Math.floor(buffer2[x][y] * CONSTANTS.RIPPLE_DAMPENING)
                 //buffer2[x][y] = Math.max(0, Math.min(255, buffer2[x][y]))
@@ -168,8 +166,8 @@ function rippleRender(pos: Position) {
     buffer1 = temp
 
     ctxFX.fillStyle = "blue"
-    ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_WIDTH, CONSTANTS.RIPPLE_HEIGHT)
-    ctxFX.putImageData(img, -pos.x, -pos.y)
+    ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_TRUE_WIDTH, CONSTANTS.RIPPLE_TRUE_HEIGHT)
+    ctxFX.putImageData(img, -pos.x + CONSTANTS.RIPPLE_TRUE_WIDTH / 2, -pos.y + CONSTANTS.RIPPLE_TRUE_HEIGHT / 2)
 }
 
 /*let t = 0

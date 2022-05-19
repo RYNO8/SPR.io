@@ -8,6 +8,8 @@ sudo apt-get update
 
 sudo apt-get install git
 
+## install docker
+...
 
 ## pull repo
 cd ~

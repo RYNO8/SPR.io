@@ -135,7 +135,12 @@ export class ServerGameState {
     // move all players (and bots) in their directions and apply colllisions
     updatePlayers() {
         for (let id in this.players) {
-            this.players[id].progress(this.maze)
+            if (this.maze.isPointBlocked(this.players[id].centroid)) {
+                let attacker = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+                this.doCapture(id, attacker)
+            } else {
+                this.players[id].progress(this.maze)
+            }
         }
     }
 
@@ -217,7 +222,7 @@ export class ServerGameState {
     updatePowerups() {
         let remainingPowerups: Powerup[] = []
         for (let i in this.powerups) {
-            let captured = false
+            let captured = this.maze.isPointBlocked(this.powerups[i].centroid)
             for (let id in this.players) {
                 if (this.players[id].canAttack(this.powerups[i])) {
                     captured = true
@@ -251,13 +256,6 @@ export class ServerGameState {
     updateMaze() {
         if (randChance(CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE)) {
             this.maze.update()
-            
-            for (let id in this.players) {
-                if (this.maze.isPointBlocked(this.players[id].centroid)) {
-                    let attacker = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
-                    this.doCapture(id, attacker)
-                }
-            }
         }
     }
 
@@ -298,7 +296,6 @@ export class ServerGameState {
         // TODO: think about best order
         this.time = Date.now()
         this.updateMaze()
-        // TODO: kill all players and powerups in walls
         this.updatePlayers()
         this.updatePowerups()
         this.updateCaptures()
