@@ -429,8 +429,8 @@ export class Maze {
         let upperBound = add(me.centroid, visibleSize).scale(1 / CONSTANTS.CELL_SIZE).ceil()
         
 
-        for (let row = Math.max(0, lowerBound.x); row <= upperBound.x && row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = Math.max(0, lowerBound.y); col <= upperBound.y && col < CONSTANTS.NUM_CELLS; col++) {
+        for (let row = Math.max(-1, lowerBound.x); row <= upperBound.x && row < CONSTANTS.NUM_CELLS + 1; row++) {
+            for (let col = Math.max(-1, lowerBound.y); col <= upperBound.y && col < CONSTANTS.NUM_CELLS + 1; col++) {
                 let obstacles = this.getObstacles(new Position(row, col))
                 for (let i = 0; i < obstacles.length; i++) {
                     if (me.canSee(obstacles[i])) {

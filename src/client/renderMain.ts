@@ -14,9 +14,9 @@ export function renderMain(gamestate: ClientGameState) {
     ctxMain.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)
 
     renderMap()
-    ctxMain.globalAlpha = 0.5
+    //ctxMain.globalAlpha = 0.5
     renderMaze(gamestate.maze, gamestate.time)
-    ctxMain.globalAlpha = 1
+    //ctxMain.globalAlpha = 1
     for (let i in gamestate.powerups) {
         renderPowerup(gamestate.powerups[i])
     }
@@ -73,7 +73,7 @@ function drawInset(inset: number, strokeStyle: string) {
 }
 
 function renderMaze(maze: Obstacle[], time: number) {
-    drawInset(2 * CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_SHADOW_COLOUR)
+    drawInset(CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_SHADOW_COLOUR)
 
     
     let existingMaze = maze.filter(function(val : Obstacle) {
@@ -116,7 +116,7 @@ function renderMaze(maze: Obstacle[], time: number) {
         ctxMain.fill()
     }
 
-    drawInset(CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_UNREACHABLE_COLOUR)
+    drawInset(CONSTANTS.MAZE_OVERLAP / 2, CONSTANTS.MAP_UNREACHABLE_COLOUR)
 }
 
 function renderPowerup(powerup: Powerup) {
