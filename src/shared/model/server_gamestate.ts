@@ -87,7 +87,7 @@ export class ServerGameState {
         }
         for (let otherID in this.me) {
             if (isString(this.me[otherID]) && this.me[otherID] == id) {
-                console.log(otherID, this.me[otherID])
+                //console.log(otherID, this.me[otherID])
                 this.me[otherID] = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
             }
         }

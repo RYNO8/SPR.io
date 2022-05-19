@@ -17,6 +17,6 @@ docker-compose.yaml
 
 
 build/start/stop docker containers (uses docker-compose.yaml)
-	build.sh
-	up.sh
-	down.sh
+    build.sh
+    up.sh
+    down.sh

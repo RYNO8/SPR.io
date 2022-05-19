@@ -1,7 +1,7 @@
 {
-    "name": "typescript-express-phaser-socketio-starter",
+    "name": "nocrumbs.io",
     "version": "1.0.0",
-    "description": "A starter pack to quickly develop multiplayer games using Typescript, Express, SocketIO and Phaser",
+    "description": "duck",
     "main": "index.html",
     "scripts": {
         "clean": "rimraf dist/*",
@@ -14,7 +14,7 @@
         "dev": "nodemon --watch src -e ts --exec npm-run-all build start",
         "start_maze": "node dist/server/maze_test.js",
         "maze": "nodemon --watch src -e ts --exec npm-run-all build start_maze",
-	    "prod": "pm2 dist/server/server.js"
+        "prod": "pm2 dist/server/server.js"
     },
     "author": "Ryno",
     "license": "MIT",

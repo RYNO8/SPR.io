@@ -1,18 +1,19 @@
-html {
-    overflow: hidden;
-    overflow-x: hidden;
-    overflow-y: hidden;
-}
-
-body {
+html, body {
     margin: 0px;
     overflow: hidden;
     overflow-x: hidden;
     overflow-y: hidden;
     position: relative;
     font-family: sans-serif;
-	opacity: 0;
-	transition: 0.2s, opacity 0.2s linear 0.2s, background-color linear 0.5s;
+    opacity: 0;
+    transition: 0.2s, opacity 0.2s linear 0.2s, background-color linear 0.5s;
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .overlay {
