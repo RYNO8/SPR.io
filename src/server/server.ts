@@ -10,7 +10,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 import { ServerGameState } from "../shared/model/server_gamestate"
 import * as CONSTANTS from "../shared/constants"
-import { validName } from "../shared/utilities"
+import { validName, validNumber } from "../shared/utilities"
 
 let gamestate: ServerGameState = new ServerGameState()
 
@@ -61,7 +61,9 @@ io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
     })
 
     socket.on(CONSTANTS.Endpoint.UPDATE_DIRECTION, function(direction: number) {
-        gamestate.setPlayerDirection(socket.id, direction)
+        if (validNumber(direction)) {
+            gamestate.setPlayerDirection(socket.id, direction)
+        }
     })
 
     socket.on(CONSTANTS.Endpoint.UPDATE_SPEED, function(speed: number) {

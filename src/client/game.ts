@@ -1,9 +1,9 @@
 /*
 BUGS
- - disable zoom
  - glitch into wall corners (increase MAZE_OVERLAP?)
  - when maze wall spawns, you get stuck inside if you are on the edge (check wall collisions on each player update)
-
+ - bot id gen
+ 
  TODO
  - rooms
  - game modes
@@ -24,7 +24,6 @@ BUGS
 THINK ABOUT
  - powerup to gain (temporary?) wider field of view
  - powerup to gain partial points
- - colour coded gates
 */
 
 import { debounce } from "throttle-debounce"
@@ -51,7 +50,7 @@ function preventMotion(event: any) {
     // 109 Num Key  -
     // 173 Min Key  hyphen/underscore key
     // 61 Plus key  +/= key
-    if (event.ctrlKey && (event.which == '61' || event.which == '107' || event.which == '173' || event.which == '109'  || event.which == '187'  || event.which == '189')) {
+    if (event.ctrlKey && (event.which === '61' || event.which === '107' || event.which === '173' || event.which === '109'  || event.which === '187'  || event.which === '189')) {
         event.preventDefault();
     }
 }
@@ -74,7 +73,7 @@ document.getElementById("back-button").onclick = initMainMenu
 document.getElementById("play-button").onclick = startGame
 document.getElementById("play-button-2").onclick = startGame
 document.onkeyup = function(event: KeyboardEvent) {
-    if (event.code == "Enter") {
+    if (event.code === "Enter") {
         startGame()
     }
 }

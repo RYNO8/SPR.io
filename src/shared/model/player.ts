@@ -21,7 +21,7 @@ export class Player extends GameObject {
         this.id = id
         this.name = name
         this.isBot = isBot
-        if (id == CONSTANTS.MAZE_NAME && name == CONSTANTS.MAZE_NAME) {
+        if (id === CONSTANTS.MAZE_NAME && name === CONSTANTS.MAZE_NAME) {
             this.isVisible = false
         }
         
@@ -49,15 +49,15 @@ export class Player extends GameObject {
     canCapture(p: Player): boolean {
         let mePowerup = this.hasPowerup >= Date.now()
         let otherPowerup = p.hasPowerup >= Date.now()
-        if (mePowerup == otherPowerup) {
-            return p.team == (this.team + 1) % CONSTANTS.NUM_TEAMS
+        if (mePowerup === otherPowerup) {
+            return p.team === (this.team + 1) % CONSTANTS.NUM_TEAMS
         } else {
             return mePowerup
         }
     }
 
     hasCapture(p: Player): boolean {
-        return this.id != p.id && this.canAttack(p) && this.canCapture(p)
+        return this.id !== p.id && this.canAttack(p) && this.canCapture(p)
     }
 
     
@@ -68,18 +68,18 @@ export class Player extends GameObject {
     }
 
     getColour(me: Player) {
-        /*if (this.team == (me.team + 1) % CONSTANTS.NUM_TEAMS) {
+        /*if (this.team === (me.team + 1) % CONSTANTS.NUM_TEAMS) {
             return CONSTANTS.PLAYER_PREY_COLOUR
         }
-        else if (me.team == (this.team + 1) % CONSTANTS.NUM_TEAMS) {
+        else if (me.team === (this.team + 1) % CONSTANTS.NUM_TEAMS) {
             return CONSTANTS.PLAYER_ENEMY_COLOUR
         }
         else {
             return CONSTANTS.PLAYER_TEAMMATE_COLOUR
         }*/
-        if (this.team == 0) {
+        if (this.team === 0) {
             return CONSTANTS.PLAYER_PREY_COLOUR
-        } else if (this.team == 1) {
+        } else if (this.team === 1) {
             return CONSTANTS.PLAYER_ENEMY_COLOUR
         } else {
             return CONSTANTS.PLAYER_TEAMMATE_COLOUR

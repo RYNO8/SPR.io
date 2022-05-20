@@ -109,7 +109,7 @@ export function sub(a: Position, b: Position) {
 }
 
 export function isEqual(a: Position, b: Position) {
-    //return a.x == b.x && a.y == b.y
+    //return a.x === b.x && a.y === b.y
     return sub(a, b).quadrance() <= CONSTANTS.EPSILON
 }
 
@@ -144,8 +144,8 @@ export function pointLineDist(pos0: Position, pos1: Position, pos2: Position) {
 }
 
 export function lineLineIntersection(startPos1: Position, dir1: Position, startPos2: Position, dir2: Position): [number, Position, Position] {
-    // startPos1 + lambda * dir1 == startPos2 + t * dir2
-    // lambda * skewProd(dir1, dir2) == skewProd(startPos2 - startPos1, dir2)
+    // startPos1 + lambda * dir1 === startPos2 + t * dir2
+    // lambda * skewProd(dir1, dir2) === skewProd(startPos2 - startPos1, dir2)
     let denominator = skewProd(dir1, dir2)
     let lambda = skewProd(sub(startPos2, startPos1), dir2) / denominator
     let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
@@ -159,8 +159,7 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
         return [Infinity, null, null]
     } else if (0 <= lambda && lambda <= 1 && 0 <= mu && mu <= 1) {
         // lines are intersecting on segment
-        lambda -= 1 / 100
-        lambda = Math.floor(lambda * 100) / 100
+        lambda = Math.floor(lambda * 100 - 1) / 100
         let endPos1 = add(startPos1, dir1.scale(lambda))
         let slide = proj(dir1, dir2).scale((1 - lambda) * CONSTANTS.MAZE_WALL_SMOOTHNESS)
         return [lambda, endPos1, slide]

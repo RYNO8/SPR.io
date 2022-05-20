@@ -26,19 +26,19 @@ function toRipplePos(pos: Position) {
 
 export function renderFX(gamestate: ClientGameState) {
     canPlace = genBuffer(true)
-    for (let i in gamestate.maze) {
-        if (gamestate.maze[i].time < gamestate.time) {
+    /*for (let i in gamestate.maze) {
+        if (gamestate.maze[i].existsAt(gamestate.time)) {
             addObstacle(gamestate.maze[i])
         }
-    }
+    }*/
 
     let oldLookPos = lookPos
     let rippleMe = toRipplePos(gamestate.me.centroid)
     let cameraPos = add(rippleMe.mod(CONSTANTS.RIPPLE_REDRAW_DIST), center)
     lookPos = sub(rippleMe, cameraPos)
     
-    let shift = sub(lookPos, oldLookPos)
-    if (shift.x != 0 || shift.y != 0) {
+    let shift = sub(lookPos, oldLookPos).floor()
+    if (shift.x !== 0 || shift.y !== 0) {
         buffer1 = shiftBuffer(buffer1, shift)
         buffer2 = shiftBuffer(buffer2, shift)
     }

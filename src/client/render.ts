@@ -52,7 +52,7 @@ function updateGamestate() {
         //console.log(targetStates.length, targetStates[0].time - serverTime())
         targetStates.shift()
     }
-    if (targetStates.length == 0) {
+    if (targetStates.length === 0) {
         //console.log("empty!")
         return
     }
@@ -97,7 +97,7 @@ export function render() {
         // nobody in the map OR looking at wall
         isInGame = false
         score = 0
-    } else if (gamestate.me.id == socket.id) {
+    } else if (gamestate.me.id === socket.id) {
         // nothing bad happened yet!
         menu.classList.remove("slide-in")
         menu.classList.add("slide-out")

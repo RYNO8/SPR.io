@@ -1,7 +1,11 @@
 // basic check for username
 // NOTE: done on backend to prevent dodgy client hacks
 export function validName(name: string) {
-    return 1 <= name.length && name.length <= 20
+    return typeof name === "string" && 1 <= name.length && name.length <= 20
+}
+
+export function validNumber(num: number) {
+    return typeof num === "number" && !Number.isNaN(num) && Number.isFinite(num)
 }
 
 // chose ranodm value in array
@@ -32,7 +36,7 @@ export function randShuffle(arr: any[]) {
 
 // if value is string, with typeguard
 export function isString(val: any): val is string {
-    return typeof(val) == "string"
+    return typeof(val) === "string"
 }
 
 // store rolling average and difference of a sliding window of numbers
@@ -63,7 +67,7 @@ export class RollingAvg {
     }
 
     getAvg() {
-        if (this.values.length == 0) {
+        if (this.values.length === 0) {
             return this.defaultValue
         } else {
              return this.totalSum / this.values.length

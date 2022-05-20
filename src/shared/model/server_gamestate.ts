@@ -17,6 +17,7 @@ export class ServerGameState {
     public powerups: Powerup[] = []
     // maze object
     public maze: Maze
+    public mazeChangeTime: number = 0
     // dictionary of ID's, and who each player is watching
     // if string, you are watching the player with that ID
     // if Player, you are watching a stationary position (invisible player)
@@ -43,7 +44,7 @@ export class ServerGameState {
     // set player direction from socketio input
     // NOTE: nothing happens when id is invalid or direction is invalid type
     setPlayerDirection(id: string, newDirection: number) {
-        if (id in this.players && !Number.isNaN(newDirection)) {
+        if (id in this.players) {
             this.players[id].direction = newDirection
         }
     }
@@ -52,7 +53,7 @@ export class ServerGameState {
     // if no players are present, returns dummy player to map center
     // => on an empty map, spectators look at map center
     getDefaultPlayer() {
-        if (this.getPlayers().length == 0) {
+        if (this.getPlayers().length === 0) {
             return new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
         }
         return this.getPlayers().reduce(function(p1: Player, p2: Player) {
@@ -86,7 +87,7 @@ export class ServerGameState {
             this.attackerName[id] = attacker.name
         }
         for (let otherID in this.me) {
-            if (isString(this.me[otherID]) && this.me[otherID] == id) {
+            if (isString(this.me[otherID]) && this.me[otherID] === id) {
                 //console.log(otherID, this.me[otherID])
                 this.me[otherID] = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
             }
@@ -195,7 +196,7 @@ export class ServerGameState {
     exportPlayers(me: Player) {
         let others: Player[] = []
         for (let id in this.players) {
-            if (id != me.id && me.canSee(this.players[id])) {
+            if (id !== me.id && me.canSee(this.players[id])) {
                 others.push(this.players[id])
             }
         }
@@ -254,7 +255,8 @@ export class ServerGameState {
 
     // change maze if necessary, remove players in walls
     updateMaze() {
-        if (randChance(CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE)) {
+        if (randChance(CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE) && this.mazeChangeTime < Date.now() - CONSTANTS.MAZE_CHANGE_DELAY) {
+            this.mazeChangeTime = Date.now()
             this.maze.update()
         }
     }

@@ -35,7 +35,7 @@ export const CANVAS_FONT: string = "20px serif"
 export const INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
 export const NAME_PLACEHOLDER: string = "Placeholder"
 export const EPSILON: number = 5e-4
-
+export const MAX_TIMESTAMP: number = 8640000000000000
 
 // leaderboard
 export const LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
@@ -78,7 +78,7 @@ export const MAP_STYLE: string = "none" // or "none" or "grid"
 export const MAP_LINE_COLOUR: string = "black"
 export const MAP_UNREACHABLE_COLOUR: string = "grey"
 export const MAP_SHADOW_COLOUR = "lightgrey"
-export const MAP_WARNING_COLOUR = "rgba(255, 0, 0, 0.7)"
+export const MAP_WARNING_COLOUR = "red"
 
 // ripple effects
 export const RIPPLE_TRUE_WIDTH = 30 * 16 //480
@@ -99,7 +99,7 @@ export const NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export const MAZE_CHANGE_RATE: number = 2.5 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
 export const MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
 export const MAZE_OVERLAP: number = 15
-export const MAZE_CHANGE_DELAY: number = 2000
+export const MAZE_CHANGE_DELAY: number = 0.5 * 1000
 export const MAZE_NAME: string = "the Labyrinth."
 // magic values for cellular automata (dont change!)
 export const MAZE_DENSITY: number = 0.48 // must be between 0 and 1 inclusive, what percentage of the maze is walls
