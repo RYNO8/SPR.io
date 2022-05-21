@@ -10,9 +10,9 @@ export class MazeGenStub {
     findMutations() {
         if (this.isInit) {
             this.isInit = false
-            return [new Position(2, 2)]
+            return [new Position(2, 2), new Position(2, 4)]
         } else {
-            return [new Position(5, 5)]
+            return [new Position(3, 3)]
         }
     }
 }

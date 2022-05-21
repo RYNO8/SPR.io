@@ -226,8 +226,9 @@ export class MazeGen {
         this.maze = this.noise
 
         for (let rep = 0; rep < CONSTANTS.CA_NUM_STEPS; rep++) this.cellAutomataStep()
-        this.joinComponentsGabriel(this.getAllCentroids())
+        //this.joinComponentsGabriel(this.getAllCentroids())
         //this.joinComponentsRNG(this.getAllCentroids())
+        this.joinComponentsRandom(this.getAllCentroids())
     }
 
     findMutations() {

@@ -71,7 +71,7 @@ export const POWERUP_RADIUS = 14
 export const POWERUP_COLOUR = "purple"
 
 // map
-export const MAP_SIZE: number = 7200
+export const MAP_SIZE: number = 1800 //7200
 export const MAP_LINE_WIDTH: number = 2
 export const MAP_SHADOW_WIDTH = 10
 export const MAP_STYLE: string = "none" // or "none" or "grid"
@@ -99,7 +99,7 @@ export const NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export const MAZE_CHANGE_RATE: number = 2.5 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
 export const MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
 export const MAZE_OVERLAP: number = 15
-export const MAZE_CHANGE_DELAY: number = 0.5 * 1000
+export const MAZE_CHANGE_DELAY: number = 2 * 1000
 export const MAZE_NAME: string = "the Labyrinth."
 // magic values for cellular automata (dont change!)
 export const MAZE_DENSITY: number = 0.48 // must be between 0 and 1 inclusive, what percentage of the maze is walls

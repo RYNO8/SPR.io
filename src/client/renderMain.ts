@@ -83,10 +83,10 @@ function renderMaze(maze: Obstacle[], time: number) {
         return val.existsAfter(time)
     })
 
-    ctxMain.globalAlpha = 0.7
-    ctxMain.globalCompositeOperation = "darken"
-    ctxMain.fillStyle = CONSTANTS.MAP_WARNING_COLOUR
+    
+    /*ctxMain.fillStyle = CONSTANTS.MAP_WARNING_COLOUR
     for (let i in newMaze) {
+        ctxMain.globalAlpha = Math.max(0, Math.min(1, 1 + (time - newMaze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY))
         ctxMain.beginPath()
         for (let j in newMaze[i].points) {
             ctxMain.lineTo(newMaze[i].points[j].x, newMaze[i].points[j].y)
@@ -95,13 +95,38 @@ function renderMaze(maze: Obstacle[], time: number) {
         ctxMain.lineTo(newMaze[i].points[1].x, newMaze[i].points[1].y)
         ctxMain.fill()
         //ctxMain.stroke()
-    }
-    ctxMain.globalAlpha = 1
-    ctxMain.globalCompositeOperation = "source-over"
+    }*/
 
     ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
     ctxMain.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
+    for (let i in newMaze) {
+        ctxMain.globalAlpha = Math.max(0, Math.min(1, 1 + (time - newMaze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY))
+        ctxMain.beginPath()
+        for (let j in newMaze[i].points) {
+            ctxMain.lineTo(newMaze[i].points[j].x, newMaze[i].points[j].y)
+        }
+        ctxMain.lineTo(newMaze[i].points[0].x, newMaze[i].points[0].y)
+        ctxMain.lineTo(newMaze[i].points[1].x, newMaze[i].points[1].y)
+        ctxMain.stroke()
+    }
+
+    ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
+    for (let i in newMaze) {
+        ctxMain.globalAlpha = Math.max(0, Math.min(1, 1 + (time - newMaze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY))
+        ctxMain.beginPath()
+        for (let j in newMaze[i].points) {
+            ctxMain.lineTo(newMaze[i].points[j].x, newMaze[i].points[j].y)
+        }
+        // TODO: handle 0 width gaps
+        ctxMain.lineTo(newMaze[i].points[0].x, newMaze[i].points[0].y)
+        ctxMain.lineTo(newMaze[i].points[1].x, newMaze[i].points[1].y)
+        ctxMain.fill()
+    }
+    
+    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
+    ctxMain.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
     for (let i in existingMaze) {
+        ctxMain.globalAlpha = Math.max(0, Math.min(1, (existingMaze[i].endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY))
         ctxMain.beginPath()
         for (let j in existingMaze[i].points) {
             ctxMain.lineTo(existingMaze[i].points[j].x, existingMaze[i].points[j].y)
@@ -113,6 +138,7 @@ function renderMaze(maze: Obstacle[], time: number) {
 
     ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     for (let i in existingMaze) {
+        ctxMain.globalAlpha = Math.max(0, Math.min(1, (existingMaze[i].endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY))
         ctxMain.beginPath()
         for (let j in existingMaze[i].points) {
             ctxMain.lineTo(existingMaze[i].points[j].x, existingMaze[i].points[j].y)
@@ -123,7 +149,7 @@ function renderMaze(maze: Obstacle[], time: number) {
         ctxMain.fill()
     }
     
-
+    ctxMain.globalAlpha = 1
     drawInset(CONSTANTS.MAZE_OVERLAP / 2, CONSTANTS.MAP_UNREACHABLE_COLOUR)
 }
 
