@@ -1,12 +1,12 @@
-import { GameObject } from "./game_object"
-import { Player } from "./player"
-import { Powerup } from "./powerup"
-import { Maze } from "./maze"
-import { add, DIRECTIONS_8, Position, sub } from "./position"
-import * as CONSTANTS from "../constants"// maintain global data about other peoples positions & speeds & directions
-import { findBotDirection } from "../ai/util"
-import { isString, randChance, randChoice, randRange } from "../utilities"
-import { randomBytes } from "crypto"
+import { GameObject } from "../shared/model/game_object"
+import { Player } from "../shared/model/player"
+import { Powerup } from "../shared/model/powerup"
+import { Maze } from "../shared/model/maze"
+import { add, DIRECTIONS_8, Position, sub } from "../shared/model/position"
+import * as CONSTANTS from "../shared/constants"// maintain global data about other peoples positions & speeds & directions
+import { findBotDirection } from "./ai/util"
+import { isString, randChance, randChoice, randRange, genID } from "../shared/utilities"
+
 
 export class ServerGameState {
     // time that this gamestate represents
@@ -121,7 +121,7 @@ export class ServerGameState {
             numBots += <any>this.players[id].isBot
         }
         if (randChance(CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE) && numBots < CONSTANTS.BOTS_MAX) {
-            let newID = randomBytes(20).toString("hex")
+            let newID = genID()
             this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true)
         }
 

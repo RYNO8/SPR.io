@@ -1,7 +1,9 @@
 import * as CONSTANTS from "../shared/constants"
-import { Position, add, sub, DIRECTIONS_8 } from "../shared/model/position"
-import { ClientGameState } from "../shared/model/client_gamestate"
+import { Position, add, sub } from "../shared/model/position"
+import { ClientGameState } from "./client_gamestate"
 import { Obstacle } from "../shared/model/obstacle"
+import { Powerup } from "../shared/model/powerup"
+import { clamp, HSVtoRGB, randChance, randRange } from "../shared/utilities"
 
 let center = new Position(CONSTANTS.RIPPLE_TRUE_WIDTH / 2 + CONSTANTS.RIPPLE_BORDER_SIZE, CONSTANTS.RIPPLE_TRUE_HEIGHT / 2 + CONSTANTS.RIPPLE_BORDER_SIZE)
 const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
@@ -15,6 +17,16 @@ let buffer1: number[][] = genBuffer(0)
 let buffer2: number[][] = genBuffer(0)
 let lookPos = new Position(0, 0)
 let canPlace: boolean[][]
+let cachedColours: {r: number, b: number, g: number}[] = []
+
+for (let i = 0; i <= 255; ++i) {
+    let val = clamp(i / 255) * 0.8
+    cachedColours.push(HSVtoRGB({
+        h: CONSTANTS.MAP_WATER_COLOUR.h,
+        s: CONSTANTS.MAP_WATER_COLOUR.s * (1 - val),
+        v: CONSTANTS.MAP_WATER_COLOUR.v * (1 - val) + val
+    }))
+}
 
 function toRipplePos(pos: Position) {
     let scaleW = CONSTANTS.RIPPLE_TRUE_WIDTH / window.innerWidth
@@ -24,13 +36,13 @@ function toRipplePos(pos: Position) {
     return new Position(pos.x * scaleW * size, pos.y * scaleH * size)
 }
 
-export function renderFX(gamestate: ClientGameState) {
+export function renderFX(gamestate: ClientGameState, dt: number) {
     canPlace = genBuffer(true)
-    /*for (let i in gamestate.maze) {
+    for (let i in gamestate.maze) {
         if (gamestate.maze[i].existsAt(gamestate.time)) {
             addObstacle(gamestate.maze[i])
         }
-    }*/
+    }
 
     let oldLookPos = lookPos
     let rippleMe = toRipplePos(gamestate.me.centroid)
@@ -43,6 +55,16 @@ export function renderFX(gamestate: ClientGameState) {
         buffer2 = shiftBuffer(buffer2, shift)
     }
 
+    if (randChance(dt * CONSTANTS.RIPPLE_BUBBLE_RATE)) {
+        makeDisturbance(
+            add(new Position(randRange(0, CONSTANTS.RIPPLE_WIDTH), randRange(0, CONSTANTS.RIPPLE_HEIGHT)), lookPos),
+            CONSTANTS.RIPPLE_BUBBLE_SIZE
+        )
+    }
+
+    for (let i in gamestate.powerups) {
+        renderPowerup(gamestate.powerups[i])
+    }
     for (let i in gamestate.others) {
         let rippleOther = toRipplePos(gamestate.others[i].centroid)
         makeDisturbance(
@@ -99,6 +121,13 @@ function shiftBuffer(buffer: number[][], shift: Position) {
     return bufferOut
 }
 
+function renderPowerup(powerup: Powerup) {
+    let pos = toRipplePos(powerup.centroid)
+    let posHash = pos.x * pos.y // some value dependant on the powerup location, so that powerups dont all rotate in sync
+    let rotation = new Position(0, CONSTANTS.POWERUP_RADIUS / 2).rotate(Date.now() * CONSTANTS.POWERUP_OMEGA + posHash)
+    makeDisturbance(add(pos, rotation), CONSTANTS.RIPPLE_BUBBLE_SIZE)
+}
+
 function makeDisturbance(pos: Position, percentSize: number) {
     // pen stroke size
     let size = percentSize * Math.min(window.innerWidth, window.innerHeight)
@@ -132,32 +161,19 @@ function rippleRender(pos: Position) {
 
     for (let x = 0; x < CONSTANTS.RIPPLE_WIDTH; ++x) {
         for (let y = 0; y < CONSTANTS.RIPPLE_HEIGHT; ++y) {
-            let index = (x + y * (CONSTANTS.RIPPLE_WIDTH)) * 4
-            if (!inGrid(x, y)) {
-                // TODO: make this water colour
-                img.data[index + 0] = 0
-                img.data[index + 1] = 0
-                img.data[index + 2] = 255
-                img.data[index + 3] = 255
-            } else if (!canPlace[x][y]) {
-                // TODO: make this border or water colour
-                img.data[index + 0] = 0
-                img.data[index + 1] = 0
-                img.data[index + 2] = 255
-                img.data[index + 3] = 255
-            } else {
-                
-
+            let index = (x + y * CONSTANTS.RIPPLE_WIDTH) * 4
+            let val = 0
+            if (inGrid(x, y) && canPlace[x][y]) {
                 buffer2[x][y] = ((buffer1[x - 1][y] + buffer1[x + 1][y] + buffer1[x][y - 1] + buffer1[x][y + 1]) >> 1) - buffer2[x][y]
                 buffer2[x][y] = Math.floor(buffer2[x][y] * CONSTANTS.RIPPLE_DAMPENING)
                 //buffer2[x][y] = Math.max(0, Math.min(255, buffer2[x][y]))
 
-                let val = buffer2[x][y] //Math.max(0, Math.min(255, buffer2[x][y]))
-                img.data[index + 0] = val
-                img.data[index + 1] = val
-                img.data[index + 2] = 255
-                img.data[index + 3] = 255
+                val = Math.max(0, Math.min(255, buffer2[x][y]))
             }
+            img.data[index + 0] = cachedColours[val].r
+            img.data[index + 1] = cachedColours[val].g
+            img.data[index + 2] = cachedColours[val].b
+            img.data[index + 3] = 255
         }
     }
 
@@ -165,8 +181,8 @@ function rippleRender(pos: Position) {
     buffer2 = buffer1
     buffer1 = temp
 
-    ctxFX.fillStyle = "blue"
-    ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_TRUE_WIDTH, CONSTANTS.RIPPLE_TRUE_HEIGHT)
+    //ctxFX.fillStyle = "blue"
+    //ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_TRUE_WIDTH, CONSTANTS.RIPPLE_TRUE_HEIGHT)
     ctxFX.putImageData(img, -pos.x + CONSTANTS.RIPPLE_TRUE_WIDTH / 2, -pos.y + CONSTANTS.RIPPLE_TRUE_HEIGHT / 2)
 }
 

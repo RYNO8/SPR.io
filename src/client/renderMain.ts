@@ -1,11 +1,15 @@
+import { ClientGameState } from "./client_gamestate"
 import * as CONSTANTS from "../shared/constants"
+import { clamp } from "../shared/utilities"
 import { Obstacle } from "../shared/model/obstacle"
-import { ClientGameState } from "../shared/model/client_gamestate"
 import { Powerup } from "../shared/model/powerup"
 import { Player } from "../shared/model/player"
 
 const canvasMain = <HTMLCanvasElement> document.getElementById("canvas-main")
 const ctxMain: CanvasRenderingContext2D = canvasMain.getContext("2d")
+
+let ducc = new Image()
+ducc.src = "/img/ducc.svg"
 
 export function renderMain(gamestate: ClientGameState) {
     let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
@@ -14,12 +18,10 @@ export function renderMain(gamestate: ClientGameState) {
     ctxMain.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)
 
     renderMap()
-    //ctxMain.globalAlpha = 0.5
     renderMaze(gamestate.maze, gamestate.time)
-    //ctxMain.globalAlpha = 1
-    for (let i in gamestate.powerups) {
+    /*for (let i in gamestate.powerups) {
         renderPowerup(gamestate.powerups[i])
-    }
+    }*/
     for (let i in gamestate.others) {
         renderPlayer(gamestate.others[i], gamestate.time, gamestate.others[i].getColour(gamestate.me))
     }
@@ -73,92 +75,51 @@ function drawInset(inset: number, strokeStyle: string) {
 }
 
 function renderMaze(maze: Obstacle[], time: number) {
-    drawInset(CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_SHADOW_COLOUR)
+    drawInset(CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_SHADOW_COLOUR_2)
+    //drawInset(CONSTANTS.MAZE_OVERLAP / 2, CONSTANTS.MAP_SHADOW_COLOUR_1)
 
-    
-    let existingMaze = maze.filter(function(val : Obstacle) {
-        return val.existsAt(time)
-    })
-    let newMaze = maze.filter(function(val : Obstacle) {
-        return val.existsAfter(time)
-    })
-
-    
-    /*ctxMain.fillStyle = CONSTANTS.MAP_WARNING_COLOUR
-    for (let i in newMaze) {
-        ctxMain.globalAlpha = Math.max(0, Math.min(1, 1 + (time - newMaze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY))
-        ctxMain.beginPath()
-        for (let j in newMaze[i].points) {
-            ctxMain.lineTo(newMaze[i].points[j].x, newMaze[i].points[j].y)
-        }
-        ctxMain.lineTo(newMaze[i].points[0].x, newMaze[i].points[0].y)
-        ctxMain.lineTo(newMaze[i].points[1].x, newMaze[i].points[1].y)
-        ctxMain.fill()
-        //ctxMain.stroke()
-    }*/
-
-    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
+    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
     ctxMain.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
-    for (let i in newMaze) {
-        ctxMain.globalAlpha = Math.max(0, Math.min(1, 1 + (time - newMaze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY))
-        ctxMain.beginPath()
-        for (let j in newMaze[i].points) {
-            ctxMain.lineTo(newMaze[i].points[j].x, newMaze[i].points[j].y)
-        }
-        ctxMain.lineTo(newMaze[i].points[0].x, newMaze[i].points[0].y)
-        ctxMain.lineTo(newMaze[i].points[1].x, newMaze[i].points[1].y)
-        ctxMain.stroke()
-    }
+    renderMazeHelper(maze, time, true)
+
+    /*ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_1
+    ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
+    renderMazeHelper(maze, time, true)*/
 
     ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-    for (let i in newMaze) {
-        ctxMain.globalAlpha = Math.max(0, Math.min(1, 1 + (time - newMaze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY))
-        ctxMain.beginPath()
-        for (let j in newMaze[i].points) {
-            ctxMain.lineTo(newMaze[i].points[j].x, newMaze[i].points[j].y)
-        }
-        // TODO: handle 0 width gaps
-        ctxMain.lineTo(newMaze[i].points[0].x, newMaze[i].points[0].y)
-        ctxMain.lineTo(newMaze[i].points[1].x, newMaze[i].points[1].y)
-        ctxMain.fill()
-    }
-    
-    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR
-    ctxMain.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
-    for (let i in existingMaze) {
-        ctxMain.globalAlpha = Math.max(0, Math.min(1, (existingMaze[i].endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY))
-        ctxMain.beginPath()
-        for (let j in existingMaze[i].points) {
-            ctxMain.lineTo(existingMaze[i].points[j].x, existingMaze[i].points[j].y)
-        }
-        ctxMain.lineTo(existingMaze[i].points[0].x, existingMaze[i].points[0].y)
-        ctxMain.lineTo(existingMaze[i].points[1].x, existingMaze[i].points[1].y)
-        ctxMain.stroke()
-    }
+    renderMazeHelper(maze, time, false)
 
-    ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-    for (let i in existingMaze) {
-        ctxMain.globalAlpha = Math.max(0, Math.min(1, (existingMaze[i].endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY))
-        ctxMain.beginPath()
-        for (let j in existingMaze[i].points) {
-            ctxMain.lineTo(existingMaze[i].points[j].x, existingMaze[i].points[j].y)
-        }
-        // TODO: handle 0 width gaps
-        ctxMain.lineTo(existingMaze[i].points[0].x, existingMaze[i].points[0].y)
-        ctxMain.lineTo(existingMaze[i].points[1].x, existingMaze[i].points[1].y)
-        ctxMain.fill()
-    }
-    
     ctxMain.globalAlpha = 1
+
     drawInset(CONSTANTS.MAZE_OVERLAP / 2, CONSTANTS.MAP_UNREACHABLE_COLOUR)
 }
 
-function renderPowerup(powerup: Powerup) {
+function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean) {
+    for (let i in maze) {
+        //console.assert(maze[i].startTime <= maze[i].endTime)
+        let opacity = clamp(Math.min(
+            1 + (time - maze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY, 
+            (maze[i].endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY
+        ))
+        ctxMain.globalAlpha = opacity
+
+        ctxMain.beginPath()
+        for (let j in maze[i].points) {
+            ctxMain.lineTo(maze[i].points[j].x, maze[i].points[j].y)
+        }
+        ctxMain.lineTo(maze[i].points[0].x, maze[i].points[0].y)
+        ctxMain.lineTo(maze[i].points[1].x, maze[i].points[1].y)
+        if (doStroke) ctxMain.stroke()
+        else ctxMain.fill()
+    }
+}
+
+/*function renderPowerup(powerup: Powerup) {
     ctxMain.fillStyle = CONSTANTS.POWERUP_COLOUR
     ctxMain.beginPath()
     ctxMain.arc(powerup.centroid.x, powerup.centroid.y, CONSTANTS.POWERUP_RADIUS, 0, 2 * Math.PI)
     ctxMain.fill()
-}
+}*/
 
 function renderPlayer(player: Player, time: number, colour: string) {
     ctxMain.save()
@@ -175,13 +136,12 @@ function renderPlayer(player: Player, time: number, colour: string) {
     ctxMain.strokeStyle = colour
     ctxMain.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
 
-    /*ctxMain.beginPath()
-    let innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
-    ctxMain.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
-    ctxMain.fill()
-    ctxMain.stroke()*/
-    //ctxMain.drawImage(ducc, -138, -96)
-    ctxMain.fillRect(0, -2, 50, 2)
+    // TODO: better ducc
+    ctxMain.rotate(Math.PI / 2)
+    ctxMain.scale(0.6, 0.6)
+    ctxMain.drawImage(ducc, -123, -136)
+    ctxMain.rotate(-Math.PI / 2)
+    ctxMain.scale(1/0.6, 1/0.6)
 
     ctxMain.rotate(-player.direction)
     ctxMain.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR

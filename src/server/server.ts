@@ -8,7 +8,7 @@ if (process.env.NODE_ENV !== 'production') {
     dotenv.config();
 }
 
-import { ServerGameState } from "../shared/model/server_gamestate"
+import { ServerGameState } from "./server_gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { validName, validNumber } from "../shared/utilities"
 

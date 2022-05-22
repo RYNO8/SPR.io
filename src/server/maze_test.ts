@@ -2,7 +2,7 @@ import * as express from "express"
 import * as path from "path"
 import { Server } from "socket.io"
 import { createServer } from "http"
-import { ServerGameState } from "../shared/model/server_gamestate"
+import { ServerGameState } from "./server_gamestate"
 import * as CONSTANTS from "../shared/constants"
 
 let gamestate: ServerGameState = new ServerGameState()

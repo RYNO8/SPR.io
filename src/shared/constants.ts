@@ -31,9 +31,9 @@ export const NUM_TEAMS: number = 3
 export const VISIBLE_WIDTH: number = 1500
 export const VISIBLE_HEIGHT: number = 1500
 export const VISIBLE_BUFFER: number = 200 // >= 0
-export const CANVAS_FONT: string = "20px serif"
+export const CANVAS_FONT: string = "bold 20px arial"
 export const INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
-export const NAME_PLACEHOLDER: string = "Placeholder"
+export const NAME_PLACEHOLDER: string = "Duck!"
 export const EPSILON: number = 5e-4
 export const MAX_TIMESTAMP: number = 8640000000000000
 
@@ -68,17 +68,18 @@ export const POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclus
 export const POWERUP_MAX: number = 100
 export const POWERUP_DURATION: number = 5 * 1000
 export const POWERUP_RADIUS = 14
-export const POWERUP_COLOUR = "purple"
+export const POWERUP_OMEGA = 0.4 / 1000 * (2 * Math.PI)
 
 // map
-export const MAP_SIZE: number = 1800 //7200
+export const MAP_SIZE: number = 7200
 export const MAP_LINE_WIDTH: number = 2
 export const MAP_SHADOW_WIDTH = 10
 export const MAP_STYLE: string = "none" // or "none" or "grid"
 export const MAP_LINE_COLOUR: string = "black"
-export const MAP_UNREACHABLE_COLOUR: string = "grey"
-export const MAP_SHADOW_COLOUR = "lightgrey"
-export const MAP_WARNING_COLOUR = "red"
+export const MAP_UNREACHABLE_COLOUR: string = "#37782C"
+export const MAP_SHADOW_COLOUR_1 = "#9FD983"
+export const MAP_SHADOW_COLOUR_2 = "#64BB6A"
+export const MAP_WATER_COLOUR = { h: 186, s: .69, v: .75 }
 
 // ripple effects
 export const RIPPLE_TRUE_WIDTH = 30 * 16 //480
@@ -92,6 +93,7 @@ export const RIPPLE_PLAYER_SIZE = 0.015
 export const RIPPLE_BUBBLE_SIZE = 0.005
 export const RIPPLE_GRADIENT_SIZE = 1 //0.5
 export const RIPPLE_REDRAW_DIST = 5
+export const RIPPLE_BUBBLE_RATE = 1.2 / 1000
 
 // maze
 export const CELL_SIZE: number = 180 // there is a grid line every this many pixels

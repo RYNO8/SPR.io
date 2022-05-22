@@ -1,5 +1,5 @@
 import { socket } from "./networking"
-import { ClientGameState } from "../shared/model/client_gamestate"
+import { ClientGameState } from "./client_gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { direction } from "./playerInput"
 import { initGameoverMenu, initDisconnectedMenu } from "./events"
@@ -16,8 +16,6 @@ let timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 let latencySamplesMain = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 let latencySamplesFX = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 
-let ducc = new Image()
-ducc.src = "/img/ducc.svg"
 
 const debug1 = document.getElementById("debug-1")
 const debug2 = document.getElementById("debug-2")
@@ -110,7 +108,7 @@ export function render() {
         score = gamestate.me.score
     }
 
-    renderFX(gamestate)
+    renderFX(gamestate, framerateSamples.getDiff())
     renderMain(gamestate)
 
     // Rerun this render function on the next frame

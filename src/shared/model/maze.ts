@@ -2,8 +2,8 @@ import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
 import { makeSquare, makeTriangle, Obstacle } from "./obstacle"
 import { Position, add, DIRECTIONS_8, sub } from "./position"
-//import { MazeGen } from "./mazegen"
-import { MazeGenStub as MazeGen } from "./mazegen_stub"
+import { MazeGen } from "./mazegen"
+//import { MazeGenStub as MazeGen } from "./mazegen_stub"
 
 export class Maze {
     public mazeGen: MazeGen = new MazeGen()
@@ -172,7 +172,7 @@ export class Maze {
         for (let rep = 0; rep < 2; ++rep) {
             let traced = this.rayTraceHelper(intersection[0], intersection[1])
             if (this.isPointBlocked(add(traced[1], traced[2]))) {
-                console.log(rep, traced[0], traced[1], add(traced[1], traced[2]), this.isPointBlocked(traced[1]))
+                //console.log(rep, traced[0], traced[1], add(traced[1], traced[2]), this.isPointBlocked(traced[1]))
             }
             intersection[0] = traced[1]
             intersection[1] = traced[2]
@@ -180,10 +180,10 @@ export class Maze {
         if (!this.isPointBlocked(add(intersection[0], intersection[1]))) {
             return add(intersection[0], intersection[1])
         } else if (!this.isPointBlocked(intersection[0])) {
-            console.log("ohno")
+            //console.log("ohno")
             return intersection[0]
         } else {
-            console.log("ohno ohno")
+            //console.log("ohno ohno")
             return startPos
         }
     }

@@ -1,7 +1,7 @@
-import * as CONSTANTS from "../constants"
-import { Player } from "./player"
-import { Powerup } from "./powerup"
-import { Obstacle } from "./obstacle"
+import * as CONSTANTS from "../shared/constants"
+import { Player } from "../shared/model/player"
+import { Powerup } from "../shared/model/powerup"
+import { Obstacle } from "../shared/model/obstacle"
 
 export class ClientGameState {
     public time: number = 0

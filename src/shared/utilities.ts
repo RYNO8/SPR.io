@@ -1,7 +1,13 @@
+import { randomBytes } from "crypto"
+
+// if value is string, with typeguard
+export function isString(val: any): val is string {
+    return typeof(val) === "string"
+}
 // basic check for username
 // NOTE: done on backend to prevent dodgy client hacks
 export function validName(name: string) {
-    return typeof name === "string" && 1 <= name.length && name.length <= 20
+    return isString(name) && 1 <= name.length && name.length <= 20
 }
 
 export function validNumber(num: number) {
@@ -20,7 +26,7 @@ export function randRange(min: number, max: number) {
 
 // return true with probability p
 export function randChance(p: number) {
-    console.assert(0 <= p && p <= 1)
+    //console.assert(0 <= p && p <= 1)
     return Math.random() <= p
 }
 
@@ -34,9 +40,26 @@ export function randShuffle(arr: any[]) {
     }
 }
 
-// if value is string, with typeguard
-export function isString(val: any): val is string {
-    return typeof(val) === "string"
+
+export function genID() {
+    return randomBytes(20).toString("hex")
+}
+
+export function clamp(x: number) {
+    return Math.max(0, Math.min(1, x))
+}
+
+// input: h in [0,360] and s,v in [0,1] - output: r,g,b in [0,1]
+export function HSVtoRGB(colour: {h: number, s: number, v: number}) {
+    const f = function(n: number) {
+        let k = (n+colour.h/60)%6
+        return Math.round(255 * colour.v * (1 - colour.s*Math.max( Math.min(k,4-k,1), 0)))
+    }
+    return {
+        r: f(5),
+        g: f(3),
+        b: f(1)
+    }
 }
 
 // store rolling average and difference of a sliding window of numbers
