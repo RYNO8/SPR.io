@@ -46,10 +46,11 @@ socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(jsonstate: any) {
 
 // modify gamestate towards targetState
 function updateGamestate() {
-    while (targetStates.length > 0 && targetStates[0].time < serverTime()) {
+    /*while (targetStates.length > 0 && targetStates[0].time < serverTime()) {
         //console.log(targetStates.length, targetStates[0].time - serverTime())
         targetStates.shift()
-    }
+    }*/
+    while (targetStates.length > 1) targetStates.shift()
     if (targetStates.length === 0) {
         //console.log("empty!")
         return

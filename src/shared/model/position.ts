@@ -94,8 +94,8 @@ export let DIRECTIONS_8 = [
 ]
 
 export let ALL_POS: Position[] = []
-for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-    for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
+    for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
         ALL_POS.push(new Position(row, col))
     }
 }

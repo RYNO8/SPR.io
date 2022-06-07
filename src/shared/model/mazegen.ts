@@ -8,10 +8,10 @@ export class MazeGen {
 
     constructor() {
         // populate noise randomly with true/false according to MAZE_DENSITY
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             this.maze[row] = []
             this.noise[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 this.maze[row][col] = false
                 this.noise[row][col] = randChance(CONSTANTS.MAZE_DENSITY)
             }
@@ -44,7 +44,7 @@ export class MazeGen {
             allPos.push(curr)
             queue.shift()
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 4; ++i) {
                 let neighbour = add(curr, DIRECTIONS_4[i])
                 if (!this.isCellBlocked(neighbour) && !seen[neighbour.x][neighbour.y]) {
                     seen[neighbour.x][neighbour.y] = true
@@ -63,11 +63,11 @@ export class MazeGen {
             let dx = Math.abs(end.x - start.x)
             let dy = Math.abs(end.y - start.y)
             if (randChance(dx / (dx + dy))) {
-                if (start.x > end.x) start.x--
-                else if (start.x < end.x) start.x++
+                if (start.x > end.x) --start.x
+                else if (start.x < end.x) ++start.x
             } else {
-                if (start.y > end.y) start.y--
-                else if (start.y < end.y) start.y++
+                if (start.y > end.y) --start.y
+                else if (start.y < end.y) ++start.y
             }
             this.maze[start.x][start.y] = false
         }
@@ -76,16 +76,16 @@ export class MazeGen {
     // find average of points in each component
     getAllCentroids() {
         let seen: boolean[][] = []
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             seen[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 seen[row][col] = false
             }
         }
 
         let allCentroids: Position[] = []
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 let pos = new Position(row, col)
                 if (!this.isCellBlocked(pos) && !seen[pos.x][pos.y]) {
                     let allPos = this.getComponent(pos, seen)
@@ -100,7 +100,7 @@ export class MazeGen {
     // join components into a random subtree (biased?) using randomised krushals
     joinComponentsRandom(allCentroids: Position[]) {
         let parents: number[] = []
-        for (let i = 0; i < allCentroids.length; i++) parents[i] = i
+        for (let i = 0; i < allCentroids.length; ++i) parents[i] = i
         function getParent(node: number) {
             if (parents[node] !== node) {
                 parents[node] = getParent(parents[node])
@@ -123,7 +123,7 @@ export class MazeGen {
     // join components into an MST
     joinComponentsKruskals(allCentroids: Position[]) {
         let parents: number[] = []
-        for (let i = 0; i < allCentroids.length; i++) parents[i] = i
+        for (let i = 0; i < allCentroids.length; ++i) parents[i] = i
         function getParent(node: number) {
             if (parents[node] !== node) {
                 parents[node] = getParent(parents[node])
@@ -133,15 +133,15 @@ export class MazeGen {
 
         // krushals mst
         let allEdges: [number, number, number][] = []
-        for (let i = 0; i < allCentroids.length; i++) {
-            for (let j = 0; j < i; j++) {
+        for (let i = 0; i < allCentroids.length; ++i) {
+            for (let j = 0; j < i; ++j) {
                 allEdges.push([sub(allCentroids[i], allCentroids[j]).manhattanDist(), i, j])
             }
         }
         allEdges.sort(function(a: [number, number, number], b: [number, number, number]) {
             return a[0] - b[0]
         })
-        for (let i = 0; i < allEdges.length; i++) {
+        for (let i = 0; i < allEdges.length; ++i) {
             let a = allEdges[i][1]
             let b = allEdges[i][2]
             if (getParent(a) !== getParent(b)) {
@@ -153,15 +153,15 @@ export class MazeGen {
 
     // https://en.wikipedia.org/wiki/Gabriel_graph
     joinComponentsGabriel(allCentroids: Position[]) {
-        for (let i = 0; i < allCentroids.length; i++) {
-            for (let j = 0; j < i; j++) {
+        for (let i = 0; i < allCentroids.length; ++i) {
+            for (let j = 0; j < i; ++j) {
                 let mid = findAvg([allCentroids[i], allCentroids[j]])
                 let smallestDist = Math.min(
                     sub(allCentroids[i], mid).quadrance(), 
                     sub(allCentroids[j], mid).quadrance()
                 )
                 let good = true
-                for (let k = 0; k < allCentroids.length && good; k++) {
+                for (let k = 0; k < allCentroids.length && good; ++k) {
                     if (sub(allCentroids[k], mid).quadrance() < smallestDist) {
                         good = false
                     }
@@ -176,11 +176,11 @@ export class MazeGen {
 
     // https://en.wikipedia.org/wiki/Relative_neighborhood_graph
     joinComponentsRNG(allCentroids: Position[]) {
-        for (let i = 0; i < allCentroids.length; i++) {
-            for (let j = 0; j < i; j++) {
+        for (let i = 0; i < allCentroids.length; ++i) {
+            for (let j = 0; j < i; ++j) {
                 let smallestDist = sub(allCentroids[i], allCentroids[j]).quadrance()
                 let good = true
-                for (let k = 0; k < allCentroids.length && good; k++) {
+                for (let k = 0; k < allCentroids.length && good; ++k) {
                     if (sub(allCentroids[k], allCentroids[i]).quadrance() < smallestDist) {
                         good = false
                     } else if (sub(allCentroids[k], allCentroids[j]).quadrance() < smallestDist) {
@@ -199,12 +199,12 @@ export class MazeGen {
     // "maze" changed inplace
     cellAutomataStep() {
         let newMaze: boolean[][] = []
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             newMaze[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 let pos = new Position(row, col)
                 let numAlive = 0
-                for (let i = 0; i < 8; i++) {
+                for (let i = 0; i < 8; ++i) {
                     if (this.isValidCell(add(pos, DIRECTIONS_8[i])) && this.isCellBlocked(add(pos, DIRECTIONS_8[i]))) {
                         numAlive++
                     }
@@ -225,7 +225,7 @@ export class MazeGen {
     cellAutomataMazeGen() {
         this.maze = this.noise
 
-        for (let rep = 0; rep < CONSTANTS.CA_NUM_STEPS; rep++) this.cellAutomataStep()
+        for (let rep = 0; rep < CONSTANTS.CA_NUM_STEPS; ++rep) this.cellAutomataStep()
         //this.joinComponentsGabriel(this.getAllCentroids())
         //this.joinComponentsRNG(this.getAllCentroids())
         this.joinComponentsRandom(this.getAllCentroids())
@@ -243,8 +243,8 @@ export class MazeGen {
         this.cellAutomataMazeGen()
 
         let todo: Position[] = []
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 if (oldMaze[row][col] !== this.maze[row][col]) {
                     todo.push(new Position(row, col))
                 }

@@ -42,7 +42,7 @@ export class Player extends GameObject {
     }
 
     increment() {
-        this.score++
+        ++this.score
         this.team = (this.team + 1) % CONSTANTS.NUM_TEAMS
     }
 
@@ -68,7 +68,7 @@ export class Player extends GameObject {
     }
 
     getColour(me: Player) {
-        /*if (this.team === (me.team + 1) % CONSTANTS.NUM_TEAMS) {
+        if (this.team === (me.team + 1) % CONSTANTS.NUM_TEAMS) {
             return CONSTANTS.PLAYER_PREY_COLOUR
         }
         else if (me.team === (this.team + 1) % CONSTANTS.NUM_TEAMS) {
@@ -76,14 +76,14 @@ export class Player extends GameObject {
         }
         else {
             return CONSTANTS.PLAYER_TEAMMATE_COLOUR
-        }*/
-        if (this.team === 0) {
+        }
+        /*if (this.team === 0) {
             return CONSTANTS.PLAYER_PREY_COLOUR
         } else if (this.team === 1) {
             return CONSTANTS.PLAYER_ENEMY_COLOUR
         } else {
             return CONSTANTS.PLAYER_TEAMMATE_COLOUR
-        }
+        }*/
     }
 
     updatePlayer(newPlayer: Player, delta: number) {

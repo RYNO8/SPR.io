@@ -5,9 +5,9 @@ export const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
 export const CLIENT_SEND_RATE: number = 40
 export const SERVER_BOT_UPDATE_RATE: number = 40
 export const SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
-export const SERVER_TICK_RATE: number = 40 // duration between each packet send
-export const RENDER_DELAY: number = 60 //100
-export const SAMPLE_SIZE: number = 20 //6
+export const SERVER_TICK_RATE: number = 25 // duration between each packet send
+export const RENDER_DELAY: number = 100
+export const SAMPLE_SIZE: number = 20
 
 // socketio "endpoints"
 export enum Endpoint {
@@ -30,7 +30,7 @@ export enum Endpoint {
 export const NUM_TEAMS: number = 3
 export const VISIBLE_WIDTH: number = 1500
 export const VISIBLE_HEIGHT: number = 1500
-export const VISIBLE_BUFFER: number = 200 // >= 0
+export const VISIBLE_BUFFER: number = 190 // >= 0
 export const CANVAS_FONT: string = "bold 20px arial"
 export const INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
 export const NAME_PLACEHOLDER: string = "Duck!"
@@ -66,14 +66,14 @@ export const BOT_NAMES = [
 // powerup
 export const POWERUP_RATE: number = 0.1 / 1000 // must be between 0 and 1 inclusive, expected number of powerups per ms
 export const POWERUP_MAX: number = 100
-export const POWERUP_DURATION: number = 5 * 1000
+export const POWERUP_DURATION: number = 10 * 1000
 export const POWERUP_RADIUS = 14
-export const POWERUP_OMEGA = 0.4 / 1000 * (2 * Math.PI)
+export const POWERUP_OMEGA = 0.8 / 1000 * (2 * Math.PI)
 
 // map
 export const MAP_SIZE: number = 7200
 export const MAP_LINE_WIDTH: number = 2
-export const MAP_SHADOW_WIDTH = 10
+export const MAP_SHADOW_WIDTH = 15
 export const MAP_STYLE: string = "none" // or "none" or "grid"
 export const MAP_LINE_COLOUR: string = "black"
 export const MAP_UNREACHABLE_COLOUR: string = "#37782C"
@@ -98,7 +98,7 @@ export const RIPPLE_BUBBLE_RATE = 1.2 / 1000
 // maze
 export const CELL_SIZE: number = 180 // there is a grid line every this many pixels
 export const NUM_CELLS: number = MAP_SIZE / CELL_SIZE
-export const MAZE_CHANGE_RATE: number = 2.5 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
+export const MAZE_CHANGE_RATE: number = 7 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
 export const MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
 export const MAZE_OVERLAP: number = 15
 export const MAZE_CHANGE_DELAY: number = 2 * 1000

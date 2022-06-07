@@ -12,9 +12,9 @@ let ducc = new Image()
 ducc.src = "/img/ducc.svg"
 
 export function renderMain(gamestate: ClientGameState) {
-    let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
-    ctxMain.translate(canvasMain.width / 2, canvasMain.height / 2)
-    ctxMain.scale(size, size)
+    ctxMain.restore()
+    ctxMain.save()
+    ctxMain.clearRect(-CONSTANTS.MAP_SIZE, -CONSTANTS.MAP_SIZE, 3 * CONSTANTS.MAP_SIZE, 3 * CONSTANTS.MAP_SIZE)
     ctxMain.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)
 
     renderMap()
@@ -31,13 +31,9 @@ export function renderMain(gamestate: ClientGameState) {
 }
 
 export function renderUnreachable() {
-    ctxMain.restore()
-    ctxMain.save()
-    ctxMain.font = CONSTANTS.CANVAS_FONT
-    ctxMain.lineJoin = "round"
 
     // clear all from previous render
-    ctxMain.clearRect(0, 0, canvasMain.width, canvasMain.height)
+    
 }
 
 function renderMap() {
@@ -75,16 +71,16 @@ function drawInset(inset: number, strokeStyle: string) {
 }
 
 function renderMaze(maze: Obstacle[], time: number) {
-    drawInset(CONSTANTS.MAZE_OVERLAP, CONSTANTS.MAP_SHADOW_COLOUR_2)
-    //drawInset(CONSTANTS.MAZE_OVERLAP / 2, CONSTANTS.MAP_SHADOW_COLOUR_1)
+    drawInset(CONSTANTS.MAP_SHADOW_WIDTH * 2, CONSTANTS.MAP_SHADOW_COLOUR_1)
+    drawInset(CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SHADOW_COLOUR_2)
 
-    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
-    ctxMain.lineWidth = 2 * CONSTANTS.MAP_SHADOW_WIDTH
+    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_1
+    ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 4
     renderMazeHelper(maze, time, true)
 
-    /*ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_1
-    ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH
-    renderMazeHelper(maze, time, true)*/
+    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
+    ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 2
+    renderMazeHelper(maze, time, true)
 
     ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     renderMazeHelper(maze, time, false)
@@ -121,6 +117,22 @@ function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean) {
     ctxMain.fill()
 }*/
 
+/*function renderPlayer(player: Player, time: number, colour: string) {
+    // TODO: better ducc
+    ctxMain.translate(player.centroid.x, player.centroid.y)
+    ctxMain.rotate(player.direction + Math.PI / 2)
+    ctxMain.scale(0.6, 0.6)
+    ctxMain.drawImage(ducc, -123, -136)
+    ctxMain.rotate(-player.direction - Math.PI / 2)
+    ctxMain.scale(1/0.6, 1/0.6)
+    
+    ctxMain.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
+    ctxMain.textAlign = "center"
+    ctxMain.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
+
+    ctxMain.translate(-player.centroid.x, -player.centroid.y)
+}*/
+
 function renderPlayer(player: Player, time: number, colour: string) {
     ctxMain.save()
 
@@ -136,12 +148,13 @@ function renderPlayer(player: Player, time: number, colour: string) {
     ctxMain.strokeStyle = colour
     ctxMain.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
 
-    // TODO: better ducc
-    ctxMain.rotate(Math.PI / 2)
-    ctxMain.scale(0.6, 0.6)
-    ctxMain.drawImage(ducc, -123, -136)
-    ctxMain.rotate(-Math.PI / 2)
-    ctxMain.scale(1/0.6, 1/0.6)
+    ctxMain.beginPath()
+    let innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
+    ctxMain.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
+    ctxMain.fill()
+    ctxMain.stroke()
+    //ctxMain.drawImage(ducc, -138, -96)
+    //ctxMain.fillRect(0, -2, 50, 2)
 
     ctxMain.rotate(-player.direction)
     ctxMain.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR

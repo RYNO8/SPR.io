@@ -3,6 +3,7 @@ import { Player } from "./player"
 import { makeSquare, makeTriangle, Obstacle } from "./obstacle"
 import { Position, add, DIRECTIONS_8, sub } from "./position"
 import { MazeGen } from "./mazegen"
+import { randRange } from "../utilities"
 //import { MazeGenStub as MazeGen } from "./mazegen_stub"
 
 export class Maze {
@@ -11,9 +12,9 @@ export class Maze {
     public todo: Position[] = []
 
     constructor() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             this.obstacles[row] = []
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 let mazePos = new Position(row, col)
                 this.obstacles[row][col] = [
                     makeSquare(mazePos, CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE),
@@ -48,9 +49,9 @@ export class Maze {
     }
 
     consolePrint() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             let s = ""
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 if (this.obstacles[row][col][0].existsAfter(Date.now())) s += "#"
                 else s += " "
                 s += " "
@@ -81,8 +82,8 @@ export class Maze {
     // at "pos", populate ornaments with triangles to reduce number of sharp square corners
     // erases previous ornaments
     applyMazeSmoothing() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; row++) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; col++) {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 let pos = new Position(row, col)
                 let isThis = this.isCellBlocked(pos)
                 let isRight = this.isCellBlocked(add(pos, new Position(1, 0)))
@@ -113,8 +114,11 @@ export class Maze {
             this.todo.push(...this.mazeGen.findMutations())
         }
 
-        let mazePos = this.todo.shift()
-        this.obstacles[mazePos.x][mazePos.y][0].setTo(this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now()))
+        let numReps = randRange(1, 10)
+        for (let i = 0; i < numReps && this.todo.length; ++i) {
+            let mazePos = this.todo.shift()
+            this.obstacles[mazePos.x][mazePos.y][0].setTo(this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now()))
+        }
         this.applyMazeSmoothing()
     }
 
@@ -136,7 +140,7 @@ export class Maze {
     isPointBlocked(pos: Position) {
         for (let dirI = 0; dirI <= 8; dirI++) {
             let obstacles = this.getObstacles(add(pos, DIRECTIONS_8[dirI]).toMazePos())
-            for (let i = 0; i < obstacles.length; i++) {
+            for (let i = 0; i < obstacles.length; ++i) {
                 if (obstacles[i].existsAt(Date.now()) && obstacles[i].covers(pos)) {
                     return true
                 }
@@ -151,7 +155,7 @@ export class Maze {
         let best: [number, Position, Position] = [1, startPos, dirVec]
         for (let dirI = 0; dirI <= 8; dirI++) {
             let obstacles = this.getObstacles(add(startPos.toMazePos(), DIRECTIONS_8[dirI]))
-            for (let i = 0; i < obstacles.length; i++) {
+            for (let i = 0; i < obstacles.length; ++i) {
                 if (obstacles[i].existsAt(Date.now())) {
                     let intersection = obstacles[i].rayTrace(startPos, dirVec)
                     if (intersection[0] <= best[0]) {
@@ -199,10 +203,10 @@ export class Maze {
         let upperBound = add(me.centroid, visibleSize).scale(1 / CONSTANTS.CELL_SIZE).ceil()
         
 
-        for (let row = Math.max(-1, lowerBound.x); row <= upperBound.x && row < CONSTANTS.NUM_CELLS + 1; row++) {
-            for (let col = Math.max(-1, lowerBound.y); col <= upperBound.y && col < CONSTANTS.NUM_CELLS + 1; col++) {
+        for (let row = Math.max(-1, lowerBound.x); row <= upperBound.x && row < CONSTANTS.NUM_CELLS + 1; ++row) {
+            for (let col = Math.max(-1, lowerBound.y); col <= upperBound.y && col < CONSTANTS.NUM_CELLS + 1; ++col) {
                 let obstacles = this.getObstacles(new Position(row, col))
-                for (let i = 0; i < obstacles.length; i++) {
+                for (let i = 0; i < obstacles.length; ++i) {
                     if ((obstacles[i].existsAt(Date.now()) || obstacles[i].existsAfter(Date.now())) && me.canSee(obstacles[i])) {
                         output.push(obstacles[i].exportObstacle())
                     }

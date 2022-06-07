@@ -4,6 +4,7 @@ import * as CONSTANTS from "./../shared/constants"
 const menu = document.getElementById("menu")
 const gameoverMenu = document.getElementById("gameover-menu")
 const canvasMain = <HTMLCanvasElement> document.getElementById("canvas-main")
+const ctxMain: CanvasRenderingContext2D = canvasMain.getContext("2d")
 const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
 const nameInput = <HTMLInputElement> document.getElementById("name")
 
@@ -58,6 +59,14 @@ export function onResize() {
     canvasMain.height = window.innerHeight * dpr
     canvasFX.width = CONSTANTS.RIPPLE_TRUE_WIDTH
     canvasFX.height = CONSTANTS.RIPPLE_TRUE_HEIGHT
+
+    ctxMain.restore()
+    ctxMain.font = CONSTANTS.CANVAS_FONT
+    ctxMain.lineJoin = "round"
+    let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
+    ctxMain.translate(canvasMain.width / 2, canvasMain.height / 2)
+    ctxMain.scale(size, size)
+    ctxMain.save()
 }
 
 export function initStatusMsg() {

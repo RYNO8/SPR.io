@@ -7,7 +7,7 @@ import { clamp, HSVtoRGB, randChance, randRange } from "../shared/utilities"
 
 let center = new Position(CONSTANTS.RIPPLE_TRUE_WIDTH / 2 + CONSTANTS.RIPPLE_BORDER_SIZE, CONSTANTS.RIPPLE_TRUE_HEIGHT / 2 + CONSTANTS.RIPPLE_BORDER_SIZE)
 const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
-const ctxFX: CanvasRenderingContext2D = canvasFX.getContext("2d")
+const ctxFX: CanvasRenderingContext2D = canvasFX.getContext("2d", { alpha: false })
 
 function genBuffer(fillVal: any) {
     return Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(fillVal))
@@ -197,7 +197,7 @@ function loading() {
         add(new Position(Math.sin(t * omega), Math.cos(t * omega)).scale(r), center),
         0.015
     )
-    t++
+    ++t
 }
 
 document.addEventListener("mousemove", function (e) {

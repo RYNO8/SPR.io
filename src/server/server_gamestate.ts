@@ -149,7 +149,7 @@ export class ServerGameState {
     findCapture(id1: string, posHash: { [id: number]: string[] }) {
         let attackerDist = Infinity
         let attacker: string = null
-        for (let i = 0; i <= 8; i++) {
+        for (let i = 0; i <= 8; ++i) {
             let hash = add(this.players[id1].centroid.toMazePos(), DIRECTIONS_8[i]).hash()
             if (hash in posHash) {
                 for (let i in posHash[hash]) {
@@ -311,6 +311,9 @@ export class ServerGameState {
             var me = this.players[<string>this.me[id]]
         } else {
             var me: Player = <Player>this.me[id]
+        }
+        if (me == null) {
+            me = this.getDefaultPlayer()
         }
 
         return {

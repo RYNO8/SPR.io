@@ -19,12 +19,12 @@ export class Obstacle extends GameObject {
         console.assert(points.length >= 3) // and assuming points are in anticlockwise? order
         this.points = points
         this.interiorPoints = interiorPoints
-        for (let i = 0; i < points.length; i++) {
+        for (let i = 0; i < points.length; ++i) {
             let j = (i + 1) % points.length
             this.dirs.push(sub(points[j], points[i]))
         }
 
-        for (let i = 0; i < this.points.length; i++) {
+        for (let i = 0; i < this.points.length; ++i) {
             this.minX = Math.min(this.minX, this.points[i].x)
             this.maxX = Math.max(this.maxX, this.points[i].x)
             this.minY = Math.min(this.minY, this.points[i].y)
@@ -77,7 +77,7 @@ export class Obstacle extends GameObject {
         if (pos.x < this.minX || pos.x > this.maxX || pos.y < this.minY || pos.y > this.maxY) return false
         
         let inside = false
-        for (let i = 0; i < this.points.length; i++) {
+        for (let i = 0; i < this.points.length; ++i) {
             let j = (i + 1) % this.points.length
             if ((this.points[i].y > pos.y) !== (this.points[j].y > pos.y) && pos.x < (pos.y - this.points[i].y) * this.dirs[i].x / this.dirs[i].y + this.points[i].x) {
                 inside = !inside
@@ -88,7 +88,7 @@ export class Obstacle extends GameObject {
 
     rayTrace(startPos: Position, dirVec: Position): [number, Position, Position] {
         let best: [number, Position, Position] = [1, startPos, dirVec]
-        for (let i = 0; i < this.points.length; i++) {
+        for (let i = 0; i < this.points.length; ++i) {
             let intersection = lineLineIntersection(startPos, dirVec, this.points[i], this.dirs[i])
             if (intersection[0] <= best[0]) {
                 if (best[0] <= 0.02) intersection[2] = new Position(0, 0)

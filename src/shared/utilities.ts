@@ -32,7 +32,7 @@ export function randChance(p: number) {
 
 // random shuffle array in place, not biased
 export function randShuffle(arr: any[]) {
-    for (let i = arr.length - 1; i > 0; i--) {
+    for (let i = arr.length - 1; i > 0; --i) {
         let j = randRange(0, i)
         let temp = arr[i]
         arr[i] = arr[j]
