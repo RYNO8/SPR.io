@@ -2,7 +2,6 @@ import { ClientGameState } from "./client_gamestate"
 import * as CONSTANTS from "../shared/constants"
 import { clamp } from "../shared/utilities"
 import { Obstacle } from "../shared/model/obstacle"
-import { Powerup } from "../shared/model/powerup"
 import { Player } from "../shared/model/player"
 
 const canvasMain = <HTMLCanvasElement> document.getElementById("canvas-main")
@@ -38,26 +37,24 @@ export function renderUnreachable() {
 
 function renderMap() {
     if (CONSTANTS.MAP_STYLE === "grid") {
+        ctxMain.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
+        ctxMain.lineWidth = CONSTANTS.MAP_LINE_WIDTH
         for (let x = 0; x <= CONSTANTS.MAP_SIZE; x += CONSTANTS.CELL_SIZE) {
-            ctxMain.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-            ctxMain.lineWidth = CONSTANTS.MAP_LINE_WIDTH
             ctxMain.beginPath()
             ctxMain.moveTo(x, 0)
             ctxMain.lineTo(x, CONSTANTS.MAP_SIZE)
             ctxMain.stroke()
         }
         for (let y = 0; y <= CONSTANTS.MAP_SIZE; y += CONSTANTS.CELL_SIZE) {
-            ctxMain.strokeStyle = CONSTANTS.MAP_LINE_COLOUR
-            ctxMain.lineWidth = CONSTANTS.MAP_LINE_WIDTH
             ctxMain.beginPath()
             ctxMain.moveTo(0, y)
             ctxMain.lineTo(CONSTANTS.MAP_SIZE, y)
             ctxMain.stroke()
         }
     } else if (CONSTANTS.MAP_STYLE === "dots") {
+        ctxMain.fillStyle = CONSTANTS.MAP_LINE_COLOUR
         for (let x = CONSTANTS.CELL_SIZE; x < CONSTANTS.MAP_SIZE; x += CONSTANTS.CELL_SIZE) {
             for (let y = CONSTANTS.CELL_SIZE; y < CONSTANTS.MAP_SIZE; y += CONSTANTS.CELL_SIZE) {
-                ctxMain.fillStyle = CONSTANTS.MAP_LINE_COLOUR
                 ctxMain.fillRect(x - 2, y - 2, 4, 4)
             }
         }
@@ -84,8 +81,6 @@ function renderMaze(maze: Obstacle[], time: number) {
 
     ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     renderMazeHelper(maze, time, false)
-
-    ctxMain.globalAlpha = 1
 
     drawInset(CONSTANTS.MAZE_OVERLAP / 2, CONSTANTS.MAP_UNREACHABLE_COLOUR)
 }
