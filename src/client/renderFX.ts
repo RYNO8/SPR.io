@@ -9,14 +9,10 @@ let center = new Position(CONSTANTS.RIPPLE_TRUE_WIDTH / 2 + CONSTANTS.RIPPLE_BOR
 const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
 const ctxFX: CanvasRenderingContext2D = canvasFX.getContext("2d", { alpha: false })
 
-function genBuffer(fillVal: any) {
-    return Array(CONSTANTS.RIPPLE_WIDTH).fill([]).map(_ => Array(CONSTANTS.RIPPLE_HEIGHT).fill(fillVal))
-}
-
-let buffer1: number[][] = genBuffer(0)
-let buffer2: number[][] = genBuffer(0)
+let buffer1 = new Uint8ClampedArray(CONSTANTS.RIPPLE_WIDTH * CONSTANTS.RIPPLE_HEIGHT).fill(0)
+let buffer2 = new Uint8ClampedArray(CONSTANTS.RIPPLE_WIDTH * CONSTANTS.RIPPLE_HEIGHT).fill(0)
 let lookPos = new Position(0, 0)
-let canPlace: boolean[][]
+let canPlace = new Set<[number, number]>()
 let cachedColours: {r: number, b: number, g: number}[] = []
 
 for (let i = 0; i <= 255; ++i) {
@@ -37,7 +33,7 @@ function toRipplePos(pos: Position) {
 }
 
 export function renderFX(gamestate: ClientGameState, dt: number) {
-    canPlace = genBuffer(true)
+    canPlace.clear()
     for (let i in gamestate.maze) {
         if (gamestate.maze[i].existsAt(gamestate.time)) {
             addObstacle(gamestate.maze[i])
@@ -98,15 +94,15 @@ function addObstacle(obstacle: Obstacle) {
         for (let lambda = 0; lambda <= 1; lambda += stepSize) {
             let pos = add(u.scale(lambda), v.scale(1 - lambda)).floor()
             if (inGrid(pos.x, pos.y)) {
-                canPlace[pos.x][pos.y] = false
+                canPlace.add([pos.x, pos.y])
             }
         }
     }
 }
 
 
-function shiftBuffer(buffer: number[][], shift: Position) {
-    let bufferOut = genBuffer(0)
+function shiftBuffer(buffer: Uint8ClampedArray, shift: Position) {
+    let bufferOut = new Uint8ClampedArray(CONSTANTS.RIPPLE_WIDTH * CONSTANTS.RIPPLE_HEIGHT).fill(0)
     
     let xL = 1 + Math.max(0, -shift.x)
     let xR = CONSTANTS.RIPPLE_WIDTH - 1 + Math.min(0, -shift.x)
@@ -115,7 +111,7 @@ function shiftBuffer(buffer: number[][], shift: Position) {
 
     for (let x = xL; x < xR; ++x) {
         for (let y = yL; y < yR; ++y) {
-            bufferOut[x][y] = buffer[x + shift.x][y + shift.y]
+            bufferOut[x + y * CONSTANTS.RIPPLE_WIDTH] = buffer[(x + shift.x) + (y + shift.y) * CONSTANTS.RIPPLE_WIDTH]
         }
     }
     return bufferOut
@@ -141,13 +137,13 @@ function makeDisturbance(pos: Position, percentSize: number) {
 
     for (let dx = Math.floor(pos.x - sizeW); dx <= Math.ceil(pos.x + sizeW); ++dx) {
         for (let dy = Math.floor(pos.y - sizeH); dy <= Math.ceil(pos.y + sizeH); ++dy) {
-            if (inGrid(dx, dy) && canPlace[dx][dy]) {
+            if (inGrid(dx, dy) && !canPlace.has([dx, dy])) {
                 /*if (new Position((dx - pos.x) / scaleW, (dy - pos.y) / scaleH).quadrance() <= size * size) {
                     buffer1[dx][dy] = CONSTANTS.RIPPLE_PEN_COLOUR
                 }*/
                 let shade = size * size / (new Position((dx - pos.x) / scaleW, (dy - pos.y) / scaleH).quadrance())
                 if (shade >= CONSTANTS.RIPPLE_GRADIENT_SIZE) {
-                    buffer1[dx][dy] = Math.floor(CONSTANTS.RIPPLE_PEN_COLOUR * Math.min(1, shade))
+                    buffer1[dx + dy * CONSTANTS.RIPPLE_WIDTH] = Math.floor(CONSTANTS.RIPPLE_PEN_COLOUR * Math.min(1, shade))
                 }
             }
         }
@@ -161,19 +157,24 @@ function rippleRender(pos: Position) {
 
     for (let x = 0; x < CONSTANTS.RIPPLE_WIDTH; ++x) {
         for (let y = 0; y < CONSTANTS.RIPPLE_HEIGHT; ++y) {
-            let index = (x + y * CONSTANTS.RIPPLE_WIDTH) * 4
-            let val = 0
-            if (inGrid(x, y) && canPlace[x][y]) {
-                buffer2[x][y] = ((buffer1[x - 1][y] + buffer1[x + 1][y] + buffer1[x][y - 1] + buffer1[x][y + 1]) >> 1) - buffer2[x][y]
-                buffer2[x][y] = Math.floor(buffer2[x][y] * CONSTANTS.RIPPLE_DAMPENING)
-                //buffer2[x][y] = Math.max(0, Math.min(255, buffer2[x][y]))
-
-                val = Math.max(0, Math.min(255, buffer2[x][y]))
+            let index = x + y * CONSTANTS.RIPPLE_WIDTH
+            if (inGrid(x, y) && !canPlace.has([x, y])) {
+                // NOTE: buffer2[index] is always a clamped integer
+                buffer2[index] = (
+                    ((
+                        buffer1[index - 1] +
+                        buffer1[index + 1] +
+                        buffer1[index - CONSTANTS.RIPPLE_WIDTH] +
+                        buffer1[index + CONSTANTS.RIPPLE_WIDTH]
+                    ) >> 1) - buffer2[index]
+                ) * CONSTANTS.RIPPLE_DAMPENING
+                let val = buffer2[index]
+                index *= 4
+                img.data[index + 0] = cachedColours[val].r
+                img.data[index + 1] = cachedColours[val].g
+                img.data[index + 2] = cachedColours[val].b
+                img.data[index + 3] = 255
             }
-            img.data[index + 0] = cachedColours[val].r
-            img.data[index + 1] = cachedColours[val].g
-            img.data[index + 2] = cachedColours[val].b
-            img.data[index + 3] = 255
         }
     }
 
@@ -181,26 +182,12 @@ function rippleRender(pos: Position) {
     buffer2 = buffer1
     buffer1 = temp
 
-    //ctxFX.fillStyle = "blue"
-    //ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_TRUE_WIDTH, CONSTANTS.RIPPLE_TRUE_HEIGHT)
+    ctxFX.fillStyle = `rgba(${cachedColours[0].r}, ${cachedColours[0].g}, ${cachedColours[0].b}, 255`
+    ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_TRUE_WIDTH, CONSTANTS.RIPPLE_TRUE_HEIGHT)
     ctxFX.putImageData(img, -pos.x + CONSTANTS.RIPPLE_TRUE_WIDTH / 2, -pos.y + CONSTANTS.RIPPLE_TRUE_HEIGHT / 2)
 }
 
-/*let t = 0
-function loading() {
-    let scaleW = CONSTANTS.RIPPLE_WIDTH / window.innerWidth
-    let scaleH = CONSTANTS.RIPPLE_HEIGHT / window.innerHeight
-    let r = 150 / Math.max(scaleW, scaleH)
-    let omega = 0.08
-    let center = new Position(window.innerWidth / 2, window.innerHeight / 2)
-    makeDisturbance(
-        add(new Position(Math.sin(t * omega), Math.cos(t * omega)).scale(r), center),
-        0.015
-    )
-    ++t
-}
-
-document.addEventListener("mousemove", function (e) {
+/*document.addEventListener("mousemove", function (e) {
     makeDisturbance(new Position(e.clientX, e.clientY), 0.015)
 })
 

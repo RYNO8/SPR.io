@@ -82,8 +82,8 @@ export const MAP_SHADOW_COLOUR_2 = "#64BB6A"
 export const MAP_WATER_COLOUR = { h: 186, s: .69, v: .75 }
 
 // ripple effects
-export const RIPPLE_TRUE_WIDTH = 30 * 16 //480
-export const RIPPLE_TRUE_HEIGHT = 30 * 9 //270
+export const RIPPLE_TRUE_WIDTH = 25 * 16 //480
+export const RIPPLE_TRUE_HEIGHT = 25 * 9 //270
 export const RIPPLE_BORDER_SIZE = 20
 export const RIPPLE_WIDTH = RIPPLE_TRUE_WIDTH + 2 * RIPPLE_BORDER_SIZE
 export const RIPPLE_HEIGHT = RIPPLE_TRUE_HEIGHT + 2 * RIPPLE_BORDER_SIZE
