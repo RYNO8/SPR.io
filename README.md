@@ -7,22 +7,27 @@ tested on "Linux localhost 5.10.0-13-amd64 #1 SMP Debian 5.10.106-1 (2022-03-17)
 
 ### BUGS
  - when maze wall spawns, you get stuck inside if you are on the edge? (check wall collisions on each player update)
+ - mobile click drag doesnt work
 
 ### TODO
  - rooms
  - game modes
  - colour coded gates
- - teleports?
  - https://x-c3ll.github.io/posts/javascript-antidebugging/
  - SEO
  - icon for powerup
  - maze change not just 1 at a time
- - border style (mope.io)
+ - player border style (mope.io)
+ - maze render as image with shift, change only on new data
+ - client side maze as list of activated e.g. [(row, col, id), ...]
 
 ### THINK ABOUT
  - powerup to gain (temporary?) wider field of view
  - powerup to gain partial points
  - powerup to gain temporary speed (maybe link with purple powerup)
+ - teleports?
+
+### STYLES
 
 ```
  - style new
@@ -53,7 +58,7 @@ tested on "Linux localhost 5.10.0-13-amd64 #1 SMP Debian 5.10.106-1 (2022-03-17)
         greengrey: #AEB495
 ```
 
-## Installation
+## Installation (alternatively see docker setup)
 
 ### install git
 sudo apt-get update
