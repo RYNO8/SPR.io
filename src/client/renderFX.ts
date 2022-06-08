@@ -34,11 +34,12 @@ function toRipplePos(pos: Position) {
 
 export function renderFX(gamestate: ClientGameState, dt: number) {
     canPlace.clear()
-    for (let i in gamestate.maze) {
+    // prevents ripples from travelling through obstacles and out the other side
+    /*for (let i in gamestate.maze) {
         if (gamestate.maze[i].existsAt(gamestate.time)) {
             addObstacle(gamestate.maze[i])
         }
-    }
+    }*/
 
     let oldLookPos = lookPos
     let rippleMe = toRipplePos(gamestate.me.centroid)
@@ -58,9 +59,9 @@ export function renderFX(gamestate: ClientGameState, dt: number) {
         )
     }
 
-    for (let i in gamestate.powerups) {
+    /*for (let i in gamestate.powerups) {
         renderPowerup(gamestate.powerups[i])
-    }
+    }*/
     for (let i in gamestate.others) {
         let rippleOther = toRipplePos(gamestate.others[i].centroid)
         makeDisturbance(
@@ -157,19 +158,16 @@ function rippleRender(pos: Position) {
 
     // for x = [1 .. RIPPLE_WIDTH - 1)
     // for y = [1 .. RIPPLE_HEIGHT - 1)
-    for (let x = 0; ++x < CONSTANTS.RIPPLE_WIDTH - 1;) {
-        for (let y = 0; ++y < CONSTANTS.RIPPLE_HEIGHT - 1;) {
+    for (let y = 0; ++y < CONSTANTS.RIPPLE_HEIGHT - 1;) {
+        for (let x = 0; ++x < CONSTANTS.RIPPLE_WIDTH - 1;) {
             let index = x + y * CONSTANTS.RIPPLE_WIDTH
-            if (!canPlace.has([x, y])) {
+            if (true || !canPlace.has([x, y])) {
                 // NOTE: buffer2[index] is always a clamped integer
-                buffer2[index] = (
-                    ((
-                        buffer1[index - 1] +
-                        buffer1[index + 1] +
-                        buffer1[index - CONSTANTS.RIPPLE_WIDTH] +
-                        buffer1[index + CONSTANTS.RIPPLE_WIDTH]
-                    ) >> 1) - buffer2[index]
-                ) * CONSTANTS.RIPPLE_DAMPENING
+                let sum = buffer1[index - 1];
+                sum += buffer1[index + 1];
+                sum += buffer1[index - CONSTANTS.RIPPLE_WIDTH];
+                sum += buffer1[index + CONSTANTS.RIPPLE_WIDTH];
+                buffer2[index] = ((sum >> 1) - buffer2[index]) * CONSTANTS.RIPPLE_DAMPENING
                 
                 let val = buffer2[index]
                 index *= 4

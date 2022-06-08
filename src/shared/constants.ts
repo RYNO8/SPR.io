@@ -82,17 +82,17 @@ export const MAP_SHADOW_COLOUR_2 = "#64BB6A"
 export const MAP_WATER_COLOUR = { h: 186, s: .69, v: .75 } // also in css body
 
 // ripple effects
-export const RIPPLE_TRUE_WIDTH = 25 * 16 //480
-export const RIPPLE_TRUE_HEIGHT = 25 * 9 //270
+export const RIPPLE_TRUE_WIDTH = 25 * 16 //400
+export const RIPPLE_TRUE_HEIGHT = 25 * 9 //225
 export const RIPPLE_BORDER_SIZE = 20
-export const RIPPLE_WIDTH = RIPPLE_TRUE_WIDTH + 2 * RIPPLE_BORDER_SIZE
-export const RIPPLE_HEIGHT = RIPPLE_TRUE_HEIGHT + 2 * RIPPLE_BORDER_SIZE
+export const RIPPLE_WIDTH = RIPPLE_TRUE_WIDTH + 2 * RIPPLE_BORDER_SIZE // 440
+export const RIPPLE_HEIGHT = RIPPLE_TRUE_HEIGHT + 2 * RIPPLE_BORDER_SIZE // 265
 export const RIPPLE_DAMPENING = 0.97 // scalar between 0 and 1 inclusive
 export const RIPPLE_PEN_COLOUR = 255 // integer between 0 and 255 inclusive
 export const RIPPLE_PLAYER_SIZE = 0.015
 export const RIPPLE_BUBBLE_SIZE = 0.005
 export const RIPPLE_GRADIENT_SIZE = 1 //0.5
-export const RIPPLE_REDRAW_DIST = 5
+export const RIPPLE_REDRAW_DIST = 10
 export const RIPPLE_BUBBLE_RATE = 1.2 / 1000
 
 // maze

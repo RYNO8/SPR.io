@@ -68,6 +68,8 @@ function drawInset(inset: number, strokeStyle: string) {
 }
 
 function renderMaze(maze: Obstacle[], time: number) {
+    //console.log(maze)
+    
     drawInset(CONSTANTS.MAP_SHADOW_WIDTH * 2, CONSTANTS.MAP_SHADOW_COLOUR_1)
     drawInset(CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SHADOW_COLOUR_2)
 

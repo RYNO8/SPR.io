@@ -2,6 +2,10 @@ import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
 import { Obstacle } from "../shared/model/obstacle"
+import { Maze } from "../shared/model/maze"
+import { Position } from "../shared/model/position"
+
+let obstacleCache = new Maze()
 
 export class ClientGameState {
     public time: number = 0
@@ -11,13 +15,20 @@ export class ClientGameState {
     public powerups: Powerup[] = []
     public maze: Obstacle[] = []
     
-    constructor(time: number, attackerName: string, me: Player, others: Player[], powerups: Powerup[], maze: Obstacle[]) {
+    constructor(time: number, attackerName: string, me: Player, others: Player[], powerups: Powerup[], maze: [number, number, number, number, number][]) {
         this.time = time
         this.attackerName = attackerName
         if (me) this.me = Player.deserialise(me)
         this.others = others.map(Player.deserialise)
         this.powerups = powerups.map(Powerup.deserialise)
-        this.maze = maze.map(Obstacle.deserialise)
+        this.maze = []
+        for (let i in maze) {
+            let mazePos = new Position(maze[i][0], maze[i][1])
+            let obstacle = obstacleCache.getObstacles(mazePos)[maze[i][2]]
+            obstacle.startTime = maze[i][3]
+            obstacle.endTime = maze[i][4]
+            this.maze.push(obstacle)
+        }
     }
     
     update(targetState: ClientGameState, framerate: number) {

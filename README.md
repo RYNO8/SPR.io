@@ -18,9 +18,6 @@ tested on "Linux localhost 5.10.0-13-amd64 #1 SMP Debian 5.10.106-1 (2022-03-17)
  - icon for powerup
  - maze change not just 1 at a time
  - player border style (mope.io)
- - maze render as image with shift, change only on new data
- - client side maze as list of activated e.g. [(row, col, id), ...]
- - layered canvases for maze gradient layers?
  - optimise Math.round (+0.5), Math.ceil, Math.floor: `x | 0` `~~x` `x << 0`
 
 ### THINK ABOUT

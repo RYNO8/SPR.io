@@ -6,6 +6,13 @@ import { MazeGen } from "./mazegen"
 import { randRange } from "../utilities"
 //import { MazeGenStub as MazeGen } from "./mazegen_stub"
 
+
+// other ideas, probably wont be used
+// standard DnD algo
+// http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
+// variation, more implement trek
+// https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
+
 export class Maze {
     public mazeGen: MazeGen = new MazeGen()
     public obstacles: Obstacle[][][] = []
@@ -29,7 +36,9 @@ export class Maze {
                 ]
             }
         }
-        
+    }
+
+    startMutate() {
         while (this.todo.length === 0) {
             this.todo.push(...this.mazeGen.findMutations())
         }
@@ -41,11 +50,6 @@ export class Maze {
         this.applyMazeSmoothing()
 
         this.consolePrint()
-        // other ideas, probably wont be used
-        // standard DnD algo
-        // http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
-        // variation, more implement trek
-        // https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
     }
 
     consolePrint() {
@@ -194,7 +198,7 @@ export class Maze {
 
     // given "me", export all visible obstalces
     exportMaze(me: Player) {
-        let output: Obstacle[] = []
+        let output: [number, number, number, number, number][] = []
         let visibleSize = new Position(
             CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER,
             CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
@@ -205,10 +209,11 @@ export class Maze {
 
         for (let row = Math.max(-1, lowerBound.x); row <= upperBound.x && row < CONSTANTS.NUM_CELLS + 1; ++row) {
             for (let col = Math.max(-1, lowerBound.y); col <= upperBound.y && col < CONSTANTS.NUM_CELLS + 1; ++col) {
-                let obstacles = this.getObstacles(new Position(row, col))
+                let pos = new Position(row, col)
+                let obstacles = this.getObstacles(pos)
                 for (let i = 0; i < obstacles.length; ++i) {
                     if ((obstacles[i].existsAt(Date.now()) || obstacles[i].existsAfter(Date.now())) && me.canSee(obstacles[i])) {
-                        output.push(obstacles[i].exportObstacle())
+                        output.push([row, col, i, obstacles[i].startTime, obstacles[i].endTime]);
                     }
                 }
             }

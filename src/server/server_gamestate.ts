@@ -30,6 +30,7 @@ export class ServerGameState {
     constructor() {
         this.time = Date.now()
         this.maze = new Maze()
+        this.maze.startMutate()
 
         // regularly update this gamestate and bots
         // NOTE: different update rates

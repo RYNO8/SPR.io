@@ -62,6 +62,7 @@ function updateGamestate() {
     gamestate.update(targetState, framerate)
 }
 
+let doFX = true
 export function render() {
     debug1.innerText = latencySamplesMain.getDiff().toString()
     debug2.innerText = timeDiff.getAvg().toString()
@@ -108,8 +109,10 @@ export function render() {
         gamestate.me.direction = direction
         score = gamestate.me.score
     }
-
-    renderFX(gamestate, framerateSamples.getDiff())
+    if (doFX) {
+        renderFX(gamestate, framerateSamples.getDiff())
+    }
+    doFX = !doFX
     renderMain(gamestate)
 
     // Rerun this render function on the next frame
