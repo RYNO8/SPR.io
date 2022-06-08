@@ -7,7 +7,7 @@ import { clamp, HSVtoRGB, randChance, randRange } from "../shared/utilities"
 
 let center = new Position(CONSTANTS.RIPPLE_TRUE_WIDTH / 2 + CONSTANTS.RIPPLE_BORDER_SIZE, CONSTANTS.RIPPLE_TRUE_HEIGHT / 2 + CONSTANTS.RIPPLE_BORDER_SIZE)
 const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
-const ctxFX: CanvasRenderingContext2D = canvasFX.getContext("2d", { alpha: false })
+const ctxFX: CanvasRenderingContext2D = canvasFX.getContext("2d", { alpha: true })
 
 let buffer1 = new Uint8ClampedArray(CONSTANTS.RIPPLE_WIDTH * CONSTANTS.RIPPLE_HEIGHT).fill(0)
 let buffer2 = new Uint8ClampedArray(CONSTANTS.RIPPLE_WIDTH * CONSTANTS.RIPPLE_HEIGHT).fill(0)
@@ -155,10 +155,12 @@ function makeDisturbance(pos: Position, percentSize: number) {
 function rippleRender(pos: Position) {
     let img = new ImageData(CONSTANTS.RIPPLE_WIDTH, CONSTANTS.RIPPLE_HEIGHT)
 
-    for (let x = 0; x < CONSTANTS.RIPPLE_WIDTH; ++x) {
-        for (let y = 0; y < CONSTANTS.RIPPLE_HEIGHT; ++y) {
+    // for x = [1 .. RIPPLE_WIDTH - 1)
+    // for y = [1 .. RIPPLE_HEIGHT - 1)
+    for (let x = 0; ++x < CONSTANTS.RIPPLE_WIDTH - 1;) {
+        for (let y = 0; ++y < CONSTANTS.RIPPLE_HEIGHT - 1;) {
             let index = x + y * CONSTANTS.RIPPLE_WIDTH
-            if (inGrid(x, y) && !canPlace.has([x, y])) {
+            if (!canPlace.has([x, y])) {
                 // NOTE: buffer2[index] is always a clamped integer
                 buffer2[index] = (
                     ((
@@ -168,12 +170,15 @@ function rippleRender(pos: Position) {
                         buffer1[index + CONSTANTS.RIPPLE_WIDTH]
                     ) >> 1) - buffer2[index]
                 ) * CONSTANTS.RIPPLE_DAMPENING
+                
                 let val = buffer2[index]
                 index *= 4
-                img.data[index + 0] = cachedColours[val].r
-                img.data[index + 1] = cachedColours[val].g
-                img.data[index + 2] = cachedColours[val].b
-                img.data[index + 3] = 255
+                if (val) {
+                    img.data[index + 0] = cachedColours[val].r
+                    img.data[index + 1] = cachedColours[val].g
+                    img.data[index + 2] = cachedColours[val].b
+                    img.data[index + 3] = 255
+                }
             }
         }
     }
@@ -182,8 +187,6 @@ function rippleRender(pos: Position) {
     buffer2 = buffer1
     buffer1 = temp
 
-    ctxFX.fillStyle = `rgba(${cachedColours[0].r}, ${cachedColours[0].g}, ${cachedColours[0].b}, 255`
-    ctxFX.fillRect(0, 0, CONSTANTS.RIPPLE_TRUE_WIDTH, CONSTANTS.RIPPLE_TRUE_HEIGHT)
     ctxFX.putImageData(img, -pos.x + CONSTANTS.RIPPLE_TRUE_WIDTH / 2, -pos.y + CONSTANTS.RIPPLE_TRUE_HEIGHT / 2)
 }
 

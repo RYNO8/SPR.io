@@ -30,7 +30,7 @@ export enum Endpoint {
 export const NUM_TEAMS: number = 3
 export const VISIBLE_WIDTH: number = 1500
 export const VISIBLE_HEIGHT: number = 1500
-export const VISIBLE_BUFFER: number = 190 // >= 0
+export const VISIBLE_BUFFER: number = 150 // >= 0
 export const CANVAS_FONT: string = "bold 20px arial"
 export const INTERPOLATE_SPEED: number = 5 // depends on SERVER_TICK_RATE
 export const NAME_PLACEHOLDER: string = "Duck!"
@@ -79,7 +79,7 @@ export const MAP_LINE_COLOUR: string = "black"
 export const MAP_UNREACHABLE_COLOUR: string = "#37782C"
 export const MAP_SHADOW_COLOUR_1 = "#9FD983"
 export const MAP_SHADOW_COLOUR_2 = "#64BB6A"
-export const MAP_WATER_COLOUR = { h: 186, s: .69, v: .75 }
+export const MAP_WATER_COLOUR = { h: 186, s: .69, v: .75 } // also in css body
 
 // ripple effects
 export const RIPPLE_TRUE_WIDTH = 25 * 16 //480
@@ -100,7 +100,7 @@ export const CELL_SIZE: number = 180 // there is a grid line every this many pix
 export const NUM_CELLS: number = MAP_SIZE / CELL_SIZE
 export const MAZE_CHANGE_RATE: number = 7 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
 export const MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
-export const MAZE_OVERLAP: number = 15
+export const MAZE_OVERLAP: number = 15 // how "puffy" obstacles are
 export const MAZE_CHANGE_DELAY: number = 2 * 1000
 export const MAZE_NAME: string = "the Labyrinth."
 // magic values for cellular automata (dont change!)
