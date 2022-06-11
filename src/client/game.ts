@@ -6,7 +6,7 @@ import * as CONSTANTS from "../shared/constants"
 
 // diable scrolling & zooming
 document.addEventListener("scroll", preventMotion, { passive: false })
-document.addEventListener("touchmove", preventMotion, { passive: false })
+//document.addEventListener("touchmove", preventMotion, { passive: false })
 document.addEventListener("mousewheel", preventMotion, { passive: false })
 document.addEventListener("DOMMouseScroll", preventMotion, { passive: false })
 document.addEventListener("wheel", preventMotion, { passive: false })
