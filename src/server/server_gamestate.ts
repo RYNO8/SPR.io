@@ -1,18 +1,19 @@
+import * as CONSTANTS from "../shared/constants"// maintain global data about other peoples positions & speeds & directions
 import { GameObject } from "../shared/model/game_object"
 import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
 import { Maze } from "../shared/model/maze"
 import { add, DIRECTIONS_8, Position, sub } from "../shared/model/position"
-import * as CONSTANTS from "../shared/constants"// maintain global data about other peoples positions & speeds & directions
 import { findBotDirection } from "./ai/util"
-import { isString, randChance, randChoice, randRange, genID } from "../shared/utilities"
-
+import { isString, randChance, randChoice, randRange, genID, validName, validNumber } from "../shared/utilities"
 
 export class ServerGameState {
     // time that this gamestate represents
     public time: number = 0
     // dictionary of ID's and corresponding players
     public players: { [id: string]: Player } = {}
+    // for room_management to keep track of total players & spectators, for room allocation
+    public numPlayers: number = 0
     // array of powerup objects
     public powerups: Powerup[] = []
     // maze object
@@ -45,9 +46,11 @@ export class ServerGameState {
     // set player direction from socketio input
     // NOTE: nothing happens when id is invalid or direction is invalid type
     setPlayerDirection(id: string, newDirection: number) {
-        if (id in this.players) {
+        if (id in this.players && validNumber(newDirection)) {
             this.players[id].direction = newDirection
+            return true
         }
+        return false
     }
 
     // get player with max score, break ties arbitarily
@@ -70,11 +73,16 @@ export class ServerGameState {
 
     // player has entered the maze and is not spectating any more
     playerEnter(id: string, name: string, isBot: boolean) {
+        if (id in this.players || !validName(name)) {
+            return false
+        }
+
         this.players[id] = new Player(this.getSpawnCentroid(), id, name, isBot)
         this.me[id] = id
         if (id in this.attackerName) {
             delete this.attackerName[id]
         }
+        return true
     }
 
     // "id" has been captured by "attacker"

@@ -8,6 +8,19 @@ const ctxMain: CanvasRenderingContext2D = canvasMain.getContext("2d")
 const canvasFX = <HTMLCanvasElement> document.getElementById("canvas-fx")
 const nameInput = <HTMLInputElement> document.getElementById("name")
 
+export function preventMotion(event: any) {
+    window.scrollTo(0, 0)
+    event.preventDefault()
+    event.stopPropagation()
+
+    // 107 Num Key  +
+    // 109 Num Key  -
+    // 173 Min Key  hyphen/underscore key
+    // 61 Plus key  +/= key
+    if (event.ctrlKey && (event.which === '61' || event.which === '107' || event.which === '173' || event.which === '109'  || event.which === '187'  || event.which === '189')) {
+        event.preventDefault();
+    }
+}
 
 export function initMainMenu() {
     menu.classList.remove("slide-out")

@@ -37,6 +37,10 @@ export const NAME_PLACEHOLDER: string = "Duck!"
 export const EPSILON: number = 5e-4
 export const MAX_TIMESTAMP: number = 8640000000000000
 
+// room management
+export const ROOM_THRESHOLD = 2
+export const ROOM_MAX = 4
+
 // leaderboard
 export const LEADERBOARD_UPDATE_RATE: number = 0.5 * 1000
 export const LEADERBOARD_LEN: number = 5

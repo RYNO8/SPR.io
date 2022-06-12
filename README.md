@@ -10,6 +10,8 @@ tested on "Linux localhost 5.10.0-13-amd64 #1 SMP Debian 5.10.106-1 (2022-03-17)
 
 ### TODO
  - rooms
+ - change dict to map
+ - render minimap
  - game modes
  - colour coded gates
  - https://x-c3ll.github.io/posts/javascript-antidebugging/

@@ -1,18 +1,17 @@
-import * as express from "express"
-import * as path from "path"
-import { Server } from "socket.io"
-import { createServer } from "http"
 import * as dotenv from "dotenv"
 
 if (process.env.NODE_ENV !== 'production') {
     dotenv.config();
 }
 
-import { ServerGameState } from "./server_gamestate"
-import * as CONSTANTS from "../shared/constants"
-import { validName, validNumber } from "../shared/utilities"
+import * as express from "express"
+import * as path from "path"
+import { Server } from "socket.io"
+import { createServer } from "http"
 
-let gamestate: ServerGameState = new ServerGameState()
+import * as CONSTANTS from "../shared/constants"
+import { Rooms } from "./room_management";
+const rooms = new Rooms()
 
 const app = express()
 app.set("port", CONSTANTS.PORT)
@@ -35,52 +34,61 @@ app.get("/js/jquery.ripples.js", (req: any, res: any) => {
 })
 
 const httpServer = createServer(app)
-httpServer.listen(CONSTANTS.PORT, function() {
+httpServer.listen(CONSTANTS.PORT, function () {
     console.log(new Date().toLocaleTimeString(), "listening")
 })
 
 const io = new Server(httpServer)
 
-io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
-    console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
+function prettyDate() {
+    return new Date().toLocaleTimeString()
+}
 
-    socket.on(CONSTANTS.Endpoint.GAME_INIT, function(name: string) {
-        if (!(socket.id in gamestate.players) && validName(name)) {
-            console.log(new Date().toLocaleTimeString(), socket.id, "Game init")
-            gamestate.playerEnter(socket.id, name, false)
-        }
-    })
+io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function (socket: any) {
+    console.log(prettyDate(), socket.id, "Client connected!")
+    let roomID = rooms.joinRoom()
 
-    socket.on(CONSTANTS.Endpoint.SERVER_DISCONNECT, function() {
-        console.log(new Date().toLocaleTimeString(), socket.id, "Client disconnected!")
-        gamestate.playerExit(socket.id)
-    })
-
-    socket.on(CONSTANTS.Endpoint.RESET, function() {
-        gamestate.playerExit(socket.id)
-    })
-
-    socket.on(CONSTANTS.Endpoint.UPDATE_DIRECTION, function(direction: number) {
-        if (validNumber(direction)) {
-            gamestate.setPlayerDirection(socket.id, direction)
-        }
-    })
-
-    socket.on(CONSTANTS.Endpoint.UPDATE_SPEED, function(speed: number) {
-        gamestate.players[socket.id].centroid.x = speed
-    })
-
-    setInterval(
-        function() {
-            socket.emit(CONSTANTS.Endpoint.UPDATE_GAME_STATE, gamestate.exportState(socket.id))
+    const exportState = setInterval(
+        function () {
+            socket.emit(CONSTANTS.Endpoint.UPDATE_GAME_STATE, rooms.getRoom(roomID).exportState(socket.id))
         },
         CONSTANTS.SERVER_TICK_RATE
     )
-})
 
-setInterval(
-    function() {
-        io.emit(CONSTANTS.Endpoint.UPDATE_LEADERBOARD, gamestate.exportLeaderboard())
-    },
-    CONSTANTS.LEADERBOARD_UPDATE_RATE
-)
+    const exportLeaderboard = setInterval(
+        function () {
+            io.emit(CONSTANTS.Endpoint.UPDATE_LEADERBOARD, rooms.getRoom(roomID).exportLeaderboard())
+        },
+        CONSTANTS.LEADERBOARD_UPDATE_RATE
+    )
+
+    socket.on(CONSTANTS.Endpoint.GAME_INIT, function (name: string) {
+        let newRoomID = rooms.joinRoom()
+        rooms.leaveRoom(roomID)
+        roomID = newRoomID
+        
+        if (rooms.getRoom(roomID).playerEnter(socket.id, name, false)) {
+            console.log(prettyDate(), socket.id, "Game init")
+        }
+    })
+
+    socket.on(CONSTANTS.Endpoint.SERVER_DISCONNECT, function () {
+        console.log(prettyDate(), socket.id, "Client disconnected!")
+        clearInterval(exportState)
+        clearInterval(exportLeaderboard)
+        rooms.getRoom(roomID).playerExit(socket.id)
+        rooms.leaveRoom(roomID)
+    })
+
+    socket.on(CONSTANTS.Endpoint.RESET, function () {
+        rooms.getRoom(roomID).playerExit(socket.id)
+    })
+
+    socket.on(CONSTANTS.Endpoint.UPDATE_DIRECTION, function (direction: number) {
+        rooms.getRoom(roomID).setPlayerDirection(socket.id, direction)
+    })
+
+    socket.on(CONSTANTS.Endpoint.UPDATE_SPEED, function (speed: number) {
+        rooms.getRoom(roomID).players[socket.id].centroid.x = speed
+    })
+})
