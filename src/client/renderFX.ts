@@ -35,9 +35,9 @@ function toRipplePos(pos: Position) {
 export function renderFX(gamestate: ClientGameState, dt: number) {
     canPlace.clear()
     // prevents ripples from travelling through obstacles and out the other side
-    /*for (let i in gamestate.maze) {
-        if (gamestate.maze[i].existsAt(gamestate.time)) {
-            addObstacle(gamestate.maze[i])
+    /*for (let val of gamestate.maze) {
+        if (val.existsAt(gamestate.time)) {
+            addObstacle(val)
         }
     }*/
 
@@ -59,11 +59,11 @@ export function renderFX(gamestate: ClientGameState, dt: number) {
         )
     }
 
-    /*for (let i in gamestate.powerups) {
-        renderPowerup(gamestate.powerups[i])
+    /*for (let powerup of gamestate.powerups) {
+        renderPowerup(powerup)
     }*/
-    for (let i in gamestate.others) {
-        let rippleOther = toRipplePos(gamestate.others[i].centroid)
+    for (let other of gamestate.others) {
+        let rippleOther = toRipplePos(other.centroid)
         makeDisturbance(
             rippleOther,
             CONSTANTS.RIPPLE_PLAYER_SIZE

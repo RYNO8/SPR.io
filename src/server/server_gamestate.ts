@@ -161,8 +161,7 @@ export class ServerGameState {
         for (let i = 0; i <= 8; ++i) {
             let hash = add(this.players[id1].centroid.toMazePos(), DIRECTIONS_8[i]).hash()
             if (hash in posHash) {
-                for (let i in posHash[hash]) {
-                    let id2 = posHash[hash][i]
+                for (let id2 of posHash[hash]) {
                     let currDist = sub(this.players[id1].centroid, this.players[id2].centroid).quadrance()
                     if (this.players[id2].hasCapture(this.players[id1]) && currDist < attackerDist) {
                         attackerDist = currDist
@@ -220,8 +219,8 @@ export class ServerGameState {
 
     // whether a player at this position can gain a powerup
     isPointOccupied(v: Position) {
-        for (let i in this.powerups) {
-            if (this.powerups[i].canAttack(new GameObject(v))) {
+        for (let powerup of this.powerups) {
+            if (powerup.canAttack(new GameObject(v))) {
                 return true
             }
         }
@@ -231,16 +230,16 @@ export class ServerGameState {
     // give powerups to players, add powerups if necessary
     updatePowerups() {
         let remainingPowerups: Powerup[] = []
-        for (let i in this.powerups) {
-            let captured = this.maze.isPointBlocked(this.powerups[i].centroid)
+        for (let powerup of this.powerups) {
+            let captured = this.maze.isPointBlocked(powerup.centroid)
             for (let id in this.players) {
-                if (this.players[id].canAttack(this.powerups[i])) {
+                if (this.players[id].canAttack(powerup)) {
                     captured = true
                     this.players[id].hasPowerup = Date.now() + CONSTANTS.POWERUP_DURATION
                 }
             }
             if (!captured) {
-                remainingPowerups.push(this.powerups[i])
+                remainingPowerups.push(powerup)
             }
         }
         this.powerups = remainingPowerups

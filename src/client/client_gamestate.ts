@@ -22,11 +22,11 @@ export class ClientGameState {
         this.others = others.map(Player.deserialise)
         this.powerups = powerups.map(Powerup.deserialise)
         this.maze = []
-        for (let i in maze) {
-            let mazePos = new Position(maze[i][0], maze[i][1])
-            let obstacle = obstacleCache.getObstacles(mazePos)[maze[i][2]]
-            obstacle.startTime = maze[i][3]
-            obstacle.endTime = maze[i][4]
+        for (let val of maze) {
+            let mazePos = new Position(val[0], val[1])
+            let obstacle = obstacleCache.getObstacles(mazePos)[val[2]]
+            obstacle.startTime = val[3]
+            obstacle.endTime = val[4]
             this.maze.push(obstacle)
         }
     }
@@ -42,10 +42,10 @@ export class ClientGameState {
         this.me = targetState.me
         
         
-        for (let i in targetState.others) {
-            let prev = this.others.find(function(value: Player) { return value.id === targetState.others[i].id })
+        for (let other of targetState.others) {
+            let prev = this.others.find(value => value.id === other.id)
             if (prev) {
-                targetState.others[i].updatePlayer(prev, 1 - lambda)
+                other.updatePlayer(prev, 1 - lambda)
             }
         }
         this.others = targetState.others

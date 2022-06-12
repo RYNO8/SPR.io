@@ -18,11 +18,11 @@ export function renderMain(gamestate: ClientGameState) {
 
     renderMap()
     renderMaze(gamestate.maze, gamestate.time)
-    /*for (let i in gamestate.powerups) {
-        renderPowerup(gamestate.powerups[i])
+    /*for (let powerup of gamestate.powerups) {
+        renderPowerup(powerup)
     }*/
-    for (let i in gamestate.others) {
-        renderPlayer(gamestate.others[i], gamestate.time, gamestate.others[i].getColour(gamestate.me))
+    for (let other of gamestate.others) {
+        renderPlayer(other, gamestate.time, other.getColour(gamestate.me))
     }
     if (gamestate.me.isVisible) {
         renderPlayer(gamestate.me, gamestate.time, gamestate.me.getColour(gamestate.me))
@@ -88,20 +88,20 @@ function renderMaze(maze: Obstacle[], time: number) {
 }
 
 function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean) {
-    for (let i in maze) {
-        //console.assert(maze[i].startTime <= maze[i].endTime)
+    for (let val of maze) {
+        //console.assert(val.startTime <= val.endTime)
         let opacity = clamp(Math.min(
-            1 + (time - maze[i].startTime) / CONSTANTS.MAZE_CHANGE_DELAY, 
-            (maze[i].endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY
+            1 + (time - val.startTime) / CONSTANTS.MAZE_CHANGE_DELAY, 
+            (val.endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY
         ))
         ctxMain.globalAlpha = opacity
 
         ctxMain.beginPath()
-        for (let j in maze[i].points) {
-            ctxMain.lineTo(maze[i].points[j].x, maze[i].points[j].y)
+        for (let point of val.points) {
+            ctxMain.lineTo(point.x, point.y)
         }
-        ctxMain.lineTo(maze[i].points[0].x, maze[i].points[0].y)
-        ctxMain.lineTo(maze[i].points[1].x, maze[i].points[1].y)
+        ctxMain.lineTo(val.points[0].x, val.points[0].y)
+        ctxMain.lineTo(val.points[1].x, val.points[1].y)
         if (doStroke) ctxMain.stroke()
         else ctxMain.fill()
     }
