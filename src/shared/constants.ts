@@ -5,7 +5,7 @@ export const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 80
 export const CLIENT_SEND_RATE: number = 40
 export const SERVER_BOT_UPDATE_RATE: number = 40
 export const SERVER_UPDATE_RATE: number = 10 // duration between each gamestate.update()
-export const SERVER_TICK_RATE: number = 25 // duration between each packet send
+export const SERVER_TICK_RATE: number = 30 // duration between each packet send
 export const RENDER_DELAY: number = 100
 export const SAMPLE_SIZE: number = 20
 

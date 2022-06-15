@@ -89,6 +89,6 @@ io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function (socket: any) {
     })
 
     socket.on(CONSTANTS.Endpoint.UPDATE_SPEED, function (speed: number) {
-        rooms.getRoom(roomID).players[socket.id].centroid.x = speed
+        rooms.getRoom(roomID).players.get(socket.id).centroid.x = speed
     })
 })

@@ -11,7 +11,7 @@ export class ServerGameState {
     // time that this gamestate represents
     public time: number = 0
     // dictionary of ID's and corresponding players
-    public players: { [id: string]: Player } = {}
+    public players: Map<string, Player> = new Map<string, Player>()
     // for room_management to keep track of total players & spectators, for room allocation
     public numPlayers: number = 0
     // array of powerup objects
@@ -23,10 +23,10 @@ export class ServerGameState {
     // if string, you are watching the player with that ID
     // if Player, you are watching a stationary position (invisible player)
     //      used when labyrinth captured you or labyrinth captured the player that captured you
-    public me: { [id: string]: string | Player } = {}
+    public me: Map<string, string | Player> = new Map<string, string | Player>()
     // when you are captured, attackerName[ID] is the display name of your attacker
     // NOTE: this is MAZE_NAME when captured by labyrinth
-    public attackerName: { [id: string]: string } = {}
+    public attackerName: Map<string, string> = new Map<string, string>()
 
     constructor() {
         this.time = Date.now()
@@ -46,8 +46,8 @@ export class ServerGameState {
     // set player direction from socketio input
     // NOTE: nothing happens when id is invalid or direction is invalid type
     setPlayerDirection(id: string, newDirection: number) {
-        if (id in this.players && validNumber(newDirection)) {
-            this.players[id].direction = newDirection
+        if (this.players.has(id) && validNumber(newDirection)) {
+            this.players.get(id).direction = newDirection
             return true
         }
         return false
@@ -73,70 +73,62 @@ export class ServerGameState {
 
     // player has entered the maze and is not spectating any more
     playerEnter(id: string, name: string, isBot: boolean) {
-        if (id in this.players || !validName(name)) {
+        if (this.players.has(id) || !validName(name)) {
             return false
         }
 
-        this.players[id] = new Player(this.getSpawnCentroid(), id, name, isBot)
-        this.me[id] = id
-        if (id in this.attackerName) {
-            delete this.attackerName[id]
-        }
+        this.players.set(id, new Player(this.getSpawnCentroid(), id, name, isBot))
+        this.me.set(id, id)
+        this.attackerName.delete(id)
         return true
     }
 
     // "id" has been captured by "attacker"
     // increment attacker, set attackerName, change me's for players that were observing you, you now exit
     doCapture(id: string, attacker: string | Player) {
-        this.me[id] = attacker
+        this.me.set(id, attacker)
         if (isString(attacker)) {
-            this.players[attacker].increment()
-            this.attackerName[id] = this.players[attacker].name
+            this.players.get(attacker).increment()
+            this.attackerName.set(id, this.players.get(attacker).name)
         } else {
-            this.attackerName[id] = attacker.name
+            this.attackerName.set(id, attacker.name)
         }
-        for (let otherID in this.me) {
-            if (isString(this.me[otherID]) && this.me[otherID] === id) {
+        for (let otherID of this.me.keys()) {
+            if (isString(this.me.get(otherID)) && this.me.get(otherID) === id) {
                 //console.log(otherID, this.me[otherID])
-                this.me[otherID] = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+                this.me.set(otherID, new Player(this.players.get(id).centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false))
             }
         }
         
 
-        if (this.players[id].isBot) {
+        if (this.players.get(id).isBot) {
             this.playerExit(id)
-        } else if (id in this.players) {
-            delete this.players[id]
+        } else if (this.players.has(id)) {
+            this.players.delete(id)
         }
     }
 
     // exit the maze and spectating the person who captured you
     playerExit(id: string) {
-        if (id in this.players) {
-            delete this.players[id]
-        }
-        if (id in this.me) {
-            delete this.me[id]
-        }
-        if (id in this.attackerName) {
-            delete this.attackerName[id]
-        }
+        this.players.delete(id)
+        this.me.delete(id)
+        this.attackerName.delete(id)
     }
 
     // add bots if necessary, set bot directions
     updateBots() {
         let numBots = 0
-        for (let id in this.players) {
-            numBots += <any>this.players[id].isBot
+        for (let id of this.players.keys()) {
+            numBots += <any>this.players.get(id).isBot
         }
         if (randChance(CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE) && numBots < CONSTANTS.BOTS_MAX) {
             let newID = genID()
             this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true)
         }
 
-        for (let id in this.players) {
-            if (this.players[id].isBot) {
-                let direction = findBotDirection(this.players[id], this)
+        for (let id of this.players.keys()) {
+            if (this.players.get(id).isBot) {
+                let direction = findBotDirection(this.players.get(id), this)
                 this.setPlayerDirection(id, direction)
             }
         }
@@ -144,26 +136,26 @@ export class ServerGameState {
 
     // move all players (and bots) in their directions and apply colllisions
     updatePlayers() {
-        for (let id in this.players) {
-            if (this.maze.isPointBlocked(this.players[id].centroid)) {
-                let attacker = new Player(this.players[id].centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+        for (let id of this.players.keys()) {
+            if (this.maze.isPointBlocked(this.players.get(id).centroid)) {
+                let attacker = new Player(this.players.get(id).centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
                 this.doCapture(id, attacker)
             } else {
-                this.players[id].progress(this.maze)
+                this.players.get(id).progress(this.maze)
             }
         }
     }
 
     // find closest attacker in candidates
-    findCapture(id1: string, posHash: { [id: number]: string[] }) {
+    findCapture(id1: string, posHash: Map<number, string[]>) {
         let attackerDist = Infinity
         let attacker: string = null
         for (let i = 0; i <= 8; ++i) {
-            let hash = add(this.players[id1].centroid.toMazePos(), DIRECTIONS_8[i]).hash()
-            if (hash in posHash) {
-                for (let id2 of posHash[hash]) {
-                    let currDist = sub(this.players[id1].centroid, this.players[id2].centroid).quadrance()
-                    if (this.players[id2].hasCapture(this.players[id1]) && currDist < attackerDist) {
+            let hash = add(this.players.get(id1).centroid.toMazePos(), DIRECTIONS_8[i]).hash()
+            if (posHash.has(hash)) {
+                for (let id2 of posHash.get(hash)) {
+                    let currDist = sub(this.players.get(id1).centroid, this.players.get(id2).centroid).quadrance()
+                    if (this.players.get(id2).hasCapture(this.players.get(id1)) && currDist < attackerDist) {
                         attackerDist = currDist
                         attacker = id2
                     }
@@ -176,26 +168,26 @@ export class ServerGameState {
     // check captures between all unordered pairs of distinct players
     // optimised by computing mazePos of each player, and only test players with possible nearby attackers
     updateCaptures() {
-        let posHash: { [id: number]: string[] } = {}
-        for (let id in this.players) {
-            let hash = this.players[id].centroid.toMazePos().hash()
-            if (hash in posHash) {
-                posHash[hash].push(id)
+        let posHash: Map<number, string[]> = new Map<number, string[]>()
+        for (let id of this.players.keys()) {
+            let hash = this.players.get(id).centroid.toMazePos().hash()
+            if (posHash.has(hash)) {
+                posHash.get(hash).push(id)
             } else {
-                posHash[hash] = [id]
+                posHash.set(hash, [id])
             }
         }
 
-        let newAttackers: { [id: string]: string } = {}
-        for (let id1 in this.players) {
+        let newAttackers: Map<string, string> = new Map<string, string>()
+        for (let id1 of this.players.keys()) {
             let attacker = this.findCapture(id1, posHash)
             if (attacker) {
-                newAttackers[id1] = attacker
+                newAttackers.set(id1, attacker)
             }
         }
 
-        for (let id in newAttackers) {
-            this.doCapture(id, newAttackers[id])
+        for (let id of newAttackers.keys()) {
+            this.doCapture(id, newAttackers.get(id))
         }
     }
 
@@ -203,9 +195,9 @@ export class ServerGameState {
     // TODO: optimise, how to precomp?
     exportPlayers(me: Player) {
         let others: Player[] = []
-        for (let id in this.players) {
-            if (id !== me.id && me.canSee(this.players[id])) {
-                others.push(this.players[id])
+        for (let id of this.players.keys()) {
+            if (id !== me.id && me.canSee(this.players.get(id))) {
+                others.push(this.players.get(id))
             }
         }
         return others.sort(function(p1: Player, p2: Player) {
@@ -232,10 +224,10 @@ export class ServerGameState {
         let remainingPowerups: Powerup[] = []
         for (let powerup of this.powerups) {
             let captured = this.maze.isPointBlocked(powerup.centroid)
-            for (let id in this.players) {
-                if (this.players[id].canAttack(powerup)) {
+            for (let id of this.players.keys()) {
+                if (this.players.get(id).canAttack(powerup)) {
                     captured = true
-                    this.players[id].hasPowerup = Date.now() + CONSTANTS.POWERUP_DURATION
+                    this.players.get(id).hasPowerup = Date.now() + CONSTANTS.POWERUP_DURATION
                 }
             }
             if (!captured) {
@@ -313,12 +305,12 @@ export class ServerGameState {
 
     // export everything required for clientside rendering
     exportState(id : string) {
-        if (!(id in this.me)) {
+        if (!this.me.has(id)) {
             var me = this.getDefaultPlayer()
-        } else if (isString(this.me[id])) {
-            var me = this.players[<string>this.me[id]]
+        } else if (isString(this.me.get(id))) {
+            var me = this.players.get(<string>this.me.get(id))
         } else {
-            var me: Player = <Player>this.me[id]
+            var me: Player = <Player>this.me.get(id)
         }
         if (me == null) {
             me = this.getDefaultPlayer()
@@ -326,7 +318,7 @@ export class ServerGameState {
 
         return {
             time: this.time,
-            attackerName: this.attackerName[id],
+            attackerName: this.attackerName.get(id),
             me: me,
             others: this.exportPlayers(me),
             powerups: this.exportPowerups(me),
