@@ -85,6 +85,13 @@ export const MAP_SHADOW_COLOUR_1 = "#9FD983"
 export const MAP_SHADOW_COLOUR_2 = "#64BB6A"
 export const MAP_WATER_COLOUR = { h: 186, s: .69, v: .75 } // also in css body
 
+// minimap
+export const MINIMAP_BORDER_COLOUR = "grey"
+export const MINIMAP_BORDER_WIDTH = 3
+export const MINIMAP_SIZE = 150
+export const MINIMAP_MARGIN = 30
+export const MINIMAP_PLAYER_SIZE = 7
+
 // ripple effects
 export const RIPPLE_TRUE_WIDTH = 25 * 16 //400
 export const RIPPLE_TRUE_HEIGHT = 25 * 9 //225

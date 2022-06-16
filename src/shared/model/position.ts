@@ -8,7 +8,6 @@ export class Position {
         this.y = y
     }
 
-    
     static deserialise(pos: Position) {
         return new Position(pos.x, pos.y)
     }
