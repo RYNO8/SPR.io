@@ -2,10 +2,10 @@ import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
 import { Obstacle } from "../shared/model/obstacle"
-import { MazeBase as Maze } from "../shared/model/maze"
+import { MazeBase } from "../shared/model/maze"
 import { Position } from "../shared/model/position"
 
-let obstacleCache = new Maze()
+let obstacleCache = new MazeBase()
 
 export class ClientGameState {
     public time: number = 0

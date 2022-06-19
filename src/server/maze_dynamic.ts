@@ -19,7 +19,14 @@ export class MazeDynamic extends MazeBase {
                 this.noise[row][col] = randChance(CONSTANTS.MAZE_DENSITY)
             }
         }
-        this.update(true)
+        while (this.todo.length > 0) {
+            let mazePos = this.todo.shift()
+            this.obstacles[mazePos.x][mazePos.y][0].add()
+        }
+        while (this.todo.length === 0) {
+            this.todo.push(...this.findMutations())
+        }
+        this.applyMazeSmoothing()
         this.consolePrint()
     }
 
@@ -256,23 +263,15 @@ export class MazeDynamic extends MazeBase {
     // find new maze state if current state is complete
     // apply a random change to maze that transitions it towards new maze state
     // apply maze smoothing (optimised)
-    update(isInit: boolean) {
+    update() {
         while (this.todo.length === 0) {
             this.todo.push(...this.findMutations())
         }
 
-        
-        if (isInit) {
-            while (this.todo.length > 0) {
-                let mazePos = this.todo.shift()
-                this.obstacles[mazePos.x][mazePos.y][0].add()
-            }
-        } else {
-            let numReps = randRange(1, 10)
-            for (let i = 0; i < numReps && this.todo.length; ++i) {
-                let mazePos = this.todo.shift()
-                this.obstacles[mazePos.x][mazePos.y][0].setTo(this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now()))
-            }
+        let numReps = randRange(1, 10)
+        for (let i = 0; i < numReps && this.todo.length; ++i) {
+            let mazePos = this.todo.shift()
+            this.obstacles[mazePos.x][mazePos.y][0].setTo(this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now()))
         }
         
         this.applyMazeSmoothing()

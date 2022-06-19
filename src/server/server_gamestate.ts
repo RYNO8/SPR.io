@@ -32,7 +32,6 @@ export class ServerGameState<MazeType extends MazeBase> {
     constructor(MazeCreator: { new(): MazeType }) {
         this.time = Date.now()
         this.maze = new MazeCreator()
-        this.maze.update(true)
 
         // regularly update this gamestate and bots
         // NOTE: different update rates
@@ -258,7 +257,7 @@ export class ServerGameState<MazeType extends MazeBase> {
     updateMaze() {
         if (randChance(CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE) && this.mazeChangeTime < Date.now() - CONSTANTS.MAZE_CHANGE_DELAY) {
             this.mazeChangeTime = Date.now()
-            this.maze.update(true)
+            this.maze.update()
         }
     }
 

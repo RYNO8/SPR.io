@@ -4,10 +4,10 @@ import { Server } from "socket.io"
 import { createServer } from "http"
 import { ServerGameState } from "./server_gamestate"
 import * as CONSTANTS from "../shared/constants"
-import { MazeDynamic as Maze } from "./mazedynamic"
+//import { MazeDynamic as Maze } from "./maze_dynamic"
+import { MazeStub as Maze } from "./maze_stub"
 
 let gamestate: ServerGameState<Maze> = new ServerGameState(Maze)
-setInterval(() => gamestate.update(), CONSTANTS.SERVER_UPDATE_RATE)
 
 const app = express()
 app.set("port", CONSTANTS.PORT)

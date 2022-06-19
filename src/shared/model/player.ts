@@ -1,7 +1,7 @@
 import * as CONSTANTS from "./../constants"
 import { GameObject } from "./game_object"
 import { Position, add, DIRECTIONS_4 } from "./position"
-import { MazeBase as Maze } from "./maze"
+import { MazeBase } from "./maze"
 import { randRange } from "../utilities"
 
 export class Player extends GameObject {
@@ -61,7 +61,7 @@ export class Player extends GameObject {
     }
 
     
-    progress(maze: Maze) {
+    progress(maze: MazeBase) {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
         let dirVec = new Position(Math.cos(this.direction), Math.sin(this.direction)).scale(distance)
         this.centroid = maze.rayTrace(this.centroid, dirVec)

@@ -33,7 +33,7 @@ export class MazeBase {
     }
 
     // to be implemented by classes that inherit this class
-    update(isInit: boolean) {
+    update() {
 
     }
 

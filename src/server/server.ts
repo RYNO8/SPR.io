@@ -11,9 +11,11 @@ import { createServer } from "http"
 
 import * as CONSTANTS from "../shared/constants"
 import { Rooms } from "./room_management";
-import { MazeDynamic } from "./mazedynamic";
+//import { MazeDynamic as Maze } from "./maze_dynamic"
+//import { MazeStub as Maze } from "./maze_stub"
+import { MazeColoured as Maze } from "./maze_coloured";
 
-const rooms = new Rooms(MazeDynamic)
+const rooms = new Rooms(Maze)
 
 const app = express()
 app.set("port", CONSTANTS.PORT)

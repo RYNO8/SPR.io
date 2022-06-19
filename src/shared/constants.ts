@@ -74,8 +74,22 @@ export const POWERUP_DURATION: number = 10 * 1000
 export const POWERUP_RADIUS = 14
 export const POWERUP_OMEGA = 0.8 / 1000 * (2 * Math.PI)
 
+// maze
+export const CELL_SIZE: number = 180 // there is a grid line every this many pixels
+export const NUM_CELLS: number = 10 // 40
+export const MAZE_CHANGE_DELAY: number = 2 * 1000
+export const MAZE_CHANGE_RATE: number = 7 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
+export const MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
+export const MAZE_OVERLAP: number = 15 // how "puffy" obstacles are
+export const MAZE_NAME: string = "the Labyrinth."
+// magic values for cellular automata (dont change!)
+export const MAZE_DENSITY: number = 0.48 // must be between 0 and 1 inclusive, what percentage of the maze is walls
+export const CA_DEATH_LIMIT = 2
+export const CA_BIRTH_LIMIT = 4
+export const CA_NUM_STEPS = 3
+
 // map
-export const MAP_SIZE: number = 7200
+export const MAP_SIZE: number = CELL_SIZE * NUM_CELLS
 export const MAP_LINE_WIDTH: number = 2
 export const MAP_SHADOW_WIDTH = 15
 export const MAP_STYLE: string = "none" // or "none" or "grid"
@@ -105,17 +119,3 @@ export const RIPPLE_BUBBLE_SIZE = 0.005
 export const RIPPLE_GRADIENT_SIZE = 1 //0.5
 export const RIPPLE_REDRAW_DIST = 10
 export const RIPPLE_BUBBLE_RATE = 1.2 / 1000
-
-// maze
-export const CELL_SIZE: number = 180 // there is a grid line every this many pixels
-export const NUM_CELLS: number = MAP_SIZE / CELL_SIZE
-export const MAZE_CHANGE_RATE: number = 7 / 1000 // should scale up linearly with CELL_SIZE*CELL_SIZE
-export const MAZE_WALL_SMOOTHNESS: number = 0.3 // must be between 0 and 1 inclusive
-export const MAZE_OVERLAP: number = 15 // how "puffy" obstacles are
-export const MAZE_CHANGE_DELAY: number = 2 * 1000
-export const MAZE_NAME: string = "the Labyrinth."
-// magic values for cellular automata (dont change!)
-export const MAZE_DENSITY: number = 0.48 // must be between 0 and 1 inclusive, what percentage of the maze is walls
-export const CA_DEATH_LIMIT = 2
-export const CA_BIRTH_LIMIT = 4
-export const CA_NUM_STEPS = 3
