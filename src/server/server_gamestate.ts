@@ -57,7 +57,7 @@ export class ServerGameState<MazeType extends MazeBase> {
     // if no players are present, returns dummy player to map center
     // => on an empty map, spectators look at map center
     getDefaultPlayer() {
-        if (this.getPlayers().length === 0) {
+        if (this.players.size === 0) {
             return new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
         }
         return this.getPlayers().reduce(function(p1: Player, p2: Player) {
@@ -68,7 +68,8 @@ export class ServerGameState<MazeType extends MazeBase> {
     // get all players as an array
     // NOTE: id information are not lost since they are member variables of Player object
     getPlayers(): Player[] {
-        return Object.values(this.players)
+        // TODO: invalid! this.player is a set
+        return Array.from(this.players.values())
     }
 
     // player has entered the maze and is not spectating any more

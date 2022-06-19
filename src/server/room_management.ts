@@ -57,7 +57,7 @@ export class Rooms<MazeType extends MazeBase> {
 
     printRooms() {
         this.rooms.forEach((gamestate, i) => {
-            console.log(i, gamestate.numPlayers)
+            console.log("room", i, "has", gamestate.numPlayers, "player(s).")
         })
     }
 
