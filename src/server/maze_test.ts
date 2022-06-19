@@ -4,8 +4,9 @@ import { Server } from "socket.io"
 import { createServer } from "http"
 import { ServerGameState } from "./server_gamestate"
 import * as CONSTANTS from "../shared/constants"
+import { MazeDynamic as Maze } from "./mazedynamic"
 
-let gamestate: ServerGameState = new ServerGameState()
+let gamestate: ServerGameState<Maze> = new ServerGameState(Maze)
 setInterval(() => gamestate.update(), CONSTANTS.SERVER_UPDATE_RATE)
 
 const app = express()
@@ -33,7 +34,7 @@ io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function(socket: any) {
     console.log(new Date().toLocaleTimeString(), socket.id, "Client connected!")
 
     socket.on(CONSTANTS.Endpoint.GAME_INIT, function(name: string) {
-        gamestate = new ServerGameState()
+        gamestate = new ServerGameState(Maze)
     })
     setInterval(
         function() {

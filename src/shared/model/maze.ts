@@ -1,22 +1,16 @@
-import * as CONSTANTS from "./../constants"
-import { Player } from "./player"
-import { makeSquare, makeTriangle, Obstacle } from "./obstacle"
-import { Position, add, DIRECTIONS_8, sub } from "./position"
-import { MazeGen } from "./mazegen"
-import { randRange } from "../utilities"
-//import { MazeGenStub as MazeGen } from "./mazegen_stub"
-
-
 // other ideas, probably wont be used
 // standard DnD algo
 // http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
 // variation, more implement trek
 // https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
 
-export class Maze {
-    public mazeGen: MazeGen = new MazeGen()
+import * as CONSTANTS from "./../constants"
+import { Player } from "./player"
+import { makeSquare, makeTriangle, Obstacle } from "./obstacle"
+import { Position, add, DIRECTIONS_8, sub } from "./position"
+
+export class MazeBase {
     public obstacles: Obstacle[][][] = []
-    public todo: Position[] = []
 
     constructor() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
@@ -38,18 +32,36 @@ export class Maze {
         }
     }
 
-    startMutate() {
-        while (this.todo.length === 0) {
-            this.todo.push(...this.mazeGen.findMutations())
-        }
-        while (this.todo.length > 0) {
-            let mazePos = this.todo.shift()
-            this.obstacles[mazePos.x][mazePos.y][0].add()
-        }
-        
-        this.applyMazeSmoothing()
+    // to be implemented by classes that inherit this class
+    update(isInit: boolean) {
 
-        this.consolePrint()
+    }
+
+    // at "pos", populate ornaments with triangles to reduce number of sharp square corners
+    // erases previous ornaments
+    applyMazeSmoothing() {
+        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
+            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
+                let pos = new Position(row, col)
+                let isThis = this.isCellBlocked(pos)
+                let isRight = this.isCellBlocked(add(pos, new Position(1, 0)))
+                let isLeft = this.isCellBlocked(add(pos, new Position(-1, 0)))
+                let isBottom = this.isCellBlocked(add(pos, new Position(0, 1)))
+                let isTop = this.isCellBlocked(add(pos, new Position(0, -1)))
+                let numAlive: number = (isRight ? 1 : 0) + (isLeft ? 1 : 0) + (isBottom ? 1 : 0) + (isTop ? 1 : 0)
+
+                let ok2 = numAlive === 2 && isRight !== isLeft && isBottom !== isTop
+                let ok3 = numAlive >= 3
+                this.obstacles[pos.x][pos.y][1].setTo(ok2 && !isThis && isRight && isBottom)
+                this.obstacles[pos.x][pos.y][2].setTo(ok2 && !isThis && isRight && isTop)
+                this.obstacles[pos.x][pos.y][3].setTo(ok2 && !isThis && isLeft && isBottom)
+                this.obstacles[pos.x][pos.y][4].setTo(ok2 && !isThis && isLeft && isTop)
+                this.obstacles[pos.x][pos.y][5].setTo(ok3 && !isThis && isRight && isBottom)
+                this.obstacles[pos.x][pos.y][6].setTo(ok3 && !isThis && isRight && isTop)
+                this.obstacles[pos.x][pos.y][7].setTo(ok3 && !isThis && isLeft && isBottom)
+                this.obstacles[pos.x][pos.y][8].setTo(ok3 && !isThis && isLeft && isTop)
+            }
+        }
     }
 
     consolePrint() {
@@ -83,50 +95,6 @@ export class Maze {
         )
     }
 
-    // at "pos", populate ornaments with triangles to reduce number of sharp square corners
-    // erases previous ornaments
-    applyMazeSmoothing() {
-        for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
-            for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
-                let pos = new Position(row, col)
-                let isThis = this.isCellBlocked(pos)
-                let isRight = this.isCellBlocked(add(pos, new Position(1, 0)))
-                let isLeft = this.isCellBlocked(add(pos, new Position(-1, 0)))
-                let isBottom = this.isCellBlocked(add(pos, new Position(0, 1)))
-                let isTop = this.isCellBlocked(add(pos, new Position(0, -1)))
-                let numAlive: number = (isRight ? 1 : 0) + (isLeft ? 1 : 0) + (isBottom ? 1 : 0) + (isTop ? 1 : 0)
-
-                let ok2 = numAlive === 2 && isRight !== isLeft && isBottom !== isTop
-                let ok3 = numAlive >= 3
-                this.obstacles[pos.x][pos.y][1].setTo(ok2 && !isThis && isRight && isBottom)
-                this.obstacles[pos.x][pos.y][2].setTo(ok2 && !isThis && isRight && isTop)
-                this.obstacles[pos.x][pos.y][3].setTo(ok2 && !isThis && isLeft && isBottom)
-                this.obstacles[pos.x][pos.y][4].setTo(ok2 && !isThis && isLeft && isTop)
-                this.obstacles[pos.x][pos.y][5].setTo(ok3 && !isThis && isRight && isBottom)
-                this.obstacles[pos.x][pos.y][6].setTo(ok3 && !isThis && isRight && isTop)
-                this.obstacles[pos.x][pos.y][7].setTo(ok3 && !isThis && isLeft && isBottom)
-                this.obstacles[pos.x][pos.y][8].setTo(ok3 && !isThis && isLeft && isTop)
-            }
-        }
-    }
-
-    // find new maze state if current state is complete
-    // apply a random change to maze that transitions it towards new maze state
-    // apply maze smoothing (optimised)
-    update() {
-        while (this.todo.length === 0) {
-            this.todo.push(...this.mazeGen.findMutations())
-        }
-
-        let numReps = randRange(1, 10)
-        for (let i = 0; i < numReps && this.todo.length; ++i) {
-            let mazePos = this.todo.shift()
-            this.obstacles[mazePos.x][mazePos.y][0].setTo(this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now()))
-        }
-        this.applyMazeSmoothing()
-    }
-
-    
 
     // export array of obstacles at this "mazePos"
     getObstacles(mazePos: Position) {

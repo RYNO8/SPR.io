@@ -29,7 +29,7 @@ const findClosest = (me: Player, targets: GameObject[]) => {
 // dont modify any variables
 // you can call any method of gamestate, player, powerup and obstacle that doesnt modify any variables
 // try not to make this function too expensive, its being called for each bot every "SERVER_UPDATE_RATE" milliseconds
-export function findBotDirection(me: Player, gamestate: ServerGameState): number {
+export function findBotDirection(me: Player, gamestate: ServerGameState<any>): number {
     let direction = me.direction
     direction += 0.1
 

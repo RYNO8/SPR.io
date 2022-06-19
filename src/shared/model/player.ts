@@ -1,12 +1,12 @@
 import * as CONSTANTS from "./../constants"
 import { GameObject } from "./game_object"
 import { Position, add, DIRECTIONS_4 } from "./position"
-import { Maze } from "./maze"
+import { MazeBase as Maze } from "./maze"
 import { randRange } from "../utilities"
 
 export class Player extends GameObject {
     public id: string
-    public name!: string
+    public name: string
     public team: number
     public score: number
     public isBot: boolean

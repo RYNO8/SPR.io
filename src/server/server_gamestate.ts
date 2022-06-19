@@ -2,12 +2,13 @@ import * as CONSTANTS from "../shared/constants"// maintain global data about ot
 import { GameObject } from "../shared/model/game_object"
 import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
-import { Maze } from "../shared/model/maze"
+import { MazeBase } from "../shared/model/maze"
 import { add, DIRECTIONS_8, Position, sub } from "../shared/model/position"
 import { findBotDirection } from "./ai/util"
 import { isString, randChance, randChoice, randRange, genID, validName, validNumber } from "../shared/utilities"
 
-export class ServerGameState {
+
+export class ServerGameState<MazeType extends MazeBase> {
     // time that this gamestate represents
     public time: number = 0
     // dictionary of ID's and corresponding players
@@ -17,7 +18,7 @@ export class ServerGameState {
     // array of powerup objects
     public powerups: Powerup[] = []
     // maze object
-    public maze: Maze
+    public maze: MazeType
     public mazeChangeTime: number = 0
     // dictionary of ID's, and who each player is watching
     // if string, you are watching the player with that ID
@@ -28,10 +29,10 @@ export class ServerGameState {
     // NOTE: this is MAZE_NAME when captured by labyrinth
     public attackerName: Map<string, string> = new Map<string, string>()
 
-    constructor() {
+    constructor(MazeCreator: { new(): MazeType }) {
         this.time = Date.now()
-        this.maze = new Maze()
-        this.maze.startMutate()
+        this.maze = new MazeCreator()
+        this.maze.update(true)
 
         // regularly update this gamestate and bots
         // NOTE: different update rates
@@ -257,7 +258,7 @@ export class ServerGameState {
     updateMaze() {
         if (randChance(CONSTANTS.MAZE_CHANGE_RATE * CONSTANTS.SERVER_UPDATE_RATE) && this.mazeChangeTime < Date.now() - CONSTANTS.MAZE_CHANGE_DELAY) {
             this.mazeChangeTime = Date.now()
-            this.maze.update()
+            this.maze.update(true)
         }
     }
 
@@ -287,8 +288,8 @@ export class ServerGameState {
     getSpawnCentroid() {
         let pos = new Position(0, 0)
         do {
-            pos.x = randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
-            pos.y = randRange(0, CONSTANTS.NUM_CELLS - 1) * CONSTANTS.CELL_SIZE + CONSTANTS.CELL_SIZE / 2
+            pos.x = (randRange(0, CONSTANTS.NUM_CELLS - 1) + 1/2) * CONSTANTS.CELL_SIZE
+            pos.y = (randRange(0, CONSTANTS.NUM_CELLS - 1) + 1/2) * CONSTANTS.CELL_SIZE
         } while (this.maze.isPointBlocked(pos) || this.isPointOccupied(pos))
         return pos
     }

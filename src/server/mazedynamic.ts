@@ -1,12 +1,15 @@
-import * as CONSTANTS from "./../constants"
-import { Position, add, DIRECTIONS_4, DIRECTIONS_8, findAvg, isEqual, sub } from "./position"
-import { randChance, randRange, randShuffle } from "../utilities"
+import * as CONSTANTS from "../shared/constants"
+import { Position, add, DIRECTIONS_4, DIRECTIONS_8, findAvg, isEqual, sub } from "../shared/model/position"
+import { randChance, randRange, randShuffle } from "../shared/utilities"
+import { MazeBase } from "../shared/model/maze"
 
-export class MazeGen {
+export class MazeDynamic extends MazeBase {
     public maze: boolean[][] = []
     public noise: boolean[][] = []
+    public todo: Position[] = []
 
     constructor() {
+        super()
         // populate noise randomly with true/false according to MAZE_DENSITY
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             this.maze[row] = []
@@ -16,19 +19,13 @@ export class MazeGen {
                 this.noise[row][col] = randChance(CONSTANTS.MAZE_DENSITY)
             }
         }
-    }
-
-    // determine if "mazePos" has integer coordinates within the maze bounding box
-    isValidCell(mazePos: Position) {
-        return (
-            Number.isInteger(mazePos.x) && 0 <= mazePos.x && mazePos.x < CONSTANTS.NUM_CELLS && 
-            Number.isInteger(mazePos.y) && 0 <= mazePos.y && mazePos.y < CONSTANTS.NUM_CELLS
-        )
+        this.update(true)
+        this.consolePrint()
     }
 
     // determine if "mazePos" is outside maze bounding box (implicitly all walls)
     // or if it a explicit wall
-    isCellBlocked(mazePos: Position) {
+    isCellBlocked_(mazePos: Position) {
         return !this.isValidCell(mazePos) || this.maze[mazePos.x][mazePos.y]
     }
 
@@ -46,7 +43,7 @@ export class MazeGen {
 
             for (let i = 0; i < 4; ++i) {
                 let neighbour = add(curr, DIRECTIONS_4[i])
-                if (!this.isCellBlocked(neighbour) && !seen[neighbour.x][neighbour.y]) {
+                if (!this.isCellBlocked_(neighbour) && !seen[neighbour.x][neighbour.y]) {
                     seen[neighbour.x][neighbour.y] = true
                     queue.push(neighbour)
                 }
@@ -87,7 +84,7 @@ export class MazeGen {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 let pos = new Position(row, col)
-                if (!this.isCellBlocked(pos) && !seen[pos.x][pos.y]) {
+                if (!this.isCellBlocked_(pos) && !seen[pos.x][pos.y]) {
                     let allPos = this.getComponent(pos, seen)
                     let centroid = findAvg(allPos).floor()
                     allCentroids.push(centroid)
@@ -205,12 +202,12 @@ export class MazeGen {
                 let pos = new Position(row, col)
                 let numAlive = 0
                 for (let i = 0; i < 8; ++i) {
-                    if (this.isValidCell(add(pos, DIRECTIONS_8[i])) && this.isCellBlocked(add(pos, DIRECTIONS_8[i]))) {
+                    if (this.isValidCell(add(pos, DIRECTIONS_8[i])) && this.isCellBlocked_(add(pos, DIRECTIONS_8[i]))) {
                         numAlive++
                     }
                 }
 
-                if (this.isCellBlocked(pos)) {
+                if (this.isCellBlocked_(pos)) {
                     newMaze[row][col] = numAlive <= CONSTANTS.CA_DEATH_LIMIT
                 } else {
                     newMaze[row][col] = numAlive <= CONSTANTS.CA_BIRTH_LIMIT
@@ -254,5 +251,30 @@ export class MazeGen {
         
         randShuffle(todo)
         return todo
+    }
+
+    // find new maze state if current state is complete
+    // apply a random change to maze that transitions it towards new maze state
+    // apply maze smoothing (optimised)
+    update(isInit: boolean) {
+        while (this.todo.length === 0) {
+            this.todo.push(...this.findMutations())
+        }
+
+        
+        if (isInit) {
+            while (this.todo.length > 0) {
+                let mazePos = this.todo.shift()
+                this.obstacles[mazePos.x][mazePos.y][0].add()
+            }
+        } else {
+            let numReps = randRange(1, 10)
+            for (let i = 0; i < numReps && this.todo.length; ++i) {
+                let mazePos = this.todo.shift()
+                this.obstacles[mazePos.x][mazePos.y][0].setTo(this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now()))
+            }
+        }
+        
+        this.applyMazeSmoothing()
     }
 }

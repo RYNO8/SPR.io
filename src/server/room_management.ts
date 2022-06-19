@@ -1,11 +1,14 @@
 import * as CONSTANTS from "../shared/constants"
 import { ServerGameState } from "./server_gamestate"
+import { MazeBase } from "../shared/model/maze"
 
-export class Rooms {
+export class Rooms<MazeType extends MazeBase> {
     public nextRoomID: number = 0
-    public rooms: Map<number, ServerGameState> = new Map<number, ServerGameState>()
+    public rooms: Map<number, ServerGameState<MazeType>> = new Map<number, ServerGameState<MazeType>>()
+    public MazeCreator: { new(): MazeType }
 
-    constructor() {
+    constructor(MazeCreator: { new(): MazeType }) {
+        this.MazeCreator = MazeCreator
     }
 
     // thanks Luke
@@ -36,7 +39,7 @@ export class Rooms {
             }
         } else {
             best = ++this.nextRoomID
-            this.rooms.set(this.nextRoomID, new ServerGameState())
+            this.rooms.set(this.nextRoomID, new ServerGameState(this.MazeCreator))
         }
 
         this.rooms.get(best).numPlayers++

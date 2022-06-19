@@ -2,7 +2,7 @@ import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
 import { Obstacle } from "../shared/model/obstacle"
-import { Maze } from "../shared/model/maze"
+import { MazeBase as Maze } from "../shared/model/maze"
 import { Position } from "../shared/model/position"
 
 let obstacleCache = new Maze()
