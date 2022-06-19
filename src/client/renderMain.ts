@@ -26,24 +26,8 @@ export function renderMain(gamestate: ClientGameState) {
         renderPlayer(other, gamestate.time, other.getColour(gamestate.me))
     }
     renderPlayer(gamestate.me, gamestate.time, gamestate.me.getColour(gamestate.me))
-
-    let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
-    let minimapOrigin = new Position(
-        gamestate.me.centroid.x + canvasMain.width / size / 2 - CONSTANTS.MINIMAP_MARGIN - CONSTANTS.MINIMAP_SIZE,
-        gamestate.me.centroid.y + canvasMain.height / size / 2 - CONSTANTS.MINIMAP_MARGIN - CONSTANTS.MINIMAP_SIZE,
-    )
-    renderMinimap(minimapOrigin)
-    for (let other of gamestate.others) {
-        renderMinimapPlayer(minimapOrigin, other, gamestate.time, other.getColour(gamestate.me))
-    }
-    renderMinimapPlayer(minimapOrigin, gamestate.me, gamestate.time, gamestate.me.getColour(gamestate.me))
 }
 
-export function renderUnreachable() {
-
-    // clear all from previous render
-    
-}
 
 function renderMap() {
     if (CONSTANTS.MAP_STYLE === "grid") {
@@ -176,7 +160,13 @@ function renderPlayer(player: Player, time: number, colour: string) {
     ctxMain.restore()
 }
 
-function renderMinimap(minimapOrigin: Position) {
+
+export function renderMinimap(gamestate: ClientGameState) {
+    let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
+    let minimapOrigin = new Position(
+        gamestate.me.centroid.x + canvasMain.width / size / 2 - CONSTANTS.MINIMAP_MARGIN - CONSTANTS.MINIMAP_SIZE,
+        gamestate.me.centroid.y + canvasMain.height / size / 2 - CONSTANTS.MINIMAP_MARGIN - CONSTANTS.MINIMAP_SIZE,
+    )
     ctxMain.strokeStyle = CONSTANTS.MINIMAP_BORDER_COLOUR
     ctxMain.lineWidth = CONSTANTS.MINIMAP_BORDER_WIDTH
     ctxMain.strokeRect(
@@ -185,6 +175,10 @@ function renderMinimap(minimapOrigin: Position) {
         CONSTANTS.MINIMAP_SIZE,
         CONSTANTS.MINIMAP_SIZE
     )
+    for (let other of gamestate.others) {
+        renderMinimapPlayer(minimapOrigin, other, gamestate.time, other.getColour(gamestate.me))
+    }
+    renderMinimapPlayer(minimapOrigin, gamestate.me, gamestate.time, gamestate.me.getColour(gamestate.me))
 }
 
 

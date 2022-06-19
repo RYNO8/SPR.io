@@ -4,7 +4,7 @@ import * as CONSTANTS from "../shared/constants"
 import { direction } from "./playerInput"
 import { initGameoverMenu, initDisconnectedMenu } from "./events"
 import { RollingAvg } from "../shared/utilities"
-import { renderUnreachable, renderMain } from "./renderMain"
+import { renderMain, renderMinimap } from "./renderMain"
 import { renderFX } from "./renderFX"
 
 let targetStates: ClientGameState[] = []
@@ -70,8 +70,6 @@ export function render() {
     debug4.innerText = latencySamplesFX.getDiff().toString()
 
     updateGamestate()
-
-    renderUnreachable()
     
     if (isInGame && !socket.id) {
         // disconnected
@@ -114,6 +112,7 @@ export function render() {
     }
     doFX = !doFX
     renderMain(gamestate)
+    if (isInGame) renderMinimap(gamestate)
 
     // Rerun this render function on the next frame
     requestAnimationFrame(render)
