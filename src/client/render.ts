@@ -18,7 +18,7 @@ let timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 let latencySamplesMain = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 let latencySamplesFX = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 
-
+const isHighQuality = <HTMLInputElement> document.getElementById("is-high-quality")
 const debug1 = document.getElementById("debug-1")
 const debug2 = document.getElementById("debug-2")
 const debug3 = document.getElementById("debug-3")
@@ -103,10 +103,10 @@ export function render() {
         score = gamestate.me.score
     }
     if (doFX) {
-        renderFX(gamestate, framerateSamples.getDiff())
+        renderFX(gamestate, framerateSamples.getDiff(), isHighQuality.checked)
     }
     doFX = !doFX
-    renderMain(gamestate)
+    renderMain(gamestate, isHighQuality.checked)
     if (isInGame) renderMinimap(gamestate)
 
     // Rerun this render function on the next frame

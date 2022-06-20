@@ -11,14 +11,14 @@ const ctxMain: CanvasRenderingContext2D = canvasMain.getContext("2d")
 let ducc = new Image()
 ducc.src = "/img/ducc.svg"
 
-export function renderMain(gamestate: ClientGameState) {
+export function renderMain(gamestate: ClientGameState, isHighQuality: boolean) {
     ctxMain.restore()
     ctxMain.save()
     ctxMain.clearRect(-CONSTANTS.MAP_SIZE, -CONSTANTS.MAP_SIZE, 3 * CONSTANTS.MAP_SIZE, 3 * CONSTANTS.MAP_SIZE)
     ctxMain.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)
 
     renderMap()
-    renderMaze(gamestate.maze, gamestate.time)
+    renderMaze(gamestate.maze, gamestate.time, isHighQuality)
     /*for (let powerup of gamestate.powerups) {
         renderPowerup(powerup)
     }*/
@@ -61,19 +61,24 @@ function drawInset(inset: number, strokeStyle: string) {
     ctxMain.strokeRect(-CONSTANTS.MAP_SIZE + inset, -CONSTANTS.MAP_SIZE + inset, 3 * CONSTANTS.MAP_SIZE - 2 * inset, 3 * CONSTANTS.MAP_SIZE - 2 * inset)
 }
 
-function renderMaze(maze: Obstacle[], time: number) {
-    //console.log(maze)
-    
-    drawInset(CONSTANTS.MAP_SHADOW_WIDTH * 2, CONSTANTS.MAP_SHADOW_COLOUR_1)
-    drawInset(CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SHADOW_COLOUR_2)
+function renderMaze(maze: Obstacle[], time: number, isHighQuality: boolean) {
+    if (isHighQuality) {
+        drawInset(CONSTANTS.MAP_SHADOW_WIDTH * 2, CONSTANTS.MAP_SHADOW_COLOUR_1)
+        drawInset(CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SHADOW_COLOUR_2)
 
-    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_1
-    ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 4
-    renderMazeHelper(maze, time, true)
+        ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_1
+        ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 4
+        renderMazeHelper(maze, time, true)
 
-    ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
-    ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 2
-    renderMazeHelper(maze, time, true)
+        ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
+        ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 2
+        renderMazeHelper(maze, time, true)
+    } else {
+        drawInset(CONSTANTS.MAP_SHADOW_WIDTH * 2, CONSTANTS.MAP_SHADOW_COLOUR_2)
+        ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
+        ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 4
+        renderMazeHelper(maze, time, true)
+    }
 
     ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
     renderMazeHelper(maze, time, false)

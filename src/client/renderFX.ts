@@ -32,7 +32,12 @@ function toRipplePos(pos: Position) {
     return new Position(pos.x * scaleW * size, pos.y * scaleH * size)
 }
 
-export function renderFX(gamestate: ClientGameState, dt: number) {
+export function renderFX(gamestate: ClientGameState, dt: number, isHighQuality: boolean) {
+    if (!isHighQuality) {
+        ctxFX.clearRect(0, 0, canvasFX.width, canvasFX.height)
+        return
+    }
+    
     canPlace.clear()
     // prevents ripples from travelling through obstacles and out the other side
     /*for (let val of gamestate.maze) {

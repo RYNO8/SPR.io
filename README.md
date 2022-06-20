@@ -6,6 +6,7 @@ tested on "Linux localhost 5.10.0-13-amd64 #1 SMP Debian 5.10.106-1 (2022-03-17)
 ## Thoughts
 
 ### BUGS
+ - maze flipped along x y
  - when maze wall spawns, you get stuck inside if you are on the edge? (check wall collisions on each player update)
 
 ### TODO
