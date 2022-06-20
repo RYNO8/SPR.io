@@ -54,7 +54,7 @@ io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function (socket: any) {
 
     const exportState = setInterval(
         function () {
-            socket.emit(CONSTANTS.Endpoint.UPDATE_GAME_STATE, rooms.getRoom(roomID).exportState(socket.id))
+            socket.emit(CONSTANTS.Endpoint.UPDATE_GAME_STATE, ...rooms.getRoom(roomID).exportState(socket.id))
         },
         CONSTANTS.SERVER_TICK_RATE
     )

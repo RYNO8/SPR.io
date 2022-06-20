@@ -305,6 +305,7 @@ export class ServerGameState<MazeType extends MazeBase> {
     }
 
     // export everything required for clientside rendering
+    // return object is serialised ClientGameState
     exportState(id : string) {
         if (!this.me.has(id)) {
             var me = this.getDefaultPlayer()
@@ -317,13 +318,21 @@ export class ServerGameState<MazeType extends MazeBase> {
             me = this.getDefaultPlayer()
         }
 
-        return {
+        /*return {
             time: this.time,
             attackerName: this.attackerName.get(id),
             me: me,
             others: this.exportPlayers(me),
             powerups: this.exportPowerups(me),
             maze: this.maze.exportMaze(me)
-        }
+        }*/
+        return [
+            this.time,
+            this.attackerName.get(id),
+            me,
+            this.exportPlayers(me),
+            this.exportPowerups(me),
+            this.maze.exportMaze(me)
+        ]
     }
 }

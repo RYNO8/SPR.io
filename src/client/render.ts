@@ -6,6 +6,8 @@ import { initGameoverMenu, initDisconnectedMenu } from "./events"
 import { RollingAvg } from "../shared/utilities"
 import { renderMain, renderMinimap } from "./renderMain"
 import { renderFX } from "./renderFX"
+import { Player } from "../shared/model/player"
+import { Powerup } from "../shared/model/powerup"
 
 let targetStates: ClientGameState[] = []
 let gamestate = new ClientGameState(Date.now(), null, null, [], [], [])
@@ -28,15 +30,8 @@ function serverTime() {
     return Date.now() + timeDiff.getAvg() - CONSTANTS.RENDER_DELAY
 }
 
-socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(jsonstate: any) {
-    let newGamestate: ClientGameState = new ClientGameState(
-        jsonstate.time,
-        jsonstate.attackerName,
-        jsonstate.me,
-        jsonstate.others,
-        jsonstate.powerups,
-        jsonstate.maze
-    )
+socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(time: number, attackerName: string | null, me: Player, others: Player[], powerups: Powerup[], maze: [number, number, number, number, number][]) {
+    let newGamestate: ClientGameState = new ClientGameState(time, attackerName, me, others, powerups, maze)
 
     timeDiff.update(newGamestate.time - Date.now())
     latencySamplesMain.update(Date.now())

@@ -15,7 +15,7 @@ export class ClientGameState {
     public powerups: Powerup[] = []
     public maze: Obstacle[] = []
     
-    constructor(time: number, attackerName: string, me: Player, others: Player[], powerups: Powerup[], maze: [number, number, number, number, number][]) {
+    constructor(time: number, attackerName: string | null, me: Player, others: Player[], powerups: Powerup[], maze: [number, number, number, number, number][]) {
         this.time = time
         this.attackerName = attackerName
         if (me) this.me = Player.deserialise(me)

@@ -133,8 +133,8 @@ function makeDisturbance(pos: Position, percentSize: number) {
     let scaleH = CONSTANTS.RIPPLE_TRUE_HEIGHT / window.innerHeight
     pos = sub(pos, lookPos)
 
-    let sizeW = 1.1 * Math.round(size * scaleW)
-    let sizeH = 1.1 * Math.round(size * scaleH)
+    let sizeW = Math.round(size * scaleW)
+    let sizeH = Math.round(size * scaleH)
 
     for (let dx = Math.floor(pos.x - sizeW); dx <= Math.ceil(pos.x + sizeW); ++dx) {
         for (let dy = Math.floor(pos.y - sizeH); dy <= Math.ceil(pos.y + sizeH); ++dy) {

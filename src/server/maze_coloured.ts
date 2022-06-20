@@ -46,6 +46,6 @@ export class MazeColoured extends MazeBase {
 
     // dont change anything, this maze is static
     update() {
-
+        
     }
 }
