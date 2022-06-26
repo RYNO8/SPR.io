@@ -12,8 +12,8 @@ import { createServer } from "http"
 import * as CONSTANTS from "../shared/constants"
 import { Rooms } from "./room_management";
 //import { MazeDynamic as Maze } from "./maze_dynamic"
-import { MazeStub as Maze } from "./maze_stub"
-//import { MazeColoured as Maze } from "./maze_coloured";
+//import { MazeStub as Maze } from "./maze_stub"
+import { MazeColoured as Maze } from "./maze_coloured";
 
 const rooms = new Rooms(Maze)
 
