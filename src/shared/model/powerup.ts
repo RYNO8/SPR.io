@@ -10,7 +10,7 @@ export class Powerup extends GameObject {
     }
 
     static deserialisePowerup(powerup : Powerup) {
-        let output : Powerup = new Powerup(Position.deserialise(powerup.centroid))
+        const output : Powerup = new Powerup(Position.deserialise(powerup.centroid))
         output.time = powerup.time
         return output
     }

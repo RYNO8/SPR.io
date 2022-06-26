@@ -20,7 +20,7 @@ export class MazeDynamic extends MazeBase {
             }
         }
         while (this.todo.length > 0) {
-            let mazePos = this.todo.shift()
+            const mazePos = this.todo.shift()
             this.obstacles[mazePos.y][mazePos.x][0].add()
         }
         while (this.todo.length === 0) {
@@ -39,17 +39,17 @@ export class MazeDynamic extends MazeBase {
     // pos is starting point of bfs, seen indicates whether cell is accounted for already
     // returns all "reachable" positions in no particular order
     getComponent(pos: Position, seen: boolean[][]) {
-        let allPos: Position[] = []
-        let queue: Position[] = []
+        const allPos: Position[] = []
+        const queue: Position[] = []
         queue.push(pos)
 
         while (queue.length > 0) {
-            let curr = queue[0]
+            const curr = queue[0]
             allPos.push(curr)
             queue.shift()
 
             for (let i = 0; i < 4; ++i) {
-                let neighbour = add(curr, DIRECTIONS_4[i])
+                const neighbour = add(curr, DIRECTIONS_4[i])
                 if (!this.isCellBlocked_(neighbour) && !seen[neighbour.x][neighbour.y]) {
                     seen[neighbour.x][neighbour.y] = true
                     queue.push(neighbour)
@@ -64,8 +64,8 @@ export class MazeDynamic extends MazeBase {
     digTunnel(start: Position, end: Position) {
         this.maze[start.x][start.y] = false
         while (!isEqual(start, end)) {
-            let dx = Math.abs(end.x - start.x)
-            let dy = Math.abs(end.y - start.y)
+            const dx = Math.abs(end.x - start.x)
+            const dy = Math.abs(end.y - start.y)
             if (randChance(dx / (dx + dy))) {
                 if (start.x > end.x) --start.x
                 else if (start.x < end.x) ++start.x
@@ -79,7 +79,7 @@ export class MazeDynamic extends MazeBase {
 
     // find average of points in each component
     getAllCentroids() {
-        let seen: boolean[][] = []
+        const seen: boolean[][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             seen[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
@@ -87,13 +87,13 @@ export class MazeDynamic extends MazeBase {
             }
         }
 
-        let allCentroids: Position[] = []
+        const allCentroids: Position[] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
-                let pos = new Position(col, row)
+                const pos = new Position(col, row)
                 if (!this.isCellBlocked_(pos) && !seen[pos.x][pos.y]) {
-                    let allPos = this.getComponent(pos, seen)
-                    let centroid = findAvg(allPos).floor()
+                    const allPos = this.getComponent(pos, seen)
+                    const centroid = findAvg(allPos).floor()
                     allCentroids.push(centroid)
                 }
             }
@@ -103,7 +103,7 @@ export class MazeDynamic extends MazeBase {
 
     // join components into a random subtree (biased?) using randomised krushals
     joinComponentsRandom(allCentroids: Position[]) {
-        let parents: number[] = []
+        const parents: number[] = []
         for (let i = 0; i < allCentroids.length; ++i) parents[i] = i
         function getParent(node: number) {
             if (parents[node] !== node) {
@@ -114,8 +114,8 @@ export class MazeDynamic extends MazeBase {
 
         // random subtree
         for (let numEdges = 0; numEdges < allCentroids.length - 1; ) {
-            let i = randRange(0, allCentroids.length - 1)
-            let j = randRange(0, allCentroids.length - 1)
+            const i = randRange(0, allCentroids.length - 1)
+            const j = randRange(0, allCentroids.length - 1)
             if (getParent(i) !== getParent(j)) {
                 parents[getParent(i)] = getParent(j)
                 this.digTunnel(allCentroids[i], allCentroids[j])
@@ -126,7 +126,7 @@ export class MazeDynamic extends MazeBase {
 
     // join components into an MST
     joinComponentsKruskals(allCentroids: Position[]) {
-        let parents: number[] = []
+        const parents: number[] = []
         for (let i = 0; i < allCentroids.length; ++i) parents[i] = i
         function getParent(node: number) {
             if (parents[node] !== node) {
@@ -136,7 +136,7 @@ export class MazeDynamic extends MazeBase {
         }
 
         // krushals mst
-        let allEdges: [number, number, number][] = []
+        const allEdges: [number, number, number][] = []
         for (let i = 0; i < allCentroids.length; ++i) {
             for (let j = 0; j < i; ++j) {
                 allEdges.push([sub(allCentroids[i], allCentroids[j]).manhattanDist(), i, j])
@@ -146,8 +146,8 @@ export class MazeDynamic extends MazeBase {
             return a[0] - b[0]
         })
         for (let i = 0; i < allEdges.length; ++i) {
-            let a = allEdges[i][1]
-            let b = allEdges[i][2]
+            const a = allEdges[i][1]
+            const b = allEdges[i][2]
             if (getParent(a) !== getParent(b)) {
                 parents[getParent(a)] = getParent(b)
                 this.digTunnel(allCentroids[a], allCentroids[b])
@@ -159,8 +159,8 @@ export class MazeDynamic extends MazeBase {
     joinComponentsGabriel(allCentroids: Position[]) {
         for (let i = 0; i < allCentroids.length; ++i) {
             for (let j = 0; j < i; ++j) {
-                let mid = findAvg([allCentroids[i], allCentroids[j]])
-                let smallestDist = Math.min(
+                const mid = findAvg([allCentroids[i], allCentroids[j]])
+                const smallestDist = Math.min(
                     sub(allCentroids[i], mid).quadrance(), 
                     sub(allCentroids[j], mid).quadrance()
                 )
@@ -182,7 +182,7 @@ export class MazeDynamic extends MazeBase {
     joinComponentsRNG(allCentroids: Position[]) {
         for (let i = 0; i < allCentroids.length; ++i) {
             for (let j = 0; j < i; ++j) {
-                let smallestDist = sub(allCentroids[i], allCentroids[j]).quadrance()
+                const smallestDist = sub(allCentroids[i], allCentroids[j]).quadrance()
                 let good = true
                 for (let k = 0; k < allCentroids.length && good; ++k) {
                     if (sub(allCentroids[k], allCentroids[i]).quadrance() < smallestDist) {
@@ -202,11 +202,11 @@ export class MazeDynamic extends MazeBase {
     // performs cellular automata where decision is based on number of alive 8 neighbours
     // "maze" changed inplace
     cellAutomataStep() {
-        let newMaze: boolean[][] = []
+        const newMaze: boolean[][] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             newMaze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
-                let pos = new Position(col, row)
+                const pos = new Position(col, row)
                 let numAlive = 0
                 for (let i = 0; i < 8; ++i) {
                     if (this.isValidCell(add(pos, DIRECTIONS_8[i])) && this.isCellBlocked_(add(pos, DIRECTIONS_8[i]))) {
@@ -236,17 +236,17 @@ export class MazeDynamic extends MazeBase {
     }
 
     findMutations() {
-        let pos: Position = new Position(0, 0)
+        const pos: Position = new Position(0, 0)
         do {
             pos.x = randRange(0, CONSTANTS.NUM_CELLS - 1)
             pos.y = randRange(0, CONSTANTS.NUM_CELLS - 1)
         } while (this.noise[pos.x][pos.y] === randChance(CONSTANTS.MAZE_DENSITY))
         this.noise[pos.x][pos.y] = !this.noise[pos.x][pos.y]
 
-        let oldMaze = this.maze
+        const oldMaze = this.maze
         this.cellAutomataMazeGen()
 
-        let todo: Position[] = []
+        const todo: Position[] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 if (oldMaze[row][col] !== this.maze[row][col]) {
@@ -268,9 +268,9 @@ export class MazeDynamic extends MazeBase {
             this.todo.push(...this.findMutations())
         }
 
-        let numReps = randRange(1, 10)
+        const numReps = randRange(1, 10)
         for (let i = 0; i < numReps && this.todo.length; ++i) {
-            let mazePos = this.todo.shift()
+            const mazePos = this.todo.shift()
             this.obstacles[mazePos.y][mazePos.x][0].setTo(this.obstacles[mazePos.y][mazePos.x][0].existsBefore(Date.now()))
         }
         

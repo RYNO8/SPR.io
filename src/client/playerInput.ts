@@ -4,7 +4,7 @@ import { throttle } from "throttle-debounce"
 
 export let direction: number
 
-let updateDirection = throttle(CONSTANTS.CLIENT_SEND_RATE, () => {
+const updateDirection = throttle(CONSTANTS.CLIENT_SEND_RATE, () => {
     socket.emit(CONSTANTS.Endpoint.UPDATE_DIRECTION, direction)
 })
 

@@ -20,13 +20,13 @@ export class ClientGameState {
         this.others = others.map(Player.deserialisePlayer)
         this.powerups = powerups.map(Powerup.deserialisePowerup)
         this.maze = []
-        for (let obstacle of maze) {
+        for (const obstacle of maze) {
             this.maze.push(Obstacle.deserialiseObstacle(obstacle))
         }
     }
     
     update(targetState: ClientGameState, framerate: number) {
-        let lambda = CONSTANTS.INTERPOLATE_SPEED * framerate
+        const lambda = CONSTANTS.INTERPOLATE_SPEED * framerate
         
         this.time = this.time * lambda + targetState.time * (1 - lambda)
 
@@ -36,8 +36,8 @@ export class ClientGameState {
         this.me = targetState.me
         
         
-        for (let other of targetState.others) {
-            let prev = this.others.find(value => value.id === other.id)
+        for (const other of targetState.others) {
+            const prev = this.others.find(value => value.id === other.id)
             if (prev) {
                 other.updatePlayer(prev, 1 - lambda)
             }

@@ -72,7 +72,7 @@ export class Position {
     }
 }
 
-export let DIRECTIONS_4 = [
+export const DIRECTIONS_4 = [
     new Position(1, 0),
     new Position(-1, 0),
     new Position(0, 1),
@@ -80,7 +80,7 @@ export let DIRECTIONS_4 = [
     new Position(0, 0)
 ]
 
-export let DIRECTIONS_8 = [
+export const DIRECTIONS_8 = [
     new Position(1, 0),
     new Position(-1, 0),
     new Position(0, 1),
@@ -138,9 +138,9 @@ export function pointLineDist(pos0: Position, pos1: Position, pos2: Position) {
 export function lineLineIntersection(startPos1: Position, dir1: Position, startPos2: Position, dir2: Position): [number, Position, Position] {
     // startPos1 + lambda * dir1 === startPos2 + t * dir2
     // lambda * skewProd(dir1, dir2) === skewProd(startPos2 - startPos1, dir2)
-    let denominator = skewProd(dir1, dir2)
-    let lambda = skewProd(sub(startPos2, startPos1), dir2) / denominator
-    let mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
+    const denominator = skewProd(dir1, dir2)
+    const lambda = skewProd(sub(startPos2, startPos1), dir2) / denominator
+    const mu = skewProd(sub(startPos2, startPos1), dir1) / denominator
     //console.log(mu)
     if (Number.isNaN(lambda)) {
         // lines are parallel and intersecting
@@ -151,10 +151,10 @@ export function lineLineIntersection(startPos1: Position, dir1: Position, startP
         return [Infinity, null, null]
     } else if (0 <= lambda && lambda <= 1 && 0 <= mu && mu <= 1) {
         // lines are intersecting on segment
-        lambda = Math.floor(lambda * 100 - 1) / 100
-        let endPos1 = add(startPos1, dir1.scale(lambda))
-        let slide = proj(dir1, dir2).scale((1 - lambda) * CONSTANTS.MAZE_WALL_SMOOTHNESS)
-        return [lambda, endPos1, slide]
+        const lambda_ = Math.floor(lambda * 100 - 1) / 100
+        const endPos1 = add(startPos1, dir1.scale(lambda_))
+        const slide = proj(dir1, dir2).scale((1 - lambda_) * CONSTANTS.MAZE_WALL_SMOOTHNESS)
+        return [lambda_, endPos1, slide]
     } else {
         // lines are intersecting outside segment
         return [Infinity, null, null]

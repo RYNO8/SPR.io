@@ -43,15 +43,15 @@ export class MazeColoured extends MazeBase {
             }
         }
         
-        for (let pos of [[1, 4], [1, 5], [2, 4], [2, 5]]) {
+        for (const pos of [[1, 4], [1, 5], [2, 4], [2, 5]]) {
             this.obstacles[pos[0]][pos[1]][0].setSome([0])
         }
 
-        for (let pos of [[6, 3], [7, 2]]) {
+        for (const pos of [[6, 3], [7, 2]]) {
             this.obstacles[pos[0]][pos[1]][0].setSome([1])
         }
 
-        for (let pos of [[6, 6], [7, 7]]) {
+        for (const pos of [[6, 6], [7, 7]]) {
             this.obstacles[pos[0]][pos[1]][0].setSome([2])
         }
         this.applyMazeSmoothing()

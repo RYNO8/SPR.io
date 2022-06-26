@@ -8,7 +8,7 @@ import { add, Position } from "../shared/model/position"
 const canvasMain = <HTMLCanvasElement> document.getElementById("canvas-main")
 const ctxMain: CanvasRenderingContext2D = canvasMain.getContext("2d")
 
-let ducc = new Image()
+const ducc = new Image()
 ducc.src = "/img/ducc.svg"
 
 export function renderMain(gamestate: ClientGameState, isHighQuality: boolean) {
@@ -25,10 +25,10 @@ export function renderMain(gamestate: ClientGameState, isHighQuality: boolean) {
             renderMaze(gamestate.maze, gamestate.time, isHighQuality, team)
         }
     }
-    /*for (let powerup of gamestate.powerups) {
+    /*for (const powerup of gamestate.powerups) {
         renderPowerup(powerup)
     }*/
-    for (let other of gamestate.others) {
+    for (const other of gamestate.others) {
         renderPlayer(other, gamestate.time, other.getColour(gamestate.me))
     }
     renderPlayer(gamestate.me, gamestate.time, gamestate.me.getColour(gamestate.me))
@@ -93,16 +93,16 @@ function renderMaze(maze: Obstacle[], time: number, isHighQuality: boolean, team
 }
 
 function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean, team: number) {
-    for (let val of maze) {
+    for (const val of maze) {
         //console.assert(val.startTime <= val.endTime)
-        let opacity = clamp(Math.min(
+        const opacity = clamp(Math.min(
             1 + (time - val.startTime[team]) / CONSTANTS.MAZE_CHANGE_DELAY, 
             (val.endTime[team] - time) / CONSTANTS.MAZE_CHANGE_DELAY
         ))
         ctxMain.globalAlpha = opacity
 
         ctxMain.beginPath()
-        for (let point of val.points) {
+        for (const point of val.points) {
             ctxMain.lineTo(point.x, point.y)
         }
         ctxMain.lineTo(val.points[0].x, val.points[0].y)
@@ -155,7 +155,7 @@ function renderPlayer(player: Player, time: number, colour: string) {
     ctxMain.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
 
     ctxMain.beginPath()
-    let innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
+    const innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
     ctxMain.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
     ctxMain.fill()
     ctxMain.stroke()
@@ -173,8 +173,8 @@ function renderPlayer(player: Player, time: number, colour: string) {
 
 
 export function renderMinimap(gamestate: ClientGameState) {
-    let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
-    let minimapOrigin = new Position(
+    const size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
+    const minimapOrigin = new Position(
         gamestate.me.centroid.x + canvasMain.width / size / 2 - CONSTANTS.MINIMAP_MARGIN - CONSTANTS.MINIMAP_SIZE,
         gamestate.me.centroid.y + canvasMain.height / size / 2 - CONSTANTS.MINIMAP_MARGIN - CONSTANTS.MINIMAP_SIZE,
     )
@@ -186,7 +186,7 @@ export function renderMinimap(gamestate: ClientGameState) {
         CONSTANTS.MINIMAP_SIZE,
         CONSTANTS.MINIMAP_SIZE
     )
-    for (let other of gamestate.others) {
+    for (const other of gamestate.others) {
         renderMinimapPlayer(minimapOrigin, other, gamestate.time, other.getColour(gamestate.me))
     }
     renderMinimapPlayer(minimapOrigin, gamestate.me, gamestate.time, gamestate.me.getColour(gamestate.me))
@@ -196,7 +196,7 @@ export function renderMinimap(gamestate: ClientGameState) {
 function renderMinimapPlayer(minimapOrigin: Position, player: Player, time: number, colour: string) {
     if (!player.isVisible) return
 
-    let centroid = add(player.centroid.scale(CONSTANTS.MINIMAP_SIZE / CONSTANTS.MAP_SIZE), minimapOrigin)
+    const centroid = add(player.centroid.scale(CONSTANTS.MINIMAP_SIZE / CONSTANTS.MAP_SIZE), minimapOrigin)
     
     ctxMain.fillStyle = colour
     ctxMain.beginPath()

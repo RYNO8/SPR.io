@@ -67,7 +67,7 @@ io.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function (socket: any) {
     )
 
     socket.on(CONSTANTS.Endpoint.GAME_INIT, function (name: string) {
-        let newRoomID = rooms.joinRoom()
+        const newRoomID = rooms.joinRoom()
         rooms.leaveRoom(roomID)
         roomID = newRoomID
         

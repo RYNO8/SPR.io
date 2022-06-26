@@ -77,7 +77,7 @@ export function onResize() {
     ctxMain.restore()
     ctxMain.font = CONSTANTS.CANVAS_FONT
     ctxMain.lineJoin = "round"
-    let size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
+    const size = Math.max(canvasMain.width / CONSTANTS.VISIBLE_WIDTH, canvasMain.height / CONSTANTS.VISIBLE_HEIGHT)
     ctxMain.translate(canvasMain.width / 2, canvasMain.height / 2)
     ctxMain.scale(size, size)
     ctxMain.save()
@@ -85,7 +85,7 @@ export function onResize() {
 
 export function initStatusMsg() {
     socket.on(CONSTANTS.Endpoint.CLIENT_CONNECT, function() {
-        let alert = document.getElementById("alert")
+        const alert = document.getElementById("alert")
         alert.style.visibility = "visible" // "hidden"
         alert.style.borderColor = "#1D7755" // green
         alert.innerText = "CONNECTED!"
@@ -95,7 +95,7 @@ export function initStatusMsg() {
     })
 
     socket.on(CONSTANTS.Endpoint.CLIENT_DISCONNECT, function() {
-        let alert = document.getElementById("alert")
+        const alert = document.getElementById("alert")
         alert.style.visibility = "visible"
         alert.style.borderColor = "#DB423D" // red
         alert.innerText = "DISCONNECTED!"
@@ -104,19 +104,19 @@ export function initStatusMsg() {
 
 export function updateLeaderboard() {
     socket.on(CONSTANTS.Endpoint.UPDATE_LEADERBOARD, function(bestPlayers: [string, number][]) {
-        let table = document.querySelector("#leaderboard > table > tbody")
+        const table = document.querySelector("#leaderboard > table > tbody")
         table.innerHTML = ""
-        for (let i in bestPlayers) {
-            let rank = document.createElement("td")
+        for (const i in bestPlayers) {
+            const rank = document.createElement("td")
             rank.innerText = "#" + (1 + parseInt(i)).toString()
 
-            let name = document.createElement("td")
+            const name = document.createElement("td")
             name.innerText = bestPlayers[i][0]
 
-            let score = document.createElement("td")
+            const score = document.createElement("td")
             score.innerText = bestPlayers[i][1].toString()
 
-            let row = document.createElement("tr")
+            const row = document.createElement("tr")
             row.appendChild(rank)
             row.appendChild(name)
             row.appendChild(score)
@@ -130,7 +130,7 @@ export function updateLeaderboard() {
 
 export function startGame() {
     // TODO: fun name ganerator?
-    let name: string = nameInput.value || localStorage.getItem("name")
+    const name: string = nameInput.value || localStorage.getItem("name")
     localStorage.setItem("name", name)
     socket.emit(CONSTANTS.Endpoint.GAME_INIT, name)
 }

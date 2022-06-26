@@ -33,8 +33,8 @@ export function randChance(p: number) {
 // random shuffle array in place, not biased
 export function randShuffle(arr: any[]) {
     for (let i = arr.length - 1; i > 0; --i) {
-        let j = randRange(0, i)
-        let temp = arr[i]
+        const j = randRange(0, i)
+        const temp = arr[i]
         arr[i] = arr[j]
         arr[j] = temp
     }
@@ -52,7 +52,7 @@ export function clamp(x: number) {
 // input: h in [0,360] and s,v in [0,1] - output: r,g,b in [0,1]
 export function HSVtoRGB(colour: {h: number, s: number, v: number}) {
     const f = function(n: number) {
-        let k = (n+colour.h/60)%6
+        const k = (n+colour.h/60)%6
         return Math.round(255 * colour.v * (1 - colour.s*Math.max( Math.min(k,4-k,1), 0)))
     }
     return {

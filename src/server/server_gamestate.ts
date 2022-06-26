@@ -7,7 +7,7 @@ import { add, DIRECTIONS_8, Position, sub } from "../shared/model/position"
 import { findBotDirection } from "./ai/util"
 import { isString, randChance, randChoice, randRange, genID, validName, validNumber } from "../shared/utilities"
 
-let defaultObserver = new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+const defaultObserver = new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
 defaultObserver.team = undefined
 
 export class ServerGameState<MazeType extends MazeBase> {
@@ -96,7 +96,7 @@ export class ServerGameState<MazeType extends MazeBase> {
         } else {
             this.attackerName.set(id, attacker.name)
         }
-        for (let otherID of this.me.keys()) {
+        for (const otherID of this.me.keys()) {
             if (isString(this.me.get(otherID)) && this.me.get(otherID) === id) {
                 //console.log(otherID, this.me[otherID])
                 this.me.set(otherID, new Player(this.players.get(id).centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false))
@@ -121,17 +121,17 @@ export class ServerGameState<MazeType extends MazeBase> {
     // add bots if necessary, set bot directions
     updateBots() {
         let numBots = 0
-        for (let id of this.players.keys()) {
+        for (const id of this.players.keys()) {
             numBots += <any>this.players.get(id).isBot
         }
         if (randChance(CONSTANTS.BOT_SPAWN_RATE * CONSTANTS.SERVER_BOT_UPDATE_RATE) && numBots < CONSTANTS.BOTS_MAX) {
-            let newID = genID()
+            const newID = genID()
             this.playerEnter(newID, randChoice(CONSTANTS.BOT_NAMES), true)
         }
 
-        for (let id of this.players.keys()) {
+        for (const id of this.players.keys()) {
             if (this.players.get(id).isBot) {
-                let direction = findBotDirection(this.players.get(id), this)
+                const direction = findBotDirection(this.players.get(id), this)
                 this.setPlayerDirection(id, direction)
             }
         }
@@ -139,9 +139,9 @@ export class ServerGameState<MazeType extends MazeBase> {
 
     // move all players (and bots) in their directions and apply colllisions
     updatePlayers() {
-        for (let id of this.players.keys()) {
+        for (const id of this.players.keys()) {
             if (this.maze.isPointBlocked(this.players.get(id).centroid, this.players.get(id).team)) {
-                let attacker = new Player(this.players.get(id).centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+                const attacker = new Player(this.players.get(id).centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
                 this.doCapture(id, attacker)
             } else {
                 this.players.get(id).progress(this.maze)
@@ -154,10 +154,10 @@ export class ServerGameState<MazeType extends MazeBase> {
         let attackerDist = Infinity
         let attacker: string = null
         for (let i = 0; i <= 8; ++i) {
-            let hash = add(this.players.get(id1).centroid.toMazePos(), DIRECTIONS_8[i]).hash()
+            const hash = add(this.players.get(id1).centroid.toMazePos(), DIRECTIONS_8[i]).hash()
             if (posHash.has(hash)) {
-                for (let id2 of posHash.get(hash)) {
-                    let currDist = sub(this.players.get(id1).centroid, this.players.get(id2).centroid).quadrance()
+                for (const id2 of posHash.get(hash)) {
+                    const currDist = sub(this.players.get(id1).centroid, this.players.get(id2).centroid).quadrance()
                     if (this.players.get(id2).hasCapture(this.players.get(id1)) && currDist < attackerDist) {
                         attackerDist = currDist
                         attacker = id2
@@ -171,9 +171,9 @@ export class ServerGameState<MazeType extends MazeBase> {
     // check captures between all unordered pairs of distinct players
     // optimised by computing mazePos of each player, and only test players with possible nearby attackers
     updateCaptures() {
-        let posHash: Map<number, string[]> = new Map<number, string[]>()
-        for (let id of this.players.keys()) {
-            let hash = this.players.get(id).centroid.toMazePos().hash()
+        const posHash: Map<number, string[]> = new Map<number, string[]>()
+        for (const id of this.players.keys()) {
+            const hash = this.players.get(id).centroid.toMazePos().hash()
             if (posHash.has(hash)) {
                 posHash.get(hash).push(id)
             } else {
@@ -181,15 +181,15 @@ export class ServerGameState<MazeType extends MazeBase> {
             }
         }
 
-        let newAttackers: Map<string, string> = new Map<string, string>()
-        for (let id1 of this.players.keys()) {
-            let attacker = this.findCapture(id1, posHash)
+        const newAttackers: Map<string, string> = new Map<string, string>()
+        for (const id1 of this.players.keys()) {
+            const attacker = this.findCapture(id1, posHash)
             if (attacker) {
                 newAttackers.set(id1, attacker)
             }
         }
 
-        for (let id of newAttackers.keys()) {
+        for (const id of newAttackers.keys()) {
             this.doCapture(id, newAttackers.get(id))
         }
     }
@@ -197,8 +197,8 @@ export class ServerGameState<MazeType extends MazeBase> {
     // export all players visible to me, sorted by increasing score (render layers)
     // TODO: optimise, how to precomp?
     exportPlayers(me: Player) {
-        let others: Player[] = []
-        for (let id of this.players.keys()) {
+        const others: Player[] = []
+        for (const id of this.players.keys()) {
             if (id !== me.id && me.canSee(this.players.get(id))) {
                 others.push(this.players.get(id))
             }
@@ -214,7 +214,7 @@ export class ServerGameState<MazeType extends MazeBase> {
 
     // whether a player at this position can gain a powerup
     isPointOccupied(v: Position) {
-        for (let powerup of this.powerups) {
+        for (const powerup of this.powerups) {
             if (powerup.canAttack(new GameObject(v))) {
                 return true
             }
@@ -224,10 +224,10 @@ export class ServerGameState<MazeType extends MazeBase> {
 
     // give powerups to players, add powerups if necessary
     updatePowerups() {
-        let remainingPowerups: Powerup[] = []
-        for (let powerup of this.powerups) {
+        const remainingPowerups: Powerup[] = []
+        for (const powerup of this.powerups) {
             let captured = this.maze.isPointBlocked(powerup.centroid)
-            for (let id of this.players.keys()) {
+            for (const id of this.players.keys()) {
                 if (this.players.get(id).canAttack(powerup)) {
                     captured = true
                     this.players.get(id).hasPowerup = Date.now() + CONSTANTS.POWERUP_DURATION
@@ -272,7 +272,7 @@ export class ServerGameState<MazeType extends MazeBase> {
     // export top players in sorted order as tuple of (name, score)
     // NOTE: if 2 players have the same score, they wont have the same rank (ties broken arbitarily?)
     exportLeaderboard() {
-        let sortedPlayers: Player[] = this.getPlayers().sort(function(p1: Player, p2: Player) {
+        const sortedPlayers: Player[] = this.getPlayers().sort(function(p1: Player, p2: Player) {
             return p2.score - p1.score
         }).slice(0, CONSTANTS.LEADERBOARD_LEN)
         return sortedPlayers.map(function(p: Player) {
@@ -288,7 +288,7 @@ export class ServerGameState<MazeType extends MazeBase> {
     // NOTE: may take arbitarily long (or infinitely long if no position is available)
     // i.e. maze has been populated by powerups
     getSpawnCentroid() {
-        let pos = new Position(0, 0)
+        const pos = new Position(0, 0)
         do {
             pos.x = (randRange(0, CONSTANTS.NUM_CELLS - 1) + 1/2) * CONSTANTS.CELL_SIZE
             pos.y = (randRange(0, CONSTANTS.NUM_CELLS - 1) + 1/2) * CONSTANTS.CELL_SIZE

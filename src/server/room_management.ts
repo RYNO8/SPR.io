@@ -13,8 +13,8 @@ export class Rooms<MazeType extends MazeBase> {
 
     // thanks Luke
     joinRoom() {
-        let p1: number[] = []
-        let p2: number[] = []
+        const p1: number[] = []
+        const p2: number[] = []
         this.rooms.forEach((gamestate, i) => {
             console.assert(gamestate.numPlayers > 0)
             if (gamestate.numPlayers < CONSTANTS.ROOM_THRESHOLD) {
@@ -26,13 +26,13 @@ export class Rooms<MazeType extends MazeBase> {
 
         let best = -1
         if (p1.length > 0) {
-            for (let i of p1) {
+            for (const i of p1) {
                 if (best === -1 || this.rooms.get(i).numPlayers > this.rooms.get(best).numPlayers) {
                     best = i
                 }
             }
         } else if (p2.length > 0) {
-            for (let i of p2) {
+            for (const i of p2) {
                 if (best === -1 || this.rooms.get(i).numPlayers < this.rooms.get(best).numPlayers) {
                     best = i
                 }

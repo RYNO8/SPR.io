@@ -23,7 +23,7 @@ export class Obstacle extends GameObject {
         this.points = points
         this.interiorPoints = interiorPoints
         for (let i = 0; i < points.length; ++i) {
-            let j = (i + 1) % points.length
+            const j = (i + 1) % points.length
             this.dirs.push(sub(points[j], points[i]))
         }
 
@@ -36,7 +36,7 @@ export class Obstacle extends GameObject {
     }
 
     static deserialiseObstacle(obstacle: ClientObstacle) {
-        let output = makeObstacle(new Position(obstacle[1], obstacle[0]), obstacle[2])
+        const output = makeObstacle(new Position(obstacle[1], obstacle[0]), obstacle[2])
         output.startTime = obstacle[3]
         output.endTime = obstacle[4]
         return output
@@ -132,7 +132,7 @@ export class Obstacle extends GameObject {
         
         let inside = false
         for (let i = 0; i < this.points.length; ++i) {
-            let j = (i + 1) % this.points.length
+            const j = (i + 1) % this.points.length
             if ((this.points[i].y > pos.y) !== (this.points[j].y > pos.y) && pos.x < (pos.y - this.points[i].y) * this.dirs[i].x / this.dirs[i].y + this.points[i].x) {
                 inside = !inside
             }
@@ -145,7 +145,7 @@ export class Obstacle extends GameObject {
         if (!this.existsAt(Date.now(), team)) return best
 
         for (let i = 0; i < this.points.length; ++i) {
-            let intersection = lineLineIntersection(startPos, dirVec, this.points[i], this.dirs[i])
+            const intersection = lineLineIntersection(startPos, dirVec, this.points[i], this.dirs[i])
             if (intersection[0] <= best[0]) {
                 if (best[0] <= 0.02) intersection[2] = new Position(0, 0)
                 best = intersection
@@ -179,7 +179,7 @@ export function makeObstacle(mazePos: Position, index: number) {
 }
 
 export function makeSquare(mazePos: Position, width: number, height: number) {
-    let topLeft = mazePos.scale(CONSTANTS.CELL_SIZE)
+    const topLeft = mazePos.scale(CONSTANTS.CELL_SIZE)
     return new Obstacle([
         add(topLeft, new Position(0, -CONSTANTS.MAZE_OVERLAP)),
         add(topLeft, new Position(width, -CONSTANTS.MAZE_OVERLAP)),
@@ -198,19 +198,19 @@ export function makeSquare(mazePos: Position, width: number, height: number) {
 }
 
 export function makeTriangle(mazePos: Position, size: number, isRight: boolean, isBottom: boolean) {
-    let center = add(mazePos, new Position(1/2, 1/2)).scale(CONSTANTS.CELL_SIZE)
-    let factor = new Position(isBottom ? +1 : -1, isRight ? +1 : -1)
-    let val1 = CONSTANTS.CELL_SIZE / 2 + CONSTANTS.MAZE_OVERLAP
-    let val2 = CONSTANTS.CELL_SIZE / 2 - size - CONSTANTS.MAZE_OVERLAP
-    let val3 = CONSTANTS.CELL_SIZE / 2 - CONSTANTS.MAZE_OVERLAP
-    let points: Position[] = [
+    const center = add(mazePos, new Position(1/2, 1/2)).scale(CONSTANTS.CELL_SIZE)
+    const factor = new Position(isBottom ? +1 : -1, isRight ? +1 : -1)
+    const val1 = CONSTANTS.CELL_SIZE / 2 + CONSTANTS.MAZE_OVERLAP
+    const val2 = CONSTANTS.CELL_SIZE / 2 - size - CONSTANTS.MAZE_OVERLAP
+    const val3 = CONSTANTS.CELL_SIZE / 2 - CONSTANTS.MAZE_OVERLAP
+    const points: Position[] = [
         add(center, new Position(val1, val1).stretch(factor)),
         add(center, new Position(val1, val2).stretch(factor)),
         add(center, new Position(val3, val2).stretch(factor)),
         add(center, new Position(val2, val3).stretch(factor)),
         add(center, new Position(val2, val1).stretch(factor))
     ]
-    let interiorPoints: Position[] = [
+    const interiorPoints: Position[] = [
         add(center, new Position(CONSTANTS.CELL_SIZE / 2, CONSTANTS.CELL_SIZE / 2).stretch(factor)),
         add(center, new Position(CONSTANTS.CELL_SIZE / 2 - size, CONSTANTS.CELL_SIZE / 2).stretch(factor)),
         add(center, new Position(CONSTANTS.CELL_SIZE / 2, CONSTANTS.CELL_SIZE / 2 - size).stretch(factor))

@@ -33,7 +33,7 @@ export class Player extends GameObject {
     }
 
     static deserialisePlayer(player : Player) {
-        let output : Player = new Player(Position.deserialise(player.centroid), player.id, player.name, player.isBot)
+        const output : Player = new Player(Position.deserialise(player.centroid), player.id, player.name, player.isBot)
         output.team = player.team
         output.score = player.score
         output.direction = player.direction
@@ -47,8 +47,8 @@ export class Player extends GameObject {
     }
 
     canCapture(p: Player): boolean {
-        let mePowerup = this.hasPowerup >= Date.now()
-        let otherPowerup = p.hasPowerup >= Date.now()
+        const mePowerup = this.hasPowerup >= Date.now()
+        const otherPowerup = p.hasPowerup >= Date.now()
         if (mePowerup === otherPowerup) {
             return p.team === (this.team + 1) % CONSTANTS.NUM_TEAMS
         } else {
@@ -62,8 +62,8 @@ export class Player extends GameObject {
 
     
     progress(maze: MazeBase) {
-        let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
-        let dirVec = new Position(Math.cos(this.direction), Math.sin(this.direction)).scale(distance)
+        const distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
+        const dirVec = new Position(Math.cos(this.direction), Math.sin(this.direction)).scale(distance)
         this.centroid = maze.rayTrace(this.centroid, dirVec, this.team)
     }
 

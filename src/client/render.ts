@@ -10,14 +10,14 @@ import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
 import { ClientObstacle } from "../shared/model/obstacle"
 
-let targetStates: ClientGameState[] = []
-let gamestate = new ClientGameState(Date.now(), null, null, [], [], [])
+const targetStates: ClientGameState[] = []
+const gamestate = new ClientGameState(Date.now(), null, null, [], [], [])
 let score = 0
 let isInGame: boolean = false
-let framerateSamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 1)
-let timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
-let latencySamplesMain = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
-let latencySamplesFX = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
+const framerateSamples = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 1)
+const timeDiff = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
+const latencySamplesMain = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
+const latencySamplesFX = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 
 const isHighQuality = <HTMLInputElement> document.getElementById("is-high-quality")
 isHighQuality.checked = true // default to high quality
@@ -33,7 +33,7 @@ function serverTime() {
 }
 
 socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(time: number, attackerName: string | null, me: Player, others: Player[], powerups: Powerup[], maze: ClientObstacle[]) {
-    let newGamestate: ClientGameState = new ClientGameState(time, attackerName, me, others, powerups, maze)
+    const newGamestate: ClientGameState = new ClientGameState(time, attackerName, me, others, powerups, maze)
 
     timeDiff.update(newGamestate.time - Date.now())
     latencySamplesMain.update(Date.now())
@@ -52,10 +52,10 @@ function updateGamestate() {
         //console.log("empty!")
         return
     }
-    let targetState: ClientGameState = targetStates[0]
+    const targetState: ClientGameState = targetStates[0]
 
     framerateSamples.update(Date.now())
-    let framerate = 1 / framerateSamples.getDiff()
+    const framerate = 1 / framerateSamples.getDiff()
     gamestate.update(targetState, framerate)
 }
 
