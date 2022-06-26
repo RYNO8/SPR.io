@@ -32,7 +32,7 @@ export class Player extends GameObject {
         this.hasPowerup = 0
     }
 
-    static deserialise(player : Player) {
+    static deserialisePlayer(player : Player) {
         let output : Player = new Player(Position.deserialise(player.centroid), player.id, player.name, player.isBot)
         output.team = player.team
         output.score = player.score
@@ -64,7 +64,7 @@ export class Player extends GameObject {
     progress(maze: MazeBase) {
         let distance = CONSTANTS.PLAYER_SPEED * CONSTANTS.SERVER_UPDATE_RATE
         let dirVec = new Position(Math.cos(this.direction), Math.sin(this.direction)).scale(distance)
-        this.centroid = maze.rayTrace(this.centroid, dirVec)
+        this.centroid = maze.rayTrace(this.centroid, dirVec, this.team)
     }
 
     getColour(me: Player) {

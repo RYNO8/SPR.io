@@ -18,7 +18,13 @@ export function renderMain(gamestate: ClientGameState, isHighQuality: boolean) {
     ctxMain.translate(-gamestate.me.centroid.x, -gamestate.me.centroid.y)
 
     renderMap()
-    renderMaze(gamestate.maze, gamestate.time, isHighQuality)
+    if (gamestate.me.isVisible) {
+        renderMaze(gamestate.maze, gamestate.time, isHighQuality, gamestate.me.team)
+    } else {
+        for (let team = 0; team < CONSTANTS.NUM_TEAMS; ++team) {
+            renderMaze(gamestate.maze, gamestate.time, isHighQuality, team)
+        }
+    }
     /*for (let powerup of gamestate.powerups) {
         renderPowerup(powerup)
     }*/
@@ -61,37 +67,37 @@ function drawInset(inset: number, strokeStyle: string) {
     ctxMain.strokeRect(-CONSTANTS.MAP_SIZE + inset, -CONSTANTS.MAP_SIZE + inset, 3 * CONSTANTS.MAP_SIZE - 2 * inset, 3 * CONSTANTS.MAP_SIZE - 2 * inset)
 }
 
-function renderMaze(maze: Obstacle[], time: number, isHighQuality: boolean) {
+function renderMaze(maze: Obstacle[], time: number, isHighQuality: boolean, team: number) {
     if (isHighQuality) {
         drawInset(CONSTANTS.MAP_SHADOW_WIDTH * 2, CONSTANTS.MAP_SHADOW_COLOUR_1)
         drawInset(CONSTANTS.MAP_SHADOW_WIDTH, CONSTANTS.MAP_SHADOW_COLOUR_2)
 
         ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_1
         ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 4
-        renderMazeHelper(maze, time, true)
+        renderMazeHelper(maze, time, true, team)
 
         ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
         ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 2
-        renderMazeHelper(maze, time, true)
+        renderMazeHelper(maze, time, true, team)
     } else {
         drawInset(CONSTANTS.MAP_SHADOW_WIDTH * 2, CONSTANTS.MAP_SHADOW_COLOUR_2)
         ctxMain.strokeStyle = CONSTANTS.MAP_SHADOW_COLOUR_2
         ctxMain.lineWidth = CONSTANTS.MAP_SHADOW_WIDTH * 4
-        renderMazeHelper(maze, time, true)
+        renderMazeHelper(maze, time, true, team)
     }
 
     ctxMain.fillStyle = CONSTANTS.MAP_UNREACHABLE_COLOUR
-    renderMazeHelper(maze, time, false)
+    renderMazeHelper(maze, time, false, team)
 
     drawInset(CONSTANTS.MAZE_OVERLAP / 2, CONSTANTS.MAP_UNREACHABLE_COLOUR)
 }
 
-function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean) {
+function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean, team: number) {
     for (let val of maze) {
         //console.assert(val.startTime <= val.endTime)
         let opacity = clamp(Math.min(
-            1 + (time - val.startTime) / CONSTANTS.MAZE_CHANGE_DELAY, 
-            (val.endTime - time) / CONSTANTS.MAZE_CHANGE_DELAY
+            1 + (time - val.startTime[team]) / CONSTANTS.MAZE_CHANGE_DELAY, 
+            (val.endTime[team] - time) / CONSTANTS.MAZE_CHANGE_DELAY
         ))
         ctxMain.globalAlpha = opacity
 

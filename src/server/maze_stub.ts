@@ -12,7 +12,7 @@ export class MazeStub extends MazeBase {
 
     update() {
         for (let mazePos of [new Position(3, 3)]) {
-            this.obstacles[mazePos.y][mazePos.x][0].setTo(this.obstacles[mazePos.y][mazePos.x][0].existsBefore(Date.now()))
+            this.obstacles[mazePos.y][mazePos.x][0].setTo(this.obstacles[mazePos.y][mazePos.x][0].existsBefore(Date.now(), 0))
         }
         this.applyMazeSmoothing()
     }

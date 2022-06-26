@@ -1,11 +1,9 @@
 import * as CONSTANTS from "../shared/constants"
 import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
-import { Obstacle } from "../shared/model/obstacle"
+import { Obstacle, ClientObstacle } from "../shared/model/obstacle"
 import { MazeBase } from "../shared/model/maze"
 import { Position } from "../shared/model/position"
-
-let obstacleCache = new MazeBase()
 
 export class ClientGameState {
     public time: number = 0
@@ -15,19 +13,15 @@ export class ClientGameState {
     public powerups: Powerup[] = []
     public maze: Obstacle[] = []
     
-    constructor(time: number, attackerName: string | null, me: Player, others: Player[], powerups: Powerup[], maze: [number, number, number, number, number][]) {
+    constructor(time: number, attackerName: string | null, me: Player, others: Player[], powerups: Powerup[], maze: ClientObstacle[]) {
         this.time = time
         this.attackerName = attackerName
-        if (me) this.me = Player.deserialise(me)
-        this.others = others.map(Player.deserialise)
-        this.powerups = powerups.map(Powerup.deserialise)
+        if (me) this.me = Player.deserialisePlayer(me)
+        this.others = others.map(Player.deserialisePlayer)
+        this.powerups = powerups.map(Powerup.deserialisePowerup)
         this.maze = []
-        for (let val of maze) {
-            let mazePos = new Position(val[1], val[0])
-            let obstacle = obstacleCache.getObstacles(mazePos)[val[2]]
-            obstacle.startTime = val[3]
-            obstacle.endTime = val[4]
-            this.maze.push(obstacle)
+        for (let obstacle of maze) {
+            this.maze.push(Obstacle.deserialiseObstacle(obstacle))
         }
     }
     

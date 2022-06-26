@@ -76,7 +76,7 @@ export const POWERUP_OMEGA = 0.8 / 1000 * (2 * Math.PI)
 export const MAZE_WALL_SMOOTHNESS: number = 0.3 // coefficient of friction of obstacles must be between 0 and 1 inclusive
 export const MAZE_OVERLAP: number = 15 // how "puffy" obstacles are
 export const EPSILON: number = 5e-4
-export const MAX_TIMESTAMP: number = 8640000000000000
+export const MAX_TIMESTAMP: number = 8640000000000
 
 // maze
 export const CELL_SIZE: number = 180 // there is a grid line every this many pixels

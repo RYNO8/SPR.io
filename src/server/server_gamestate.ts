@@ -7,6 +7,8 @@ import { add, DIRECTIONS_8, Position, sub } from "../shared/model/position"
 import { findBotDirection } from "./ai/util"
 import { isString, randChance, randChoice, randRange, genID, validName, validNumber } from "../shared/utilities"
 
+let defaultObserver = new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+defaultObserver.team = undefined
 
 export class ServerGameState<MazeType extends MazeBase> {
     // time that this gamestate represents
@@ -58,7 +60,7 @@ export class ServerGameState<MazeType extends MazeBase> {
     // => on an empty map, spectators look at map center
     getDefaultPlayer() {
         if (this.players.size === 0) {
-            return new Player(new Position(CONSTANTS.MAP_SIZE, CONSTANTS.MAP_SIZE).scale(1/2), CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
+            return defaultObserver
         }
         return this.getPlayers().reduce(function(p1: Player, p2: Player) {
             return (p1.score >= p2.score) ? p1 : p2
@@ -138,7 +140,7 @@ export class ServerGameState<MazeType extends MazeBase> {
     // move all players (and bots) in their directions and apply colllisions
     updatePlayers() {
         for (let id of this.players.keys()) {
-            if (this.maze.isPointBlocked(this.players.get(id).centroid)) {
+            if (this.maze.isPointBlocked(this.players.get(id).centroid, this.players.get(id).team)) {
                 let attacker = new Player(this.players.get(id).centroid, CONSTANTS.MAZE_NAME, CONSTANTS.MAZE_NAME, false)
                 this.doCapture(id, attacker)
             } else {

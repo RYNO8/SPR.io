@@ -6,7 +6,7 @@
 
 import * as CONSTANTS from "./../constants"
 import { Player } from "./player"
-import { makeSquare, makeTriangle, Obstacle } from "./obstacle"
+import { Obstacle, ClientObstacle, makeObstacle, makeSquare } from "./obstacle"
 import { Position, add, DIRECTIONS_8, sub } from "./position"
 
 export class MazeBase {
@@ -18,15 +18,15 @@ export class MazeBase {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 let mazePos = new Position(col, row)
                 this.obstacles[row][col] = [
-                    makeSquare(mazePos, CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE),
-                    makeTriangle(mazePos, CONSTANTS.CELL_SIZE, true, true),
-                    makeTriangle(mazePos, CONSTANTS.CELL_SIZE, true, false),
-                    makeTriangle(mazePos, CONSTANTS.CELL_SIZE, false, true),
-                    makeTriangle(mazePos, CONSTANTS.CELL_SIZE, false, false),
-                    makeTriangle(mazePos, CONSTANTS.MAZE_OVERLAP, true, true),
-                    makeTriangle(mazePos, CONSTANTS.MAZE_OVERLAP, true, false),
-                    makeTriangle(mazePos, CONSTANTS.MAZE_OVERLAP, false, true),
-                    makeTriangle(mazePos, CONSTANTS.MAZE_OVERLAP, false, false),
+                    makeObstacle(mazePos, 0),
+                    makeObstacle(mazePos, 1),
+                    makeObstacle(mazePos, 2),
+                    makeObstacle(mazePos, 3),
+                    makeObstacle(mazePos, 4),
+                    makeObstacle(mazePos, 5),
+                    makeObstacle(mazePos, 6),
+                    makeObstacle(mazePos, 7),
+                    makeObstacle(mazePos, 8)
                 ]
             }
         }
@@ -43,23 +43,26 @@ export class MazeBase {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 let pos = new Position(col, row)
-                let isThis = this.isCellBlocked(pos)
-                let isRight = this.isCellBlocked(add(pos, new Position(1, 0)))
-                let isLeft = this.isCellBlocked(add(pos, new Position(-1, 0)))
-                let isDown = this.isCellBlocked(add(pos, new Position(0, 1)))
-                let isUp = this.isCellBlocked(add(pos, new Position(0, -1)))
-                let numAlive: number = (isRight ? 1 : 0) + (isLeft ? 1 : 0) + (isDown ? 1 : 0) + (isUp ? 1 : 0)
+                for (let team = 0; team < CONSTANTS.NUM_TEAMS; ++team) {
+                    let isThis = this.isCellBlocked(pos, team)
+                    let isRight = this.isCellBlocked(add(pos, new Position(1, 0)), team)
+                    let isLeft = this.isCellBlocked(add(pos, new Position(-1, 0)), team)
+                    let isDown = this.isCellBlocked(add(pos, new Position(0, 1)), team)
+                    let isUp = this.isCellBlocked(add(pos, new Position(0, -1)), team)
 
-                let ok2 = numAlive === 2 && isRight !== isLeft && isDown !== isUp
-                let ok3 = numAlive >= 3
-                this.obstacles[pos.y][pos.x][1].setTo(ok2 && !isThis && isRight && isDown)
-                this.obstacles[pos.y][pos.x][3].setTo(ok2 && !isThis && isRight && isUp)
-                this.obstacles[pos.y][pos.x][2].setTo(ok2 && !isThis && isLeft && isDown)
-                this.obstacles[pos.y][pos.x][4].setTo(ok2 && !isThis && isLeft && isUp)
-                this.obstacles[pos.y][pos.x][5].setTo(ok3 && !isThis && isRight && isDown)
-                this.obstacles[pos.y][pos.x][7].setTo(ok3 && !isThis && isRight && isUp)
-                this.obstacles[pos.y][pos.x][6].setTo(ok3 && !isThis && isLeft && isDown)
-                this.obstacles[pos.y][pos.x][8].setTo(ok3 && !isThis && isLeft && isUp)
+                    let numAlive: number = (isRight ? 1 : 0) + (isLeft ? 1 : 0) + (isDown ? 1 : 0) + (isUp ? 1 : 0)
+                    let ok2 = numAlive === 2 && isRight !== isLeft && isDown !== isUp
+                    let ok3 = numAlive >= 3
+
+                    this.obstacles[pos.y][pos.x][1].setTo(ok2 && !isThis && isRight && isDown, team)
+                    this.obstacles[pos.y][pos.x][2].setTo(ok2 && !isThis && isLeft && isDown, team)
+                    this.obstacles[pos.y][pos.x][3].setTo(ok2 && !isThis && isRight && isUp, team)
+                    this.obstacles[pos.y][pos.x][4].setTo(ok2 && !isThis && isLeft && isUp, team)
+                    this.obstacles[pos.y][pos.x][5].setTo(ok3 && !isThis && isRight && isDown, team)
+                    this.obstacles[pos.y][pos.x][6].setTo(ok3 && !isThis && isLeft && isDown, team)
+                    this.obstacles[pos.y][pos.x][7].setTo(ok3 && !isThis && isRight && isUp, team)
+                    this.obstacles[pos.y][pos.x][8].setTo(ok3 && !isThis && isLeft && isUp, team)
+                }
             }
         }
     }
@@ -87,11 +90,11 @@ export class MazeBase {
 
     // determine if "mazePos" is outside maze bounding box (implicitly all walls)
     // or if it a explicit wall
-    isCellBlocked(mazePos: Position) {
+    isCellBlocked(mazePos: Position, team?: number) {
         return (
             !this.isValidCell(mazePos) ||
             //!this.obstacles[mazePos.y][mazePos.x][0].existsBefore(Date.now())
-            this.obstacles[mazePos.y][mazePos.x][0].existsAt(Date.now() + CONSTANTS.MAZE_CHANGE_DELAY + 1)
+            this.obstacles[mazePos.y][mazePos.x][0].existsAt(Date.now() + CONSTANTS.MAZE_CHANGE_DELAY + 1, team)
         )
     }
 
@@ -102,18 +105,20 @@ export class MazeBase {
             return this.obstacles[mazePos.y][mazePos.x]
         } else {
             let obstacle = makeSquare(mazePos, CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
-            obstacle.startTime = 0
-            obstacle.endTime = CONSTANTS.MAX_TIMESTAMP
+            for (let team = 0; team < CONSTANTS.NUM_TEAMS; ++team) {
+                obstacle.startTime[team] = 0
+                obstacle.endTime[team] = CONSTANTS.MAX_TIMESTAMP
+            }
             return [obstacle]
         }
     }
 
     // determine whether position is blocked by an obstacle
-    isPointBlocked(pos: Position) {
+    isPointBlocked(pos: Position, team?: number) {
         for (let dirI = 0; dirI <= 8; dirI++) {
             let obstacles = this.getObstacles(add(pos.toMazePos(), DIRECTIONS_8[dirI]))
             for (let i = 0; i < obstacles.length; ++i) {
-                if (obstacles[i].existsAt(Date.now()) && obstacles[i].covers(pos)) {
+                if (obstacles[i].existsAt(Date.now(), team) && obstacles[i].covers(pos, team)) {
                     return true
                 }
             }
@@ -123,13 +128,13 @@ export class MazeBase {
 
     // ray from "startPos" to "startPos + dirVec"
     // find intersections and return reflected ray
-    rayTraceHelper(startPos: Position, dirVec: Position): [number, Position, Position] {
+    rayTraceHelper(startPos: Position, dirVec: Position, team?: number): [number, Position, Position] {
         let best: [number, Position, Position] = [1, startPos, dirVec]
         for (let dirI = 0; dirI <= 8; dirI++) {
             let obstacles = this.getObstacles(add(startPos.toMazePos(), DIRECTIONS_8[dirI]))
             for (let i = 0; i < obstacles.length; ++i) {
-                if (obstacles[i].existsAt(Date.now())) {
-                    let intersection = obstacles[i].rayTrace(startPos, dirVec)
+                if (obstacles[i].existsAt(Date.now(), team)) {
+                    let intersection = obstacles[i].rayTrace(startPos, dirVec, team)
                     if (intersection[0] <= best[0]) {
                         //if (best[0] <= 0.02) intersection[2] = new Position(0, 0)
                         best = intersection
@@ -143,19 +148,19 @@ export class MazeBase {
 
     // ray trace to get skimming, ray trace again to ensure skimming does not collide with walls
     // NOTE: assuming skimming cannot happen more than once
-    rayTrace(startPos: Position, dirVec: Position): Position {
+    rayTrace(startPos: Position, dirVec: Position, team?: number): Position {
         let intersection = [startPos, dirVec]
         for (let rep = 0; rep < 2; ++rep) {
-            let traced = this.rayTraceHelper(intersection[0], intersection[1])
-            if (this.isPointBlocked(add(traced[1], traced[2]))) {
+            let traced = this.rayTraceHelper(intersection[0], intersection[1], team)
+            /*if (this.isPointBlocked(add(traced[1], traced[2]))) {
                 //console.log(rep, traced[0], traced[1], add(traced[1], traced[2]), this.isPointBlocked(traced[1]))
-            }
+            }*/
             intersection[0] = traced[1]
             intersection[1] = traced[2]
         }
-        if (!this.isPointBlocked(add(intersection[0], intersection[1]))) {
+        if (!this.isPointBlocked(add(intersection[0], intersection[1]), team)) {
             return add(intersection[0], intersection[1])
-        } else if (!this.isPointBlocked(intersection[0])) {
+        } else if (!this.isPointBlocked(intersection[0], team)) {
             //console.log("ohno")
             return intersection[0]
         } else {
@@ -166,7 +171,7 @@ export class MazeBase {
 
     // given "me", export all visible obstalces
     exportMaze(me: Player) {
-        let output: [number, number, number, number, number][] = []
+        let output: ClientObstacle[] = []
         let visibleSize = new Position(
             1000000, //* CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER,
             1000000 //* CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
@@ -179,8 +184,8 @@ export class MazeBase {
                 let pos = new Position(col, row)
                 let obstacles = this.getObstacles(pos)
                 for (let i = 0; i < obstacles.length; ++i) {
-                    if ((obstacles[i].existsAt(Date.now()) || obstacles[i].existsAfter(Date.now())) && me.canSee(obstacles[i])) {
-                        output.push([row, col, i, obstacles[i].startTime, obstacles[i].endTime]);
+                    if ((obstacles[i].existsAt(Date.now(), me.team) || obstacles[i].existsAfter(Date.now(), me.team)) && me.canSee(obstacles[i])) {
+                        output.push(obstacles[i].exportObstacle(row, col, i))
                     }
                 }
             }

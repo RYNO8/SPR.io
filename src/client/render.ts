@@ -8,6 +8,7 @@ import { renderMain, renderMinimap } from "./renderMain"
 import { renderFX } from "./renderFX"
 import { Player } from "../shared/model/player"
 import { Powerup } from "../shared/model/powerup"
+import { ClientObstacle } from "../shared/model/obstacle"
 
 let targetStates: ClientGameState[] = []
 let gamestate = new ClientGameState(Date.now(), null, null, [], [], [])
@@ -19,6 +20,7 @@ let latencySamplesMain = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 let latencySamplesFX = new RollingAvg(CONSTANTS.SAMPLE_SIZE, 0)
 
 const isHighQuality = <HTMLInputElement> document.getElementById("is-high-quality")
+isHighQuality.checked = true // default to high quality
 const debug1 = document.getElementById("debug-1")
 const debug2 = document.getElementById("debug-2")
 const debug3 = document.getElementById("debug-3")
@@ -30,7 +32,7 @@ function serverTime() {
     return Date.now() + timeDiff.getAvg() - CONSTANTS.RENDER_DELAY
 }
 
-socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(time: number, attackerName: string | null, me: Player, others: Player[], powerups: Powerup[], maze: [number, number, number, number, number][]) {
+socket.on(CONSTANTS.Endpoint.UPDATE_GAME_STATE, function(time: number, attackerName: string | null, me: Player, others: Player[], powerups: Powerup[], maze: ClientObstacle[]) {
     let newGamestate: ClientGameState = new ClientGameState(time, attackerName, me, others, powerups, maze)
 
     timeDiff.update(newGamestate.time - Date.now())

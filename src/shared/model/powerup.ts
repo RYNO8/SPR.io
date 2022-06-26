@@ -9,7 +9,7 @@ export class Powerup extends GameObject {
         this.time = Date.now()
     }
 
-    static deserialise(powerup : Powerup) {
+    static deserialisePowerup(powerup : Powerup) {
         let output : Powerup = new Powerup(Position.deserialise(powerup.centroid))
         output.time = powerup.time
         return output
