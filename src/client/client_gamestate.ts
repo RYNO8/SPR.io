@@ -23,7 +23,7 @@ export class ClientGameState {
         this.powerups = powerups.map(Powerup.deserialise)
         this.maze = []
         for (let val of maze) {
-            let mazePos = new Position(val[0], val[1])
+            let mazePos = new Position(val[1], val[0])
             let obstacle = obstacleCache.getObstacles(mazePos)[val[2]]
             obstacle.startTime = val[3]
             obstacle.endTime = val[4]

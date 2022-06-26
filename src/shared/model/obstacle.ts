@@ -128,7 +128,7 @@ export function makeSquare(mazePos: Position, width: number, height: number) {
 
 export function makeTriangle(mazePos: Position, size: number, isRight: boolean, isBottom: boolean) {
     let center = add(mazePos, new Position(1/2, 1/2)).scale(CONSTANTS.CELL_SIZE)
-    let factor = new Position(isRight ? +1 : -1, isBottom ? +1 : -1)
+    let factor = new Position(isBottom ? +1 : -1, isRight ? +1 : -1)
     let val1 = CONSTANTS.CELL_SIZE / 2 + CONSTANTS.MAZE_OVERLAP
     let val2 = CONSTANTS.CELL_SIZE / 2 - size - CONSTANTS.MAZE_OVERLAP
     let val3 = CONSTANTS.CELL_SIZE / 2 - CONSTANTS.MAZE_OVERLAP

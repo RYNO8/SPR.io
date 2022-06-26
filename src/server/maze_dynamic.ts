@@ -21,7 +21,7 @@ export class MazeDynamic extends MazeBase {
         }
         while (this.todo.length > 0) {
             let mazePos = this.todo.shift()
-            this.obstacles[mazePos.x][mazePos.y][0].add()
+            this.obstacles[mazePos.y][mazePos.x][0].add()
         }
         while (this.todo.length === 0) {
             this.todo.push(...this.findMutations())
@@ -90,7 +90,7 @@ export class MazeDynamic extends MazeBase {
         let allCentroids: Position[] = []
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
-                let pos = new Position(row, col)
+                let pos = new Position(col, row)
                 if (!this.isCellBlocked_(pos) && !seen[pos.x][pos.y]) {
                     let allPos = this.getComponent(pos, seen)
                     let centroid = findAvg(allPos).floor()
@@ -206,7 +206,7 @@ export class MazeDynamic extends MazeBase {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             newMaze[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
-                let pos = new Position(row, col)
+                let pos = new Position(col, row)
                 let numAlive = 0
                 for (let i = 0; i < 8; ++i) {
                     if (this.isValidCell(add(pos, DIRECTIONS_8[i])) && this.isCellBlocked_(add(pos, DIRECTIONS_8[i]))) {
@@ -250,7 +250,7 @@ export class MazeDynamic extends MazeBase {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
                 if (oldMaze[row][col] !== this.maze[row][col]) {
-                    todo.push(new Position(row, col))
+                    todo.push(new Position(col, row))
                 }
             }
         }
@@ -271,7 +271,7 @@ export class MazeDynamic extends MazeBase {
         let numReps = randRange(1, 10)
         for (let i = 0; i < numReps && this.todo.length; ++i) {
             let mazePos = this.todo.shift()
-            this.obstacles[mazePos.x][mazePos.y][0].setTo(this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now()))
+            this.obstacles[mazePos.y][mazePos.x][0].setTo(this.obstacles[mazePos.y][mazePos.x][0].existsBefore(Date.now()))
         }
         
         this.applyMazeSmoothing()

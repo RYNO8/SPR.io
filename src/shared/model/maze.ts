@@ -16,7 +16,7 @@ export class MazeBase {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             this.obstacles[row] = []
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
-                let mazePos = new Position(row, col)
+                let mazePos = new Position(col, row)
                 this.obstacles[row][col] = [
                     makeSquare(mazePos, CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE),
                     makeTriangle(mazePos, CONSTANTS.CELL_SIZE, true, true),
@@ -42,24 +42,24 @@ export class MazeBase {
     applyMazeSmoothing() {
         for (let row = 0; row < CONSTANTS.NUM_CELLS; ++row) {
             for (let col = 0; col < CONSTANTS.NUM_CELLS; ++col) {
-                let pos = new Position(row, col)
+                let pos = new Position(col, row)
                 let isThis = this.isCellBlocked(pos)
                 let isRight = this.isCellBlocked(add(pos, new Position(1, 0)))
                 let isLeft = this.isCellBlocked(add(pos, new Position(-1, 0)))
-                let isBottom = this.isCellBlocked(add(pos, new Position(0, 1)))
-                let isTop = this.isCellBlocked(add(pos, new Position(0, -1)))
-                let numAlive: number = (isRight ? 1 : 0) + (isLeft ? 1 : 0) + (isBottom ? 1 : 0) + (isTop ? 1 : 0)
+                let isDown = this.isCellBlocked(add(pos, new Position(0, 1)))
+                let isUp = this.isCellBlocked(add(pos, new Position(0, -1)))
+                let numAlive: number = (isRight ? 1 : 0) + (isLeft ? 1 : 0) + (isDown ? 1 : 0) + (isUp ? 1 : 0)
 
-                let ok2 = numAlive === 2 && isRight !== isLeft && isBottom !== isTop
+                let ok2 = numAlive === 2 && isRight !== isLeft && isDown !== isUp
                 let ok3 = numAlive >= 3
-                this.obstacles[pos.x][pos.y][1].setTo(ok2 && !isThis && isRight && isBottom)
-                this.obstacles[pos.x][pos.y][2].setTo(ok2 && !isThis && isRight && isTop)
-                this.obstacles[pos.x][pos.y][3].setTo(ok2 && !isThis && isLeft && isBottom)
-                this.obstacles[pos.x][pos.y][4].setTo(ok2 && !isThis && isLeft && isTop)
-                this.obstacles[pos.x][pos.y][5].setTo(ok3 && !isThis && isRight && isBottom)
-                this.obstacles[pos.x][pos.y][6].setTo(ok3 && !isThis && isRight && isTop)
-                this.obstacles[pos.x][pos.y][7].setTo(ok3 && !isThis && isLeft && isBottom)
-                this.obstacles[pos.x][pos.y][8].setTo(ok3 && !isThis && isLeft && isTop)
+                this.obstacles[pos.y][pos.x][1].setTo(ok2 && !isThis && isRight && isDown)
+                this.obstacles[pos.y][pos.x][3].setTo(ok2 && !isThis && isRight && isUp)
+                this.obstacles[pos.y][pos.x][2].setTo(ok2 && !isThis && isLeft && isDown)
+                this.obstacles[pos.y][pos.x][4].setTo(ok2 && !isThis && isLeft && isUp)
+                this.obstacles[pos.y][pos.x][5].setTo(ok3 && !isThis && isRight && isDown)
+                this.obstacles[pos.y][pos.x][7].setTo(ok3 && !isThis && isRight && isUp)
+                this.obstacles[pos.y][pos.x][6].setTo(ok3 && !isThis && isLeft && isDown)
+                this.obstacles[pos.y][pos.x][8].setTo(ok3 && !isThis && isLeft && isUp)
             }
         }
     }
@@ -90,8 +90,8 @@ export class MazeBase {
     isCellBlocked(mazePos: Position) {
         return (
             !this.isValidCell(mazePos) ||
-            //!this.obstacles[mazePos.x][mazePos.y][0].existsBefore(Date.now())
-            this.obstacles[mazePos.x][mazePos.y][0].existsAt(Date.now() + CONSTANTS.MAZE_CHANGE_DELAY + 1)
+            //!this.obstacles[mazePos.y][mazePos.x][0].existsBefore(Date.now())
+            this.obstacles[mazePos.y][mazePos.x][0].existsAt(Date.now() + CONSTANTS.MAZE_CHANGE_DELAY + 1)
         )
     }
 
@@ -99,7 +99,7 @@ export class MazeBase {
     // export array of obstacles at this "mazePos"
     getObstacles(mazePos: Position) {
         if (this.isValidCell(mazePos)) {
-            return this.obstacles[mazePos.x][mazePos.y]
+            return this.obstacles[mazePos.y][mazePos.x]
         } else {
             let obstacle = makeSquare(mazePos, CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
             obstacle.startTime = 0
@@ -111,7 +111,7 @@ export class MazeBase {
     // determine whether position is blocked by an obstacle
     isPointBlocked(pos: Position) {
         for (let dirI = 0; dirI <= 8; dirI++) {
-            let obstacles = this.getObstacles(add(pos, DIRECTIONS_8[dirI]).toMazePos())
+            let obstacles = this.getObstacles(add(pos.toMazePos(), DIRECTIONS_8[dirI]))
             for (let i = 0; i < obstacles.length; ++i) {
                 if (obstacles[i].existsAt(Date.now()) && obstacles[i].covers(pos)) {
                     return true
@@ -168,16 +168,15 @@ export class MazeBase {
     exportMaze(me: Player) {
         let output: [number, number, number, number, number][] = []
         let visibleSize = new Position(
-            CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER,
-            CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
+            1000000, //* CONSTANTS.VISIBLE_WIDTH / 2 + CONSTANTS.VISIBLE_BUFFER,
+            1000000 //* CONSTANTS.VISIBLE_HEIGHT / 2 + CONSTANTS.VISIBLE_BUFFER
         )
         let lowerBound = sub(me.centroid, visibleSize).scale(1 / CONSTANTS.CELL_SIZE).floor()
         let upperBound = add(me.centroid, visibleSize).scale(1 / CONSTANTS.CELL_SIZE).ceil()
-        
 
-        for (let row = Math.max(-1, lowerBound.x); row <= upperBound.x && row < CONSTANTS.NUM_CELLS + 1; ++row) {
-            for (let col = Math.max(-1, lowerBound.y); col <= upperBound.y && col < CONSTANTS.NUM_CELLS + 1; ++col) {
-                let pos = new Position(row, col)
+        for (let row = Math.max(-1, lowerBound.y); row <= Math.min(upperBound.y, CONSTANTS.NUM_CELLS); ++row) {
+            for (let col = Math.max(-1, lowerBound.x); col <= Math.min(upperBound.x, CONSTANTS.NUM_CELLS); ++col) {
+                let pos = new Position(col, row)
                 let obstacles = this.getObstacles(pos)
                 for (let i = 0; i < obstacles.length; ++i) {
                     if ((obstacles[i].existsAt(Date.now()) || obstacles[i].existsAfter(Date.now())) && me.canSee(obstacles[i])) {
