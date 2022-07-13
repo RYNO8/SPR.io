@@ -7,7 +7,7 @@
         "clean": "rimraf dist/*",
         "tsc": "tsc",
         "assets_windows": "copy /y src\\client\\index.html dist\\client && xcopy /e /i /y src\\client\\css dist\\client\\css && xcopy /e /i /y src\\client\\img dist\\client\\img",
-        "assets": "cp -R src/client/index.html src/client/css src/client/img src/client/js dist/client",
+        "assets": "cp -R src/client/index.html src/client/css src/client/img dist/client",
         "parcel": "parcel build src/client/game.ts -d dist/client",
         "build": "npm-run-all clean tsc assets parcel",
         "start": "node dist/server/server.js",
