@@ -21,6 +21,14 @@
         // smart fix for FOUC (Flash Of Unstyled Content) where the raw, unstyled page would generate before the final one.
         document.documentElement.hidden = true;
     </script>
+    <script type='text/javascript'>
+        window.smartlook||(function(d) {
+            var o=smartlook=function(){ o.api.push(arguments)},h=d.getElementsByTagName('head')[0];
+            var c=d.createElement('script');o.api=new Array();c.async=true;c.type='text/javascript';
+            c.charset='utf-8';c.src='https://web-sdk.smartlook.com/recorder.js';h.appendChild(c);
+            })(document);
+            smartlook('init', '91d7c7c2dcfe3086f88fbfc16bfd6f5a43de049e', { region: 'eu' });
+    </script>
 </head>
 
 <body>
