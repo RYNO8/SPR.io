@@ -12,5 +12,6 @@ RUN npm install
 COPY src /app/src
 COPY tsconfig.json /app/
 RUN npm run build
-
-CMD npm start
+RUN npm install pm2 -g
+RUN pm2 link 55iw5a42cu93a94 iak1filz7pc14k3
+CMD pm2-runtime dist/server/server.js --raw -e PM2_PUBLIC_KEY $PM2_PUBLIC_KEY -e PM2_SECRET_KEY $PM2_SECRET_KEY
