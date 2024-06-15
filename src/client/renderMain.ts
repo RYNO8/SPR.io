@@ -119,7 +119,7 @@ function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean, tea
     ctxMain.fill()
 }*/
 
-/*function renderPlayer(player: Player, time: number, colour: string) {
+function renderPlayer(player: Player, time: number, colour: string) {
     if (!player.isVisible) return
 
     // TODO: better ducc
@@ -135,41 +135,41 @@ function renderMazeHelper(maze: Obstacle[], time: number, doStroke: boolean, tea
     ctxMain.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
 
     ctxMain.translate(-player.centroid.x, -player.centroid.y)
-}*/
-
-function renderPlayer(player: Player, time: number, colour: string) {
-    if (!player.isVisible) return
-    
-    ctxMain.save()
-
-    ctxMain.translate(player.centroid.x, player.centroid.y)
-    ctxMain.rotate(player.direction)
-    if (player.hasPowerup >= time) {
-        // TODO: change intensity of colour
-        ctxMain.fillStyle = CONSTANTS.PLAYER_POWERUP_COLOUR
-        //console.log("purple", player.hasPowerup - serverTime())
-    } else {
-        ctxMain.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
-    }
-    ctxMain.strokeStyle = colour
-    ctxMain.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
-
-    ctxMain.beginPath()
-    const innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
-    ctxMain.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
-    ctxMain.fill()
-    ctxMain.stroke()
-    //ctxMain.drawImage(ducc, -138, -96)
-    //ctxMain.fillRect(0, -2, 50, 2)
-
-    ctxMain.rotate(-player.direction)
-    ctxMain.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
-    ctxMain.font = CONSTANTS.CANVAS_FONT
-    ctxMain.textAlign = "center"
-    ctxMain.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
-
-    ctxMain.restore()
 }
+
+// function renderPlayer(player: Player, time: number, colour: string) {
+//     if (!player.isVisible) return
+    
+//     ctxMain.save()
+
+//     ctxMain.translate(player.centroid.x, player.centroid.y)
+//     ctxMain.rotate(player.direction)
+//     if (player.hasPowerup >= time) {
+//         // TODO: change intensity of colour
+//         ctxMain.fillStyle = CONSTANTS.PLAYER_POWERUP_COLOUR
+//         //console.log("purple", player.hasPowerup - serverTime())
+//     } else {
+//         ctxMain.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
+//     }
+//     ctxMain.strokeStyle = colour
+//     ctxMain.lineWidth = CONSTANTS.PLAYER_LINE_WIDTH
+
+//     ctxMain.beginPath()
+//     const innerRadius: number = CONSTANTS.PLAYER_RADIUS - CONSTANTS.PLAYER_LINE_WIDTH
+//     ctxMain.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius)
+//     ctxMain.fill()
+//     ctxMain.stroke()
+//     //ctxMain.drawImage(ducc, -138, -96)
+//     //ctxMain.fillRect(0, -2, 50, 2)
+
+//     ctxMain.rotate(-player.direction)
+//     ctxMain.fillStyle = CONSTANTS.PLAYER_DEFAULT_COLOUR
+//     ctxMain.font = CONSTANTS.CANVAS_FONT
+//     ctxMain.textAlign = "center"
+//     ctxMain.fillText(player.name, 0, CONSTANTS.PLAYER_NAME_OFFSET)
+
+//     ctxMain.restore()
+// }
 
 
 export function renderMinimap(gamestate: ClientGameState) {
